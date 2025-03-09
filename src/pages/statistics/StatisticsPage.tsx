@@ -65,7 +65,7 @@ export function StatisticsPage() {
         if (!currentEvent) {
             return "";
         }
-        let diffInSec = differenceInSeconds(new Date(), new Date(currentEvent.startTime));
+        const diffInSec = differenceInSeconds(new Date(), new Date(currentEvent.startTime));
         return formatSecondsToDuration(diffInSec);
     }
 
