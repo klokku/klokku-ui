@@ -63,9 +63,12 @@ export default {
   				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
-		fontFamily: {
-			'sour-gummy': ['"Sour Gummy Variable"', 'sans-serif'],
-		},
+  		fontFamily: {
+  			'sour-gummy': [
+  				'Sour Gummy Variable"',
+  				'sans-serif'
+  			]
+  		}
   	}
   },
   plugins: [tailwindcssAnimate],

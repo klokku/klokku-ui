@@ -40,7 +40,7 @@ export function AppSidebar() {
     const { setOpenMobile } = useSidebar();
 
     return (
-        <Sidebar variant="sidebar">
+        <Sidebar variant="sidebar" className="absolute inset-y-[48px] z-10 h-[calc(100svh-48px)]">
             <SidebarContent className="mt-2">
                 <SidebarGroup>
                     <SidebarGroupContent>
