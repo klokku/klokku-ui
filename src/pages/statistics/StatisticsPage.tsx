@@ -11,7 +11,7 @@ import {PlannedTimeDialog} from "@/components/statistics/PlannedTimeDialog.tsx";
 import {Budget, BudgetOverride} from "@/api/types.ts";
 import useBudgetOverrides from "@/api/useBudgetOverrides.ts";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
-import {differenceInSeconds} from "date-fns";
+import {differenceInSeconds, isToday} from "date-fns";
 
 export function StatisticsPage() {
 
@@ -68,15 +68,6 @@ export function StatisticsPage() {
         const diffInSec = differenceInSeconds(new Date(), new Date(currentEvent.startTime));
         return formatSecondsToDuration(diffInSec);
     }
-
-    const isToday = (date: Date): boolean => {
-        const today = new Date();
-        return (
-            date.getDate() === today.getDate() &&
-            date.getMonth() === today.getMonth() &&
-            date.getFullYear() === today.getFullYear()
-        );
-    };
 
     return (
         <div className="flex flex-col gap-y-4">
