@@ -1,50 +1,20 @@
-# React + TypeScript + Vite
+![Klokku Logo](https://klokku.com/klokku-github-banner.png)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Klokku - track your time and balance your life
 
-Currently, two official plugins are available:
+Klokku is an application designed to help you achieve a balanced lifestyle by optimizing daily routines and tracking time usage.
+You can easily create and adjust time budgets for task groups and enable a structured approach to planning.
+You can update your plan weekly, which gives you flexibility and ensures the plan remains realistic and aligned with your life’s demands.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Klokku provides a tool to monitor time allocation, offering insights into how time is spent and helping users make informed adjustments for continuous improvement. 
 
-## Expanding the ESLint configuration
+Read more on [klokku.com](https://klokku.com).
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
 
-- Configure the top-level `parserOptions` property like this:
+## Installation
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+Klokku application consists of two main components:
+- [backend written in Go](https://github.com/klokku/klokku),
+- frontend written in React (this repository).
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+You can find installation instruction in [the backend repository](https://github.com/klokku/klokku) and in the documentation on [the official website](https://klokku.com).
