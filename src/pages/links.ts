@@ -27,6 +27,12 @@ export const paths = {
     path: "/profile",
     title: "Profile"
   },
+
+  integrations: {
+    path: "/integrations",
+    title: "Integrations"
+  },
+
 };
 
 export const links = {
