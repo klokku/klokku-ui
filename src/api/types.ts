@@ -73,3 +73,46 @@ export interface GoogleCalendarItem {
 export interface GoogleAuthRedirect {
     redirectUrl: string;
 }
+
+export interface ClickUpAuthRedirect {
+    redirectUrl: string;
+}
+
+export interface ClickUpWorkspace {
+    id: string;
+    name: string;
+}
+
+export interface ClickUpSpace {
+    id: string;
+    name: string;
+}
+
+export interface ClickUpFolder {
+    id: string;
+    name: string;
+}
+
+export interface ClickUpTag {
+    name: string;
+}
+
+export interface ClickUpTagMapping {
+    clickUpSpaceId: number;
+    clickUpTagName: string;
+    budgetId: number;
+    position: number;
+}
+
+export interface ClickUpTask {
+    id: string;
+    name: string;
+    timeEstimateSec: number;
+}
+
+export interface ClickUpConfig {
+    workspaceId: number;
+    spaceId: number;
+    folderId?: number;
+    mappings: ClickUpTagMapping[];
+}

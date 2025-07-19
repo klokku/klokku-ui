@@ -10,6 +10,7 @@ import LoggedInUserRoot from "@/pages/LoggedInUserRoot.tsx";
 import {StartPage} from "@/pages/start/StartPage.tsx";
 import {CreateProfilePage} from "@/pages/profile/CreateProfilePage.tsx";
 import {ProfileEditPage} from "@/pages/profile/ProfileEditPage.tsx";
+import {IntegrationsPage} from "@/pages/integrations/IntegrationsPage.tsx";
 
 const AppRoutes = () => (
   <Routes>
@@ -21,6 +22,7 @@ const AppRoutes = () => (
       <Route path={paths.budgets.path} element={<BudgetsPage />} />
       <Route path={paths.calendar.path} element={<CalendarPage />} />
       <Route path={paths.profile.path} element={<ProfileEditPage />} />
+      <Route path={paths.integrations.path} element={<IntegrationsPage />} />
     </Route>
     <Route path="*" element={<ErrorPage404 />} />
   </Routes>

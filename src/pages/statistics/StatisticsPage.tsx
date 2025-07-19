@@ -8,10 +8,11 @@ import {ProgressCell} from "@/components/statistics/ProgressCell.tsx";
 import {ReplaceIcon, TimerIcon, TriangleAlertIcon} from "lucide-react";
 import useEvents from "@/api/useEvents.ts";
 import {PlannedTimeDialog} from "@/components/statistics/PlannedTimeDialog.tsx";
-import {Budget, BudgetOverride} from "@/api/types.ts";
+import {Budget, BudgetOverride, BudgetStats} from "@/api/types.ts";
 import useBudgetOverrides from "@/api/useBudgetOverrides.ts";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {differenceInSeconds, isToday} from "date-fns";
+import BudgetDetailsDialog from "@/pages/planning/BudgetDetailsDialog.tsx";
 
 export function StatisticsPage() {
 
@@ -19,6 +20,8 @@ export function StatisticsPage() {
     const [overrideDialogOpen, setOverrideDialogOpen] = useState(false)
     const [editedBudgetOverride, setEditedBudgetOverride] = useState<BudgetOverride | undefined>(undefined)
     const [editedBudget, setEditedBudget] = useState<Budget | undefined>(undefined)
+    const [budgetStatsDetails, setBudgetStatsDetails] = useState<BudgetStats | undefined>(undefined)
+    const [budgetStatsDetailsDialogOpen, setBudgetStatsDetailsDialogOpen] = useState(false)
 
     function onNextWeek() {
         setWeekFirstDay(nextWeekStart(weekFirstDay))
@@ -32,6 +35,12 @@ export function StatisticsPage() {
         setEditedBudget(budget)
         setEditedBudgetOverride(override)
         setOverrideDialogOpen(true)
+    }
+
+
+    function openBudgetDetailsDialog(budgetStats: BudgetStats) {
+        setBudgetStatsDetails(budgetStats)
+        setBudgetStatsDetailsDialogOpen(true)
     }
 
 
@@ -136,7 +145,7 @@ export function StatisticsPage() {
                         {weekData!.budgets.map((stat) => (
                             <TableRow className="h-full p-0" key={stat.budget.id}>
                                 <TableCell className="font-medium bg-gray-50 flex items-center space-x-2">
-                                    <span>{stat.budget.name}</span>
+                                    <span className="cursor-pointer" onClick={() => openBudgetDetailsDialog(stat)}>{stat.budget.name}</span>
                                     {stat.budget.id && isCurrent(stat.budget.id) && (
                                         <TooltipProvider>
                                             <Tooltip>
@@ -198,6 +207,17 @@ export function StatisticsPage() {
                                        onSave={saveOverride}
                                        onDelete={deleteOverride}
                     />
+                }
+                {
+                    budgetStatsDetailsDialogOpen && budgetStatsDetails && (
+                        <BudgetDetailsDialog
+                            open={budgetStatsDetailsDialogOpen}
+                            onOpenChange={setBudgetStatsDetailsDialogOpen}
+                            budgetStats={budgetStatsDetails}
+                            periodStart={weekFirstDay}
+                            periodEnd={weekEndDay(weekFirstDay)}
+                        />
+                    )
                 }
             </div>
 
