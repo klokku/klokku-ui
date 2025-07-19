@@ -145,7 +145,7 @@ export function StatisticsPage() {
                         {weekData!.budgets.map((stat) => (
                             <TableRow className="h-full p-0" key={stat.budget.id}>
                                 <TableCell className="font-medium bg-gray-50 flex items-center space-x-2">
-                                    <span onClick={() => openBudgetDetailsDialog(stat)}>{stat.budget.name}</span>
+                                    <span className="cursor-pointer" onClick={() => openBudgetDetailsDialog(stat)}>{stat.budget.name}</span>
                                     {stat.budget.id && isCurrent(stat.budget.id) && (
                                         <TooltipProvider>
                                             <Tooltip>
