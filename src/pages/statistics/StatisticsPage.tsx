@@ -119,7 +119,7 @@ export function StatisticsPage() {
                                         key={day.date}
                                         className={isToday(new Date(day.date)) ? "bg-blue-50" : ""}
                                     >
-                                        {formatSecondsToDuration(day.budgets.find(it => it.budget.id == stat.budget.id)!.duration)}
+                                        {formatSecondsToDuration(day.budgets.find(it => it.budget.id == stat.budget.id)?.duration ?? 0)}
                                     </TableCell>
                                 ))}
                                 <TableCell className="font-medium bg-gray-50 p-0">
