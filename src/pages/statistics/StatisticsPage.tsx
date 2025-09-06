@@ -162,7 +162,7 @@ export function StatisticsPage() {
                                 <TableCell className="cursor-pointer" onClick={() => openOverrideDialog(stat.budget, stat.budgetOverride)}>
                                     <div className="flex items-center space-x-2">
                                         <div>
-                                            {formatSecondsToDuration(stat.budgetOverride?.weeklyTime || stat.budget.weeklyTime)}
+                                            {formatSecondsToDuration(stat.budgetOverride ? stat.budgetOverride.weeklyTime : stat.budget.weeklyTime)}
                                         </div>
                                         {stat.budgetOverride && (
                                             <ReplaceIcon className="size-4"/>
@@ -171,7 +171,7 @@ export function StatisticsPage() {
                                 </TableCell>
                                 <TableCell className="h-full p-0 bg-gray-50">
                                     <ProgressCell duration={stat.duration}
-                                                  maxDuration={stat.budgetOverride?.weeklyTime || stat.budget.weeklyTime}/>
+                                                  maxDuration={stat.budgetOverride ? stat.budgetOverride.weeklyTime : stat.budget.weeklyTime}/>
                                 </TableCell>
                                 <TableCell>{formatSecondsToDuration(stat.remaining)}</TableCell>
                             </TableRow>

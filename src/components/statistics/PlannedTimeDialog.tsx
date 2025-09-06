@@ -25,10 +25,10 @@ export function PlannedTimeDialog({open, onOpenChange, onSave, onDelete, budget,
     const [overrideNotes, setOverrideNotes] = useState<string | undefined>(budgetOverride?.notes);
 
     function onSaveButton() {
-        if (overrideDuration) {
+        if (overrideDuration !== undefined) {
             const changedOverride: BudgetOverride = {
                 id: budgetOverride?.id,
-                budgetId: budget.id!!,
+                budgetId: budget.id!,
                 startDate: formatDate(currentWeekStartDate, "yyyy-MM-dd'T'HH:mm:ssXXX"),
                 weeklyTime: overrideDuration,
                 notes: overrideNotes,
