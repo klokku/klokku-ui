@@ -11,12 +11,13 @@ import {DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMen
 import {Button} from "@/components/ui/button.tsx";
 import * as Icons from "@heroicons/react/24/solid";
 import {Square2StackIcon} from "@heroicons/react/24/outline";
+import {isBudgetActive} from "@/lib/budgetUtils.ts";
 
 export function BudgetsPage() {
     const [showInactive, setShowInactive] = useState(false)
-    const {budgets, createBudget, updateBudget, setBudgetPosition} = useBudgets(showInactive);
+    const {budgets, createBudget, updateBudget, deleteBudget, setBudgetPosition} = useBudgets(showInactive);
 
-    const totalBudgetsTime = budgets.filter((budget) => budget.status === 'active')
+    const totalBudgetsTime = budgets.filter((budget) => isBudgetActive(budget, new Date()))
         .reduce((acc, budget) => acc + budget.weeklyTime, 0)
     const [editedBudget, setEditedBudget] = useState<Budget | null>(null)
     const [budgetDialogOpen, setBudgetDialogOpen] = useState<boolean>(false)
@@ -41,29 +42,36 @@ export function BudgetsPage() {
         setEditedBudget(null)
     }
 
+    async function onBudgetDelete(budget: Budget) {
+        await deleteBudget(budget.id!)
+        setBudgetDialogOpen(false)
+        setEditedBudget(null)
+    }
+
     function isFirstOnTheList(budget: Budget): boolean {
         return budgets.findIndex((b) => b.id === budget.id) === 0
     }
 
     function isLastActiveOnTheList(budget: Budget): boolean {
-        const index = budgets.findIndex((b) => b.id === budget.id && b.status === 'active')
+        const now = new Date()
+        const index = budgets.findIndex((b) => b.id === budget.id && isBudgetActive(budget, now))
         if (index === budgets.length - 1) {
             return true
         }
-        return budgets[index + 1]?.status !== 'active';
+        return !isBudgetActive(budgets[index + 1], now);
     }
 
     async function moveUp(budget: Budget) {
         const index = budgets.findIndex((b) => b.id === budget.id)
         if (index < 2) {
-            await setBudgetPosition(budget.id!!)
+            await setBudgetPosition(budget.id!)
         }
-        await setBudgetPosition(budget.id!!, budgets[index-2].id)
+        await setBudgetPosition(budget.id!, budgets[index-2].id)
     }
 
     async function moveDown(budget: Budget) {
         const index = budgets.findIndex((b) => b.id === budget.id)
-        await setBudgetPosition(budget.id!!, budgets[index+1].id)
+        await setBudgetPosition(budget.id!, budgets[index+1].id)
     }
 
     const getIcon = (iconName: string) => {
@@ -73,6 +81,15 @@ export function BudgetsPage() {
         }
         return null;
     };
+
+    function sortBudgetsByActive(a: Budget, b: Budget): number {
+        if (isBudgetActive(a, new Date()) && !isBudgetActive(b, new Date())) {
+            return -1;
+        } else if (!isBudgetActive(a, new Date()) && isBudgetActive(b, new Date())) {
+            return 1;
+        }
+        return 0
+    }
 
     return (
         <div>
@@ -106,8 +123,8 @@ export function BudgetsPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {budgets.map((budget) => (
-                            <TableRow key={budget.id} className={budget.status === "inactive" ? 'text-gray-500' : ''}>
+                        {budgets.sort(sortBudgetsByActive).map((budget) => (
+                            <TableRow key={budget.id} className={!isBudgetActive(budget, new Date()) ? 'text-gray-500' : ''}>
                                 <TableCell className="cursor-pointer font-medium hover:text-blue-500 flex gap-2"
                                            onClick={() => {
                                                editBudget(budget)
@@ -121,7 +138,7 @@ export function BudgetsPage() {
                                 <TableCell>{budget.weeklyOccurrences !== 0 ? budget.weeklyOccurrences : (
                                     <Badge variant="outline" className="text-gray-500">undefined</Badge>)}</TableCell>
                                 <TableCell className="flex justify-end items-center">
-                                    {budget.status === 'active' &&
+                                    {isBudgetActive(budget, new Date()) &&
                                         <div className="flex gap-1">
                                             {!isFirstOnTheList(budget) &&
                                                 <Button type="button" variant="outline" size="icon" className="h-[30px]" onClick={() => {moveUp(budget)}}>
@@ -169,7 +186,7 @@ export function BudgetsPage() {
             </div>
 
             <AddBudgetDialog
-                budget={editedBudget} open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen} onSave={onBudgetSave}
+                budget={editedBudget} open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen} onSave={onBudgetSave} onDelete={onBudgetDelete}
                 totalBudgetsTime={totalBudgetsTime}/>
         </div>
     )

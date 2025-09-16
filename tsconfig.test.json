@@ -1,11 +1,18 @@
 {
   "extends": "./tsconfig.app.json",
   "compilerOptions": {
+    "composite": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "types": ["vitest/globals", "node", "@testing-library/jest-dom"],
+    "isolatedModules": true,
     "esModuleInterop": true,
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "types": ["jest", "node", "@testing-library/jest-dom"],
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "noEmit": true
   },
-  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/setupTests.tsx"]
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/setupTests.ts", "vitest.config.ts"],
+  "exclude": ["node_modules"]
 }
+

@@ -4,16 +4,18 @@ import {Button} from "@/components/ui/button.tsx";
 import {Budget} from "@/api/types.ts";
 import {BudgetDetailsForm} from "@/components/budgets/BudgetDetailsForm.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
+import {isBudgetActive} from "@/lib/budgetUtils.ts";
 
 interface AddBudgetDialogProps {
     budget: Budget | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSave: (budget: Budget) => void;
+    onDelete: (budget: Budget) => void;
     totalBudgetsTime: number;
 }
 
-export function AddBudgetDialog({budget, open, onOpenChange, onSave, totalBudgetsTime}: AddBudgetDialogProps) {
+export function AddBudgetDialog({budget, open, onOpenChange, onSave, onDelete, totalBudgetsTime}: AddBudgetDialogProps) {
 
     const remainingWeeklyTime = 168 * 60 * 60 - totalBudgetsTime
 
@@ -22,26 +24,9 @@ export function AddBudgetDialog({budget, open, onOpenChange, onSave, totalBudget
         onOpenChange(false)
     }
 
-    function onArchiveButton() {
+    function onDeleteButton() {
         if (budget?.id) {
-            budget.status = "archived"
-            onSave(budget)
-        }
-        onOpenChange(false)
-    }
-
-    function onActivateButton() {
-        if (budget?.id) {
-            budget.status = "active"
-            onSave(budget)
-        }
-        onOpenChange(false)
-    }
-
-    function onDeactivateButton() {
-        if (budget?.id) {
-            budget.status = "inactive"
-            onSave(budget)
+            onDelete(budget)
         }
         onOpenChange(false)
     }
@@ -52,7 +37,7 @@ export function AddBudgetDialog({budget, open, onOpenChange, onSave, totalBudget
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         {budget?.name ?? "Creating new budget"}
-                        {budget?.status === "inactive" &&
+                        {budget && !isBudgetActive(budget, new Date()) &&
                             <Badge variant="secondary">inactive</Badge>
                         }
                     </DialogTitle>
@@ -65,15 +50,7 @@ export function AddBudgetDialog({budget, open, onOpenChange, onSave, totalBudget
                 <DialogFooter>
                     <div className="flex justify-between w-full">
                         <div className="flex gap-2">
-                            {budget && budget.status === "inactive" &&
-                                <Button type="button" variant="secondary" onClick={() => onActivateButton()}>Activate</Button>
-                            }
-                            {budget && budget.status === "active" &&
-                                <Button type="button" variant="secondary" onClick={() => onDeactivateButton()}>Deactivate</Button>
-                            }
-                            {budget && budget.status === "inactive" &&
-                                <Button type="button" variant="destructive" onClick={() => onArchiveButton()}>Archive</Button>
-                            }
+                            <Button type="button" variant="destructive" onClick={() => onDeleteButton()}>Delete</Button>
                         </div>
                         <div>
                             <Button form="add-budget-form" type="submit">Save</Button>
