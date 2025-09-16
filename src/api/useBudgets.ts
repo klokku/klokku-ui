@@ -7,6 +7,7 @@ type HookType = (includeInactive: boolean) => {
     budgets: Budget[];
     createBudget: (budget: Budget) => Promise<void>;
     updateBudget: (budget: Budget) => Promise<void>;
+    deleteBudget: (budgetId: number) => Promise<void>;
     setBudgetPosition: (budgetId: number, precedingId?: number) => Promise<void>;
 };
 
@@ -62,6 +63,24 @@ const useBudget: HookType = (includeInactive: boolean = true) => {
         },
     });
 
+    const deleteBudgetMutation = useMutation({
+        mutationFn: async (budgetId: number) => {
+            const response = await fetchWithProfileId(`/api/budget/${budgetId}`, currentProfileId, {
+                method: "DELETE",
+            });
+            if (!response.ok) {
+                throw new Error("Failed to delete budget");
+            }
+            return;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["budgets"]});
+        },
+        onError: (error) => {
+            console.log(">>>error", error);
+        },
+    })
+
     const setPosition = useMutation({
         mutationFn: async ({budgetId, precedingId}: {budgetId: number, precedingId?: number}) => {
             const response = await fetchWithProfileId(`/api/budget/${budgetId}/position`, currentProfileId, {
@@ -94,6 +113,10 @@ const useBudget: HookType = (includeInactive: boolean = true) => {
         return update.mutate(budget);
     };
 
+    const deleteBudget = async (budgetId: number) => {
+        return deleteBudgetMutation.mutate(budgetId)
+    }
+
     const setBudgetPosition = async (budgetId: number, precedingId?: number) => {
         return setPosition.mutate({budgetId, precedingId})
     }
@@ -102,6 +125,7 @@ const useBudget: HookType = (includeInactive: boolean = true) => {
         budgets: data ?? [],
         createBudget,
         updateBudget,
+        deleteBudget,
         setBudgetPosition,
     };
 };

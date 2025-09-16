@@ -1,10 +1,9 @@
-export type BudgetStatus = "active" | "inactive" | "archived";
-
 export interface Budget {
     id?: number;
     name: string;
     weeklyTime: number;
-    status: BudgetStatus;
+    startDate?: string; // Using string for the ISO date representation
+    endDate?: string; // Using string for the ISO date representation
     weeklyOccurrences: number;
     icon: string;
 }
