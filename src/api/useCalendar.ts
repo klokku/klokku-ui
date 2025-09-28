@@ -8,6 +8,8 @@ type HookType = (fromDate: Date, toDate: Date) => {
     isLoading: boolean,
     events: CalendarEvent[] | undefined,
     modifyEvent: (event: CalendarEvent) => Promise<void>,
+    createEvent: (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => Promise<void>,
+    deleteEvent: (event: CalendarEvent) => Promise<void>,
 }
 
 const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
@@ -44,14 +46,61 @@ const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
         },
     })
 
+    const create = useMutation({
+        mutationFn: async (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => {
+            const response = await fetchWithProfileId("/api/calendar/event", currentProfileId, {
+                method: "POST",
+                body: JSON.stringify(event),
+            });
+            if (!response.ok) {
+                throw new Error("Failed to create calendar event");
+            }
+            return response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
+        },
+        onError: (error) => {
+            console.log(">>>error", error);
+        },
+    })
+
+    const deleteEv = useMutation({
+        mutationFn: async (event: CalendarEvent) => {
+            const response = await fetchWithProfileId(`/api/calendar/event/${event.uid}`, currentProfileId, {
+                method: "DELETE",
+            });
+            if (!response.ok) {
+                throw new Error("Failed to delete calendar event");
+            }
+            return;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
+        },
+        onError: (error) => {
+            console.log(">>>error", error);
+        },
+    })
+
     const modifyEvent = async (event: CalendarEvent) => {
         return modify.mutate(event)
+    }
+
+    const createEvent = async (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => {
+        return create.mutate(event)
+    }
+
+    const deleteEvent = async (event: CalendarEvent) => {
+        return deleteEv.mutate(event)
     }
 
     return {
         isLoading,
         events: data,
         modifyEvent,
+        createEvent,
+        deleteEvent,
     }
 }
 
