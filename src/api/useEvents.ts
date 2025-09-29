@@ -49,6 +49,7 @@ const useEvents: HookType = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["currentEvent"]});
             queryClient.invalidateQueries({queryKey: ["lastEvents"]});
+            queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -72,6 +73,7 @@ const useEvents: HookType = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["currentEvent"]});
             queryClient.invalidateQueries({queryKey: ["lastEvents"]});
+            queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -95,6 +97,7 @@ const useEvents: HookType = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["currentEvent"]});
             queryClient.invalidateQueries({queryKey: ["lastEvents"]});
+            queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
         },
         onError: (error) => {
             console.log(">>>error", error);

@@ -9,7 +9,7 @@ type HookType = (fromDate: Date, toDate: Date) => {
     events: CalendarEvent[] | undefined,
     modifyEvent: (event: CalendarEvent) => Promise<void>,
     createEvent: (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => Promise<void>,
-    deleteEvent: (event: CalendarEvent) => Promise<void>,
+    deleteEvent: (eventUid: string) => Promise<void>,
 }
 
 const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
@@ -66,8 +66,8 @@ const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
     })
 
     const deleteEv = useMutation({
-        mutationFn: async (event: CalendarEvent) => {
-            const response = await fetchWithProfileId(`/api/calendar/event/${event.uid}`, currentProfileId, {
+        mutationFn: async (eventUid: string) => {
+            const response = await fetchWithProfileId(`/api/calendar/event/${eventUid}`, currentProfileId, {
                 method: "DELETE",
             });
             if (!response.ok) {
@@ -91,8 +91,8 @@ const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
         return create.mutate(event)
     }
 
-    const deleteEvent = async (event: CalendarEvent) => {
-        return deleteEv.mutate(event)
+    const deleteEvent = async (eventUid: string) => {
+        return deleteEv.mutate(eventUid)
     }
 
     return {
