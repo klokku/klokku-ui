@@ -115,3 +115,11 @@ export interface ClickUpConfig {
     folderId?: number;
     mappings: ClickUpTagMapping[];
 }
+
+export interface CalendarEvent {
+    uid: string;
+    summary: string;
+    start: string;
+    end: string;
+    budgetId: number;
+}
