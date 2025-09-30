@@ -9,6 +9,7 @@ import {userSettings} from "@/components/settings.ts";
 import {DateSelectArg, EventChangeArg, EventClickArg} from "@fullcalendar/core";
 import useEvents from "@/api/useEvents.ts";
 import {EventDetails, EventDetailsPopover} from "@/pages/calendar/EventDetailsPopover.tsx";
+import {useIsMobile} from "@/hooks/use-mobile.tsx";
 
 export function CalendarPage() {
 
@@ -22,6 +23,8 @@ export function CalendarPage() {
 
     const {isLoading, events, modifyEvent, createEvent, deleteEvent} = useCalendar(calendarStart, calendarEnd);
     const {currentEvent} = useEvents();
+
+    const isMobile = useIsMobile();
 
     // Popover editor state
     const [popoverOpen, setPopoverOpen] = useState(false);
@@ -117,6 +120,7 @@ export function CalendarPage() {
     const onEventClick = (info: EventClickArg) => {
         // Extract original event from extended props
         const source: CalendarEvent = (info.event.extendedProps)?.sourceEvent;
+        if (!source) return;
         setEventDetailsInput({
             summary: source.summary,
             startDate: new Date(source.start),
@@ -167,9 +171,10 @@ export function CalendarPage() {
         <>
             {!isLoading && events && (
                 <FullCalendar
+                    height="calc(100vh - 120px)"
                     ref={calendarRef}
                     plugins={[timeGridWeek, interactionPlugin]}
-                    initialView='timeGridWeek'
+                    initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
                     initialDate={currentViewDate}
                     allDaySlot={false}
                     droppable={true}
@@ -231,7 +236,6 @@ export function CalendarPage() {
                                      onDelete={handleDelete}
                 />
             )}
-
         </>
     )
 }
