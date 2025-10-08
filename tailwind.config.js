@@ -65,7 +65,7 @@ export default {
   		},
   		fontFamily: {
   			'sour-gummy': [
-  				'Sour Gummy Variable"',
+  				'Sour Gummy Variable',
   				'sans-serif'
   			]
   		}
