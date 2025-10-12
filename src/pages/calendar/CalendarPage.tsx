@@ -2,7 +2,7 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridWeek from "@fullcalendar/timegrid"
 import useCalendar from "@/api/useCalendar.ts";
 import {useRef, useState} from "react";
-import {getCurrentWeekFirstDay, toServerFormat, weekEndDay} from "@/lib/dateUtils.ts";
+import {formatEventDuration, getCurrentWeekFirstDay, toServerFormat, weekEndDay} from "@/lib/dateUtils.ts";
 import {CalendarEvent} from "@/api/types.ts";
 import interactionPlugin from '@fullcalendar/interaction';
 import {userSettings} from "@/components/settings.ts";
@@ -72,7 +72,7 @@ export function CalendarPage() {
     const toUIEvent = (event: CalendarEvent): UiEvent => {
         return {
             id: event.uid,
-            title: event.summary,
+            title: event.summary + " (" + formatEventDuration({startTime: event.start, endTime: event.end}) + ")" ,
             start: new Date(event.start),
             end: new Date(event.end),
             interactive: true,

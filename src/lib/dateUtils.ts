@@ -1,5 +1,4 @@
 import {formatDate, intervalToDuration} from "date-fns";
-import {Event} from "@/api/types.ts";
 
 export function getCurrentWeekFirstDay(): Date {
     const now = new Date();
@@ -52,11 +51,11 @@ export function durationToSeconds(duration?: string): number | undefined {
     if (duration === undefined) {
         return undefined;
     }
-    const [hours, minutes] = duration.replace("\s", "").replace("m", "").split("h").map(Number);
+    const [hours, minutes] = duration.replace("s", "").replace("m", "").split("h").map(Number);
     return hours * 60 * 60 + minutes * 60;
 }
 
-export function formatEventDuration(event?: Event): string {
+export function formatEventDuration(event?: {startTime: string, endTime: string}): string {
     if (!event) return ""
     const start = new Date(event.startTime)
     const end = event.endTime ? new Date(event.endTime) : new Date()
