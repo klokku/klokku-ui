@@ -55,7 +55,7 @@ export function durationToSeconds(duration?: string): number | undefined {
     return hours * 60 * 60 + minutes * 60;
 }
 
-export function formatEventDuration(event?: {startTime: string, endTime: string}): string {
+export function formatEventDuration(event?: {startTime: string, endTime?: string}): string {
     if (!event) return ""
     const start = new Date(event.startTime)
     const end = event.endTime ? new Date(event.endTime) : new Date()
