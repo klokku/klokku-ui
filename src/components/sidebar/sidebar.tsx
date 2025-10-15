@@ -3,11 +3,13 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarGroup,
-    SidebarGroupContent, SidebarMenu,
+    SidebarGroupContent,
+    SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem, useSidebar,
+    SidebarMenuItem,
+    useSidebar,
 } from "@/components/ui/sidebar"
-import {CalendarDaysIcon, ChartPieIcon, FolderKanbanIcon, LayoutDashboardIcon} from "lucide-react";
+import {CalendarDaysIcon, ChartGanttIcon, ChartNoAxesCombinedIcon, FolderKanbanIcon, LayoutDashboardIcon} from "lucide-react";
 import {paths} from "@/pages/links.ts";
 import {NavLink} from "react-router";
 import {useLocation} from "react-router-dom";
@@ -19,14 +21,19 @@ const items = [
         icon: LayoutDashboardIcon
     },
     {
-        title: paths.statistics.title,
-        url: paths.statistics.path,
-        icon: ChartPieIcon
-    },
-    {
         title: paths.calendar.title,
         url: paths.calendar.path,
         icon: CalendarDaysIcon
+    },
+    {
+        title: paths.planning.title,
+        url: paths.planning.path,
+        icon: ChartGanttIcon,
+    },
+    {
+        title: paths.statistics.title,
+        url: paths.statistics.path,
+        icon: ChartNoAxesCombinedIcon
     },
     {
         title: paths.budgets.title,
@@ -37,17 +44,17 @@ const items = [
 
 export function AppSidebar() {
     const location = useLocation();
-    const { setOpenMobile } = useSidebar();
+    const {setOpenMobile} = useSidebar();
 
     return (
         <Sidebar variant="sidebar" className="absolute inset-y-[48px] z-10 h-[calc(100svh-48px)]">
             <SidebarContent className="mt-2">
                 <SidebarGroup>
                     <SidebarGroupContent>
-                        <SidebarMenu>
+                        <SidebarMenu className="flex flex-col gap-0.5">
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild isActive={location.pathname == item.url}  className="h-11 gap-x-3">
+                                    <SidebarMenuButton asChild isActive={location.pathname == item.url} className="h-9 gap-x-3">
                                         <NavLink to={item.url} onClick={() => setOpenMobile(false)}>
                                             <item.icon/>
                                             <span>{item.title}</span>
@@ -58,9 +65,9 @@ export function AppSidebar() {
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
-                <SidebarGroup />
+                <SidebarGroup/>
             </SidebarContent>
-            <SidebarFooter />
+            <SidebarFooter/>
         </Sidebar>
     )
 }
