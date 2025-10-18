@@ -277,6 +277,7 @@ function Calendar({
             showOutsideDays={showOutsideDays}
             className={cn('p-3', className)}
             classNames={{
+                nav_button: 'px-3 py-2',
                 months: 'flex flex-col sm:flex-row space-y-4  sm:space-y-0 justify-center',
                 month: 'flex flex-col items-center space-y-4',
                 // @ts-ignore
