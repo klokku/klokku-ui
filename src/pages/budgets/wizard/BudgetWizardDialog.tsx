@@ -18,7 +18,6 @@ export interface BudgetWizardDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// TODO budget wizard doesn work on mobile, fix it
 export function BudgetWizardDialog({open, onOpenChange}: BudgetWizardDialogProps) {
   const wiz = useBudgetWizard();
   const { createBudget } = useBudgets(false);
@@ -51,41 +50,42 @@ export function BudgetWizardDialog({open, onOpenChange}: BudgetWizardDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create your budgets</DialogTitle>
         </DialogHeader>
 
         <div className="mb-4">
-          <div className="flex gap-2 text-sm text-muted-foreground">
+          <div className="flex gap-1 sm:gap-2 text-sm text-muted-foreground">
             {wiz.state.steps.map((s, i) => (
               <div key={s.id} className={`flex-1 h-1 rounded ${i <= wiz.state.currentStep ? 'bg-blue-500' : 'bg-gray-200'}`} />
             ))}
           </div>
         </div>
 
-        <div className="min-h-64">
+        <div className="min-h-48 sm:min-h-64">
           {steps[wiz.state.currentStep].el}
         </div>
 
-        <div className="mt-6 flex flex-col gap-3">
-          <div className="flex justify-between items-center text-sm">
-            <div>
-              <div className="font-medium">Weekly time</div>
-              <div className="text-muted-foreground">Planned: {formatSecondsToDuration(wiz.plannedWeeklySeconds)} | Remaining: {formatSecondsToDuration(wiz.remainingWeeklySeconds)}</div>
+        <div className="mt-4 sm:mt-6 flex flex-col gap-3">
+          <div className="text-sm">
+            <div className="font-medium">Weekly time</div>
+            <div className="text-muted-foreground text-xs sm:text-sm">
+              <div className="sm:inline">Planned: {formatSecondsToDuration(wiz.plannedWeeklySeconds)}</div>
+              <div className="sm:inline sm:ml-2">Remaining: {formatSecondsToDuration(wiz.remainingWeeklySeconds)}</div>
             </div>
           </div>
 
-          <div className="flex justify-between">
-            <div>
-              <Button variant="outline" onClick={() => wiz.goPrev()} disabled={isFirst}>Back</Button>
-            </div>
+          <div className="flex justify-between gap-2">
+            <Button variant="outline" onClick={() => wiz.goPrev()} disabled={isFirst} className="flex-1 sm:flex-none">
+              Back
+            </Button>
             <div className="flex gap-2">
               {!isLast && (
-                <Button onClick={() => wiz.goNext()}>Next</Button>
+                <Button onClick={() => wiz.goNext()} className="flex-1 sm:flex-none min-w-20">Next</Button>
               )}
               {isLast && (
-                <Button onClick={finish}>Finish</Button>
+                <Button onClick={finish} className="flex-1 sm:flex-none min-w-20">Finish</Button>
               )}
             </div>
           </div>

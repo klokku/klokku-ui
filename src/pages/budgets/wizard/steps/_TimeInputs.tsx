@@ -12,31 +12,34 @@ interface Props {
 
 export function TimeInputs({label, value, onChange, showDaysPerWeek}: Props) {
     return (
-        <div className="space-y-3">
+        <div className="space-y-4">
             <div className="font-medium">{label}</div>
-            <div className="grid grid-cols-3 gap-3 items-end">
-                <div>
-                    <label className="block text-sm text-muted-foreground mb-1">Hours</label>
-                    <Input type="number" min={0} max={24} value={value.hours}
-                           onChange={e => onChange({hours: Number(e.target.value)})}/>
+            <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="block text-sm text-muted-foreground mb-1">Hours</label>
+                        <Input type="number" min={0} max={24} value={value.hours}
+                               onChange={e => onChange({hours: Number(e.target.value)})}/>
+                    </div>
+                    <div>
+                        <label className="block text-sm text-muted-foreground mb-1">Minutes</label>
+                        <Input type="number" min={0} max={59} value={value.minutes}
+                               onChange={e => onChange({minutes: Number(e.target.value)})}/>
+                    </div>
                 </div>
                 <div>
-                    <label className="block text-sm text-muted-foreground mb-1">Minutes</label>
-                    <Input type="number" min={0} max={59} value={value.minutes}
-                           onChange={e => onChange({minutes: Number(e.target.value)})}/>
-                </div>
-                <div className="flex gap-2">
-                    <ButtonGroup>
+                    <label className="block text-sm text-muted-foreground mb-2">Frequency</label>
+                    <ButtonGroup className="w-full">
                         <Button type="button" variant={value.frequency === 'daily' ? 'default' : 'outline'}
-                                onClick={() => onChange({frequency: 'daily'})}>Daily</Button>
+                                onClick={() => onChange({frequency: 'daily'})} className="flex-1 text-sm">Daily</Button>
                         <Button type="button" variant={value.frequency === 'weekly' ? 'default' : 'outline'}
-                                onClick={() => onChange({frequency: 'weekly'})}>Weekly</Button>
+                                onClick={() => onChange({frequency: 'weekly'})} className="flex-1 text-sm">Weekly</Button>
                     </ButtonGroup>
                 </div>
             </div>
 
             {showDaysPerWeek && (
-                <div>
+                <div className="max-w-32">
                     <label className="block text-sm text-muted-foreground mb-1">Days per week</label>
                     <Input type="number" min={0} max={7} value={value.daysPerWeek ?? 1}
                            onChange={e => onChange({daysPerWeek: Number(e.target.value)})}/>
