@@ -5,6 +5,7 @@ import {fetchWithProfileId} from "@/api/fetchWithProfileId.ts";
 
 type HookType = (includeInactive: boolean) => {
     budgets: Budget[];
+    isLoading: boolean;
     createBudget: (budget: Budget) => Promise<void>;
     updateBudget: (budget: Budget) => Promise<void>;
     deleteBudget: (budgetId: number) => Promise<void>;
@@ -14,7 +15,7 @@ type HookType = (includeInactive: boolean) => {
 const useBudget: HookType = (includeInactive: boolean = true) => {
     const { currentProfileId } = useCurrentProfile()
     const queryClient = useQueryClient();
-    const {data} = useQuery({
+    const {data, isLoading} = useQuery({
         queryKey: ["budgets", includeInactive],
         queryFn: async () => {
             const response = await fetchWithProfileId(`/api/budget${includeInactive ? "?includeInactive=true" : ""}`, currentProfileId);
@@ -123,6 +124,7 @@ const useBudget: HookType = (includeInactive: boolean = true) => {
 
     return {
         budgets: data ?? [],
+        isLoading,
         createBudget,
         updateBudget,
         deleteBudget,

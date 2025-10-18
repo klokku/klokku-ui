@@ -5,22 +5,30 @@ import {CheckCircleIcon, ChevronDownIcon, ChevronUpIcon, MenuIcon, MessageCircle
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {AddBudgetDialog} from "@/components/budgets/AddBudgetDialog.tsx";
 import {Budget} from "@/api/types.ts";
-import {createElement, useState} from "react";
+import {createElement, useEffect, useState} from "react";
 import {Badge} from "@/components/ui/badge.tsx";
 import {DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import * as Icons from "@heroicons/react/24/solid";
 import {Square2StackIcon} from "@heroicons/react/24/outline";
 import {isBudgetActive} from "@/lib/budgetUtils.ts";
+import BudgetWizardDialog from "@/pages/budgets/wizard/BudgetWizardDialog.tsx";
 
 export function BudgetsPage() {
     const [showInactive, setShowInactive] = useState(false)
-    const {budgets, createBudget, updateBudget, deleteBudget, setBudgetPosition} = useBudgets(showInactive);
+    const {budgets, isLoading, createBudget, updateBudget, deleteBudget, setBudgetPosition} = useBudgets(showInactive);
 
     const totalBudgetsTime = budgets.filter((budget) => isBudgetActive(budget, new Date()))
         .reduce((acc, budget) => acc + budget.weeklyTime, 0)
     const [editedBudget, setEditedBudget] = useState<Budget | null>(null)
     const [budgetDialogOpen, setBudgetDialogOpen] = useState<boolean>(false)
+    const [wizardOpen, setWizardOpen] = useState<boolean>(false)
+
+    useEffect(() => {
+        if (!isLoading && budgets.length === 0) {
+            setWizardOpen(true)
+        }
+    }, [budgets.length, isLoading])
 
     function editBudget(budget: Budget) {
         setEditedBudget(budget)
@@ -102,6 +110,14 @@ export function BudgetsPage() {
                     </AlertDescription>
                 </Alert>
             )}
+
+            {!isLoading && budgets.length === 0 && (
+                <div className="mb-4 p-6 border rounded text-center">
+                    <p className="mb-2">You don't have any budgets yet.</p>
+                    <Button onClick={() => setWizardOpen(true)}>Open budget wizard</Button>
+                </div>
+            )}
+
             <div className="rounded-md border overflow-hidden shadow-sm">
                 <Table className="w-full border-collapse">
                     <TableHeader>
@@ -188,6 +204,8 @@ export function BudgetsPage() {
             <AddBudgetDialog
                 budget={editedBudget} open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen} onSave={onBudgetSave} onDelete={onBudgetDelete}
                 totalBudgetsTime={totalBudgetsTime}/>
+
+            <BudgetWizardDialog open={wizardOpen} onOpenChange={setWizardOpen} />
         </div>
     )
 }
