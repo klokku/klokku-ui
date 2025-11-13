@@ -15,7 +15,7 @@ export function ProfileCard({profile, onClick}: Props) {
         <Card className="shadow-card w-72 cursor-pointer hover:bg-gray-50" onClick={onClick}>
             <CardHeader className="flex-row items-center gap-5">
                 <Avatar className="w-12 h-12 rounded-xl">
-                    <AvatarImage src={`/api/user/${profile.id}/photo`} />
+                    <AvatarImage src={`/api/user/${profile.uid}/photo`} />
                     <AvatarFallback>{firstLetters(profile.displayName)}</AvatarFallback>
                 </Avatar>
                 <div>

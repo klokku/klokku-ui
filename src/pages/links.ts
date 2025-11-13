@@ -11,6 +11,10 @@ export const paths = {
     path: "/create-profile",
     title: "Create Profile"
   },
+  logout: {
+    path: "/logout",
+    title: "Logout"
+  },
   statistics: {
     path: "/statistics",
     title: "Statistics"

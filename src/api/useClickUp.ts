@@ -1,15 +1,7 @@
-import {
-    ClickUpAuthRedirect,
-    ClickUpConfig,
-    ClickUpFolder,
-    ClickUpSpace,
-    ClickUpTag,
-    ClickUpTask,
-    ClickUpWorkspace
-} from "@/api/types.ts";
+import {ClickUpAuthRedirect, ClickUpConfig, ClickUpFolder, ClickUpSpace, ClickUpTag, ClickUpTask, ClickUpWorkspace} from "@/api/types.ts";
 import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {fetchWithProfileId} from "@/api/fetchWithProfileId.ts";
+import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 
 type HookType = () => {
     isAuthenticated: boolean;
@@ -33,14 +25,15 @@ type HookType = () => {
 }
 
 const useClickUp: HookType = () => {
-    const { currentProfileId } = useCurrentProfile()
-    const queryClient = useQueryClient();
+    const { currentProfileUid } = useCurrentProfile()
+    const fetchWithAuth = useFetchWithProfileUid()
+    const queryClient = useQueryClient()
 
     // Check if user is authenticated with ClickUp
     const { data: isAuthenticated = false } = useQuery({
-        queryKey: ["clickUpAuthenticated", currentProfileId],
+        queryKey: ["clickUpAuthenticated", currentProfileUid],
         queryFn: async () => {
-            const response = await fetchWithProfileId("/api/integrations/clickup/auth", currentProfileId, {
+            const response = await fetchWithAuth("/api/integrations/clickup/auth", {
                 method: "GET",
             })
             if (!response.ok) {
@@ -48,17 +41,17 @@ const useClickUp: HookType = () => {
             }
             return (await response.json()) as boolean;
         },
-        enabled: !!currentProfileId,
+        enabled: !!currentProfileUid,
         retry: false,
     });
 
     // Get ClickUp workspaces
     const { isLoading: isLoadingWorkspaces, data: workspaces } = useQuery({
-        queryKey: ["clickUpWorkspaces", currentProfileId],
+        queryKey: ["clickUpWorkspaces", currentProfileUid],
         queryFn: async () => {
             if (!isAuthenticated) return [];
 
-            const response = await fetchWithProfileId("/api/integrations/clickup/workspace", currentProfileId, {
+            const response = await fetchWithAuth("/api/integrations/clickup/workspace", {
                 method: "GET",
             })
             if (!response.ok) {
@@ -66,13 +59,13 @@ const useClickUp: HookType = () => {
             }
             return (await response.json()) as ClickUpWorkspace[]
         },
-        enabled: isAuthenticated && !!currentProfileId,
+        enabled: isAuthenticated && !!currentProfileUid,
         retry: false,
     });
 
     // Get ClickUp spaces for a workspace
     const { isLoading: isLoadingSpaces, data: spaces } = useQuery({
-        queryKey: ["clickUpSpaces", currentProfileId],
+        queryKey: ["clickUpSpaces", currentProfileUid],
         queryFn: async () => {
             if (!isAuthenticated) return [];
 
@@ -85,7 +78,7 @@ const useClickUp: HookType = () => {
 
     // Get ClickUp folders for a space
     const { isLoading: isLoadingFolders, data: folders } = useQuery({
-        queryKey: ["clickUpFolders", currentProfileId],
+        queryKey: ["clickUpFolders", currentProfileUid],
         queryFn: async () => {
             if (!isAuthenticated) return [];
 
@@ -98,7 +91,7 @@ const useClickUp: HookType = () => {
 
     // Get ClickUp tags for a workspace
     const { isLoading: isLoadingTags, data: tags } = useQuery({
-        queryKey: ["clickUpTags", currentProfileId],
+        queryKey: ["clickUpTags", currentProfileUid],
         queryFn: async () => {
             if (!isAuthenticated) return [];
 
@@ -111,11 +104,11 @@ const useClickUp: HookType = () => {
 
     // Get ClickUp configuration
     const { isLoading: isLoadingConfig, data: config } = useQuery({
-        queryKey: ["clickUpConfig", currentProfileId],
+        queryKey: ["clickUpConfig", currentProfileUid],
         queryFn: async () => {
             if (!isAuthenticated) return undefined;
 
-            const response = await fetchWithProfileId("/api/integrations/clickup/configuration", currentProfileId, {
+            const response = await fetchWithAuth("/api/integrations/clickup/configuration", {
                 method: "GET",
             })
             if (!response.ok) {
@@ -127,14 +120,14 @@ const useClickUp: HookType = () => {
             }
             return (await response.json()) as ClickUpConfig;
         },
-        enabled: isAuthenticated && !!currentProfileId,
+        enabled: isAuthenticated && !!currentProfileUid,
         retry: false,
     });
 
     // ClickUp authentication login
     const authLoginClickUp = useMutation({
         mutationFn: async () => {
-            const response = await fetchWithProfileId("/api/integrations/clickup/auth/login?finalUrl=" + encodeURI(window.location.href), currentProfileId, {
+            const response = await fetchWithAuth("/api/integrations/clickup/auth/login?finalUrl=" + encodeURI(window.location.href), {
                 method: "GET",
             });
 
@@ -154,7 +147,7 @@ const useClickUp: HookType = () => {
     // ClickUp authentication logout
     const authLogoutClickUp = useMutation({
         mutationFn: async () => {
-            const response = await fetchWithProfileId("/api/integrations/clickup/auth", currentProfileId, {
+            const response = await fetchWithAuth("/api/integrations/clickup/auth", {
                 method: "DELETE",
             });
 
@@ -180,7 +173,7 @@ const useClickUp: HookType = () => {
     // Save ClickUp configuration
     const saveClickUpConfig = useMutation({
         mutationFn: async (config: ClickUpConfig) => {
-            const response = await fetchWithProfileId("/api/integrations/clickup/configuration", currentProfileId, {
+            const response = await fetchWithAuth("/api/integrations/clickup/configuration", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -203,7 +196,7 @@ const useClickUp: HookType = () => {
 
     // Get spaces for a workspace
     const getSpaces = async (workspaceId: number): Promise<ClickUpSpace[]> => {
-        const response = await fetchWithProfileId(`/api/integrations/clickup/space?workspaceId=${workspaceId}`, currentProfileId, {
+        const response = await fetchWithAuth(`/api/integrations/clickup/space?workspaceId=${workspaceId}`, {
             method: "GET",
         });
 
@@ -211,13 +204,13 @@ const useClickUp: HookType = () => {
             throw new Error("Failed to fetch ClickUp spaces");
         }
         const data = await response.json() as ClickUpSpace[];
-        queryClient.setQueryData(["clickUpSpaces", currentProfileId], data);
+        queryClient.setQueryData(["clickUpSpaces", currentProfileUid], data);
         return data;
     };
 
     // Get folders for a space
     const getFolders = async (spaceId: number): Promise<ClickUpFolder[]> => {
-        const response = await fetchWithProfileId(`/api/integrations/clickup/folder?spaceId=${spaceId}`, currentProfileId, {
+        const response = await fetchWithAuth(`/api/integrations/clickup/folder?spaceId=${spaceId}`, {
             method: "GET",
         });
 
@@ -225,13 +218,13 @@ const useClickUp: HookType = () => {
             throw new Error("Failed to fetch ClickUp folders");
         }
         const data = await response.json() as ClickUpFolder[];
-        queryClient.setQueryData(["clickUpFolders", currentProfileId], data);
+        queryClient.setQueryData(["clickUpFolders", currentProfileUid], data);
         return data;
     };
 
     // Get tags for a workspace
     const getTags = async (spaceId: number): Promise<ClickUpTag[]> => {
-        const response = await fetchWithProfileId(`/api/integrations/clickup/tag?spaceId=${spaceId}`, currentProfileId, {
+        const response = await fetchWithAuth(`/api/integrations/clickup/tag?spaceId=${spaceId}`, {
             method: "GET",
         });
 
@@ -239,13 +232,13 @@ const useClickUp: HookType = () => {
             throw new Error("Failed to fetch ClickUp tags");
         }
         const data = await response.json() as ClickUpTag[];
-        queryClient.setQueryData(["clickUpTags", currentProfileId], data);
+        queryClient.setQueryData(["clickUpTags", currentProfileUid], data);
         return data;
     };
 
     // Get tasks for a budget
     const getTasks = async (budgetId: number): Promise<ClickUpTask[]> => {
-        const response = await fetchWithProfileId(`/api/integrations/clickup/tasks?budgetId=${budgetId}`, currentProfileId, {
+        const response = await fetchWithAuth(`/api/integrations/clickup/tasks?budgetId=${budgetId}`, {
             method: "GET",
         });
 

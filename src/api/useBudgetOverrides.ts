@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BudgetOverride } from "@/api/types.ts";
-import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
-import {fetchWithProfileId} from "@/api/fetchWithProfileId.ts";
+import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 
 type Result = {
     createBudgetOverride: (override: BudgetOverride) => Promise<void>;
@@ -10,11 +9,11 @@ type Result = {
 };
 
 const useBudgetOverrides: () => Result = () => {
-    const { currentProfileId } = useCurrentProfile()
+    const fetchWithAuth = useFetchWithProfileUid();
     const queryClient = useQueryClient();
     const create = useMutation({
         mutationFn: async (newOverride: BudgetOverride) => {
-            const response = await fetchWithProfileId("/api/budget/override", currentProfileId, {
+            const response = await fetchWithAuth("/api/budget/override", {
                 method: "POST",
                 body: JSON.stringify(newOverride),
             });
@@ -35,7 +34,7 @@ const useBudgetOverrides: () => Result = () => {
 
     const update = useMutation({
         mutationFn: async (override: BudgetOverride) => {
-            const response = await fetchWithProfileId(`/api/budget/override/${override.id}`, currentProfileId, {
+            const response = await fetchWithAuth(`/api/budget/override/${override.id}`, {
                 method: "PUT",
                 body: JSON.stringify(override),
             });
@@ -55,7 +54,7 @@ const useBudgetOverrides: () => Result = () => {
     });
     const deleteOverride = useMutation({
         mutationFn: async (overrideId: number) => {
-            const response = await fetchWithProfileId(`/api/budget/override/${overrideId}`, currentProfileId, {
+            const response = await fetchWithAuth(`/api/budget/override/${overrideId}`, {
                 method: "DELETE",
             });
 

@@ -11,6 +11,7 @@ export default defineConfig({
         }
     },
     server: {
+        allowedHosts: ["local.klokku.com"],
         port: 3000,
         proxy: {
             // Target is your backend API

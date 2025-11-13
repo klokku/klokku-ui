@@ -1,14 +1,38 @@
-function getCurrentProfileId(): number | null {
-    const profileId = localStorage.getItem("profileId");
-    return profileId !== null ? parseInt(profileId) : null;
+interface CurrentProfileResponse {
+    uid: string | null;
+    isAuthenticated: boolean;
+    hasProfile: boolean;
 }
 
-function setCurrentProfileId(profileId: number) {
-    localStorage.setItem("profileId", profileId.toString());
+async function getCurrentProfile(): Promise<CurrentProfileResponse> {
+    const profileUid = localStorage.getItem("profileUid");
+    if (profileUid === null) {
+        console.log("No profile id found in local storage. Fetching from API...");
+        const currentAuthenticatedUserResponse = await fetch('/api/user/current', {
+            method: 'GET',
+        })
+        if (currentAuthenticatedUserResponse.ok) {
+            const responseJson = await currentAuthenticatedUserResponse.json();
+            return {
+                uid: responseJson.uid,
+                isAuthenticated: true,
+                hasProfile: true,
+            };
+        } else if (currentAuthenticatedUserResponse.status === 403) {
+            // Forbidden means the user is authenticated but doesn't have a profile yet
+            return {uid: null, isAuthenticated: true, hasProfile: false};
+        }
+        return {uid: null, isAuthenticated: false, hasProfile: false};
+    }
+    return { uid: profileUid, isAuthenticated: true, hasProfile: true};
 }
 
-function clearProfileId() {
-    localStorage.removeItem("profileId");
+function setCurrentProfileUid(profileUid: string) {
+    localStorage.setItem("profileUid", profileUid.toString());
 }
 
-export { getCurrentProfileId, setCurrentProfileId, clearProfileId };
+function clearProfileUid() {
+    localStorage.removeItem("profileUid");
+}
+
+export { getCurrentProfile, setCurrentProfileUid, clearProfileUid };

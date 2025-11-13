@@ -10,7 +10,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
 import {Profile} from "@/api/types.ts";
-import {clearProfileId} from "@/components/auth/ProfileProvider.tsx";
+import {clearProfileUid} from "@/components/auth/ProfileProvider.tsx";
 import {paths} from "@/pages/links.ts";
 import {useNavigate} from "react-router-dom";
 import useProfile from "@/api/useProfile.ts";
@@ -27,8 +27,8 @@ export function UserButton({profile}: UserButtonProps) {
     const {avatar} = useProfile();
 
     function logout() {
-        clearProfileId()
-        navigate(paths.root.path);
+        clearProfileUid()
+        window.location.href = paths.logout.path;
     }
 
     function navigateToProfile() {

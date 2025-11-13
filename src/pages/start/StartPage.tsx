@@ -10,7 +10,7 @@ import {ProfileCard} from "@/pages/start/ProfileCard.tsx";
 import HeaderLogo from "@/components/headerLogo/HeaderLogo.tsx";
 import {useNavigate} from "react-router-dom";
 import {paths} from "@/pages/links.ts";
-import {setCurrentProfileId} from "@/components/auth/ProfileProvider.tsx";
+import {setCurrentProfileUid} from "@/components/auth/ProfileProvider.tsx";
 
 
 export function StartPage() {
@@ -33,9 +33,9 @@ export function StartPage() {
             <div className="flex flex-col w-screen h-full items-center justify-center">
                 <div className="flex flex-col gap-3 items-center">
                     {allProfiles && allProfiles.map(profile => (
-                        <ProfileCard key={profile.id} profile={profile} onClick={() => {
-                            if (profile.id) {
-                                setCurrentProfileId(profile.id);
+                        <ProfileCard key={profile.uid} profile={profile} onClick={() => {
+                            if (profile.uid) {
+                                setCurrentProfileUid(profile.uid);
                                 navigate(paths.root.path);
                             }
                         }}/>

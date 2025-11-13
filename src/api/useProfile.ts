@@ -1,6 +1,6 @@
 import {Profile} from "@/api/types.ts";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {fetchWithProfileId} from "@/api/fetchWithProfileId.ts";
+import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 
 
@@ -17,12 +17,14 @@ type HookType = () => {
 
 const useProfile: HookType = () => {
     let isUploadingAvatar: boolean = false
-    const { currentProfileId } = useCurrentProfile()
+    const { currentProfileUid } = useCurrentProfile()
+    const fetchWithAuth = useFetchWithProfileUid()
     const queryClient = useQueryClient();
+
     const {isLoading: isLoadingCurrent, data: current} = useQuery({
         queryKey: ["currentProfile"],
         queryFn: async () => {
-            const response = await fetchWithProfileId("/api/user/current", currentProfileId, {
+            const response = await fetchWithAuth("/api/user/current", {
                 method: "GET",
             })
             if (!response.ok) {
@@ -30,14 +32,14 @@ const useProfile: HookType = () => {
             }
             return (await response.json()) as Profile
         },
-        enabled: !!currentProfileId,
+        enabled: !!currentProfileUid,
         retry: false,
     });
 
     const {isLoading: isLoadingAvatar, data: avatar} = useQuery({
         queryKey: ["profileAvatar"],
         queryFn: async () => {
-            const response = await fetchWithProfileId("/api/user/current/photo", currentProfileId, {
+            const response = await fetchWithAuth("/api/user/current/photo", {
                 method: "GET",
             })
             if (!response.ok) {
@@ -49,7 +51,7 @@ const useProfile: HookType = () => {
 
     const update = useMutation({
         mutationFn: async (profile: Profile) => {
-            const response = await fetchWithProfileId("/api/user/current", currentProfileId, {
+            const response = await fetchWithAuth("/api/user/current", {
                 method: "PUT",
                 body: JSON.stringify(profile),
             });
@@ -73,7 +75,7 @@ const useProfile: HookType = () => {
             const formData = new FormData();
             formData.append("photo", file);
             isUploadingAvatar = true
-            const response = await fetchWithProfileId("/api/user/current/photo", currentProfileId, {
+            const response = await fetchWithAuth("/api/user/current/photo", {
                 method: "PUT",
                 body: formData,
             });
@@ -94,7 +96,7 @@ const useProfile: HookType = () => {
 
     const deleteAvatar = useMutation({
         mutationFn: async () => {
-            const response = await fetchWithProfileId("/api/user/current/photo", currentProfileId, {
+            const response = await fetchWithAuth("/api/user/current/photo", {
                 method: "DELETE",
             });
             if (!response.ok) {
