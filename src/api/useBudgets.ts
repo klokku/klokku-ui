@@ -1,7 +1,6 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Budget} from "@/api/types.ts";
-import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
-import {fetchWithProfileId} from "@/api/fetchWithProfileId.ts";
+import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 
 type HookType = (includeInactive: boolean) => {
     budgets: Budget[];
@@ -13,18 +12,18 @@ type HookType = (includeInactive: boolean) => {
 };
 
 const useBudget: HookType = (includeInactive: boolean = true) => {
-    const { currentProfileId } = useCurrentProfile()
+    const fetchWithAuth = useFetchWithProfileUid()
     const queryClient = useQueryClient();
     const {data, isLoading} = useQuery({
         queryKey: ["budgets", includeInactive],
         queryFn: async () => {
-            const response = await fetchWithProfileId(`/api/budget${includeInactive ? "?includeInactive=true" : ""}`, currentProfileId);
+            const response = await fetchWithAuth(`/api/budget${includeInactive ? "?includeInactive=true" : ""}`);
             return (await response.json()) as Budget[]
         },
     });
     const create = useMutation({
         mutationFn: async (budget: Budget) => {
-            const response = await fetchWithProfileId("/api/budget", currentProfileId, {
+            const response = await fetchWithAuth("/api/budget", {
                 method: "POST",
                 body: JSON.stringify(budget),
             });
@@ -45,7 +44,7 @@ const useBudget: HookType = (includeInactive: boolean = true) => {
 
     const update = useMutation({
         mutationFn: async (budget: Budget) => {
-            const response = await fetchWithProfileId(`/api/budget/${budget.id}`, currentProfileId, {
+            const response = await fetchWithAuth(`/api/budget/${budget.id}`, {
                 method: "PUT",
                 body: JSON.stringify(budget),
             });
@@ -66,7 +65,7 @@ const useBudget: HookType = (includeInactive: boolean = true) => {
 
     const deleteBudgetMutation = useMutation({
         mutationFn: async (budgetId: number) => {
-            const response = await fetchWithProfileId(`/api/budget/${budgetId}`, currentProfileId, {
+            const response = await fetchWithAuth(`/api/budget/${budgetId}`, {
                 method: "DELETE",
             });
             if (!response.ok) {
@@ -84,7 +83,7 @@ const useBudget: HookType = (includeInactive: boolean = true) => {
 
     const setPosition = useMutation({
         mutationFn: async ({budgetId, precedingId}: {budgetId: number, precedingId?: number}) => {
-            const response = await fetchWithProfileId(`/api/budget/${budgetId}/position`, currentProfileId, {
+            const response = await fetchWithAuth(`/api/budget/${budgetId}/position`, {
                 method: "PUT",
                 body: JSON.stringify({
                     id: budgetId,

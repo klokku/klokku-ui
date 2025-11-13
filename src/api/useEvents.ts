@@ -1,8 +1,7 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Event} from "@/api/types.ts";
 import {formatDate} from "date-fns";
-import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
-import {fetchWithProfileId} from "@/api/fetchWithProfileId.ts";
+import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 
 type HookType = () => {
     loadingCurrentEvent: boolean,
@@ -15,25 +14,25 @@ type HookType = () => {
 }
 
 const useEvents: HookType = () => {
-    const { currentProfileId } = useCurrentProfile()
+    const fetchWithAuth = useFetchWithProfileUid()
     const queryClient = useQueryClient();
     const { isLoading: loadingCurrentEvent, data } = useQuery({
         queryKey: ["currentEvent"],
         queryFn: async () => {
-            const response = await fetchWithProfileId("/api/event/current", currentProfileId)
+            const response = await fetchWithAuth("/api/event/current")
             return (await response.json()) as Event
         }
     })
     const { isLoading: loadingLastEvents, data: last } = useQuery({
         queryKey: ["lastEvents"],
         queryFn: async () => {
-            const response = await fetchWithProfileId("/api/event?last=5", currentProfileId)
+            const response = await fetchWithAuth("/api/event?last=5")
             return (await response.json()) as Event[]
         }
     })
     const start = useMutation({
         mutationFn: async (budgetId: number) => {
-            const response = await fetchWithProfileId("/api/event", currentProfileId, {
+            const response = await fetchWithAuth("/api/event", {
                 method: "POST",
                 body: JSON.stringify({
                     budgetId: budgetId,
@@ -58,7 +57,7 @@ const useEvents: HookType = () => {
 
     const end = useMutation({
         mutationFn: async () => {
-            const response = await fetchWithProfileId("/api/event/current", currentProfileId, {
+            const response = await fetchWithAuth("/api/event/current", {
                 method: "PATCH",
                 body: JSON.stringify({
                     status: "finished",
@@ -82,7 +81,7 @@ const useEvents: HookType = () => {
 
     const updateStartTime = useMutation({
         mutationFn: async (startTime: Date) => {
-            const response = await fetchWithProfileId("/api/event/current/start", currentProfileId, {
+            const response = await fetchWithAuth("/api/event/current/start", {
                 method: "PATCH",
                 body: JSON.stringify({
                     startTime: formatDate(startTime, "yyyy-MM-dd'T'HH:mm:ssXXX")

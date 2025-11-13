@@ -14,10 +14,14 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/
 import useProfiles from "@/api/useProfiles.ts";
 import {useNavigate} from "react-router-dom";
 import {paths} from "@/pages/links.ts";
+import {v4 as uuidv4} from 'uuid';
 
 
 const formSchema = z.object({
-    username: z.string(),
+    username: z.string()
+        .min(3, {message: "Username must be at least 3 characters long."})
+        .max(30, {message: "Username cannot be longer than 30 characters."})
+        .regex(/^[a-zA-Z0-9_-]+$/, {message: "Username can only contain letters, numbers, underscores and dashes."}),
     displayName: z.string(),
     photoUrl: z.string().optional(),
     timezone: z.string(),
@@ -26,22 +30,7 @@ const formSchema = z.object({
 
 export function CreateProfilePage() {
     const timezones = Intl.supportedValuesOf('timeZone');
-    const {createProfile} = useProfiles();
     const navigate = useNavigate();
-
-    const onSubmit  = async (formData: z.infer<typeof formSchema>) => {
-        await createProfile({
-            username: formData.username,
-            displayName: formData.displayName,
-            photoUrl: formData.photoUrl || "",
-            settings: {
-                timezone: formData.timezone,
-                weekStartDay: formData.weekStartDay,
-                eventCalendarType: "",
-            }
-        });
-        navigate(paths.root.path, {replace: true})
-    }
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -53,6 +42,28 @@ export function CreateProfilePage() {
             weekStartDay: "monday",
         }
     });
+
+    const username = form.watch("username");
+    const {createProfile, isUsernameAvailable, isCheckingUsername} = useProfiles(username);
+
+    // Check if form can be submitted
+    const canSubmit = username.length >= 3 ? isUsernameAvailable === true : true;
+    const isFormValid = form.formState.isValid && canSubmit;
+
+    const onSubmit = async (formData: z.infer<typeof formSchema>) => {
+        await createProfile({
+            uid: uuidv4(),
+            username: formData.username,
+            displayName: formData.displayName,
+            photoUrl: formData.photoUrl || "",
+            settings: {
+                timezone: formData.timezone,
+                weekStartDay: formData.weekStartDay,
+                eventCalendarType: "",
+            }
+        });
+        navigate(paths.root.path, {replace: true})
+    }
 
     return (
         <div className="h-screen">
@@ -84,6 +95,17 @@ export function CreateProfilePage() {
                                         <FormControl className="w-full">
                                             <Input placeholder="Unique profile name" {...field} />
                                         </FormControl>
+                                        {username && username.length >= 3 && (
+                                            <div className="text-sm mt-1">
+                                                {isCheckingUsername ? (
+                                                    <span className="text-gray-500">Checking availability...</span>
+                                                ) : isUsernameAvailable ? (
+                                                    <span className="text-green-600">✓ Username is available</span>
+                                                ) : (
+                                                    <span className="text-red-600">✗ Username is taken</span>
+                                                )}
+                                            </div>
+                                        )}
                                         <FormMessage/>
                                     </FormItem>
                                 )}/>
@@ -172,7 +194,11 @@ export function CreateProfilePage() {
                                     )}
                                 />
 
-                                <Button type="submit" className="bg-[#00BCD4] h-[50px] text-md">
+                                <Button
+                                    type="submit"
+                                    className="bg-[#00BCD4] h-[50px] text-md"
+                                    disabled={!isFormValid || isCheckingUsername}
+                                >
                                     I'm ready to start!
                                 </Button>
                             </form>

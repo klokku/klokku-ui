@@ -11,6 +11,7 @@ import {StartPage} from "@/pages/start/StartPage.tsx";
 import {CreateProfilePage} from "@/pages/profile/CreateProfilePage.tsx";
 import {ProfileEditPage} from "@/pages/profile/ProfileEditPage.tsx";
 import {IntegrationsPage} from "@/pages/integrations/IntegrationsPage.tsx";
+import {LogoutPage} from "@/pages/profile/LogoutPage.tsx";
 
 const AppRoutes = () => (
   <Routes>
@@ -23,6 +24,7 @@ const AppRoutes = () => (
       <Route path={paths.calendar.path} element={<CalendarPage />} />
       <Route path={paths.profile.path} element={<ProfileEditPage />} />
       <Route path={paths.integrations.path} element={<IntegrationsPage />} />
+      <Route path={paths.logout.path} element={<LogoutPage />}/>
     </Route>
     <Route path="*" element={<ErrorPage404 />} />
   </Routes>

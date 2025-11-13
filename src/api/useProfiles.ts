@@ -2,14 +2,16 @@ import {Profile} from "@/api/types.ts";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 
 
-type HookType = () => {
+type HookType = (username?: string) => {
     isLoadingAll: boolean,
     allProfiles?: Profile[]
     createProfile: (profile: Profile) => Promise<Profile>
-    deleteProfile: (profileId: number) => Promise<void>,
+    deleteProfile: (profileUid: string) => Promise<void>,
+    isUsernameAvailable?: boolean,
+    isCheckingUsername: boolean,
 }
 
-const useProfiles: HookType = () => {
+const useProfiles: HookType = (username) => {
     const queryClient = useQueryClient();
     const {isLoading: isLoadingAll, data: all} = useQuery({
         queryKey: ["allProfiles"],
@@ -20,6 +22,19 @@ const useProfiles: HookType = () => {
             return (await response.json()) as Profile[]
         }
     })
+
+    const {data: isUsernameAvailable, isLoading: isCheckingUsername} = useQuery({
+        queryKey: ["usernameAvailable", username],
+        queryFn: async() => {
+            const response = await fetch(`/api/user/name-availability?username=${username}`, {
+                method: "GET"
+            })
+            return (await response.json()).available as boolean
+        },
+        enabled: !!username && username.length >= 3
+    })
+
+
 
     const create = useMutation({
         mutationFn: async (profile: Profile) => {
@@ -42,8 +57,8 @@ const useProfiles: HookType = () => {
     });
 
     const deleteIt = useMutation({
-        mutationFn: async (profileId: number) => {
-            const response = await fetch(`/api/user/${profileId}`, {
+        mutationFn: async (profileUid: string) => {
+            const response = await fetch(`/api/user/${profileUid}`, {
                 method: "DELETE",
             });
             if (!response.ok) {
@@ -63,8 +78,8 @@ const useProfiles: HookType = () => {
         return create.mutateAsync(profile);
     };
 
-    const deleteProfile = async (profileId: number) => {
-        return deleteIt.mutate(profileId);
+    const deleteProfile = async (profileUid: string) => {
+        return deleteIt.mutate(profileUid);
     };
 
     return {
@@ -72,6 +87,8 @@ const useProfiles: HookType = () => {
         allProfiles: all,
         createProfile,
         deleteProfile,
+        isUsernameAvailable,
+        isCheckingUsername
     }
 }
 

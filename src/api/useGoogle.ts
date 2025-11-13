@@ -1,7 +1,6 @@
 import {GoogleAuthRedirect, GoogleCalendarItem} from "@/api/types.ts";
-import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {fetchWithProfileId} from "@/api/fetchWithProfileId.ts";
+import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 
 type HookType = () => {
     isLoadingCalendars: boolean,
@@ -11,13 +10,13 @@ type HookType = () => {
 }
 
 const useGoogle: HookType = () => {
-    const { currentProfileId } = useCurrentProfile()
+    const fetchWithAuth = useFetchWithProfileUid()
     const queryClient = useQueryClient();
 
     const {isLoading: isLoadingCalendars, data: calendars} = useQuery({
         queryKey: ["googleCalendars"],
         queryFn: async () => {
-            const response = await fetchWithProfileId("/api/integrations/google/calendars", currentProfileId, {
+            const response = await fetchWithAuth("/api/integrations/google/calendars", {
                 method: "GET",
             })
             if (!response.ok) {
@@ -30,7 +29,7 @@ const useGoogle: HookType = () => {
 
     const authLoginGoogle = useMutation({
         mutationFn: async () => {
-            const response = await fetchWithProfileId("/api/integrations/google/auth/login?finalUrl=" + encodeURI(window.location.href), currentProfileId, {
+            const response = await fetchWithAuth("/api/integrations/google/auth/login?finalUrl=" + encodeURI(window.location.href), {
                 method: "GET",
             });
 
@@ -49,7 +48,7 @@ const useGoogle: HookType = () => {
 
     const authLogoutGoogle = useMutation({
         mutationFn: async () => {
-            const response = await fetchWithProfileId("/api/integrations/google/auth/logout", currentProfileId, {
+            const response = await fetchWithAuth("/api/integrations/google/auth/logout", {
                 method: "DELETE",
             });
 

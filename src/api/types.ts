@@ -57,7 +57,7 @@ export interface ProfileSettings {
 }
 
 export interface Profile {
-    id?: number;
+    uid?: string;
     username: string;
     displayName: string;
     photoUrl: string;

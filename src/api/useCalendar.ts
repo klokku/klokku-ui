@@ -1,7 +1,6 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {CalendarEvent} from "@/api/types.ts";
-import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
-import {fetchWithProfileId} from "@/api/fetchWithProfileId.ts";
+import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 import {toServerFormat} from "@/lib/dateUtils.ts";
 
 type HookType = (fromDate: Date, toDate: Date) => {
@@ -13,7 +12,7 @@ type HookType = (fromDate: Date, toDate: Date) => {
 }
 
 const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
-    const { currentProfileId } = useCurrentProfile()
+    const fetchWithAuth = useFetchWithProfileUid()
     const queryClient = useQueryClient();
 
     const from = encodeURIComponent(toServerFormat(fromDate))
@@ -21,14 +20,14 @@ const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
     const { isLoading, data } = useQuery({
         queryKey: ["calendarEvents", from, to],
         queryFn: async () => {
-            const response = await fetchWithProfileId(`/api/calendar/event?from=${from}&to=${to}`, currentProfileId)
+            const response = await fetchWithAuth(`/api/calendar/event?from=${from}&to=${to}`)
             return (await response.json()) as CalendarEvent[]
         }
     })
 
     const modify = useMutation({
         mutationFn: async (event: CalendarEvent) => {
-            const response = await fetchWithProfileId(`/api/calendar/event/${event.uid}`, currentProfileId, {
+            const response = await fetchWithAuth(`/api/calendar/event/${event.uid}`, {
                 method: "PUT",
                 body: JSON.stringify(event),
             });
@@ -48,7 +47,7 @@ const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
 
     const create = useMutation({
         mutationFn: async (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => {
-            const response = await fetchWithProfileId("/api/calendar/event", currentProfileId, {
+            const response = await fetchWithAuth("/api/calendar/event", {
                 method: "POST",
                 body: JSON.stringify(event),
             });
@@ -67,7 +66,7 @@ const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
 
     const deleteEv = useMutation({
         mutationFn: async (eventUid: string) => {
-            const response = await fetchWithProfileId(`/api/calendar/event/${eventUid}`, currentProfileId, {
+            const response = await fetchWithAuth(`/api/calendar/event/${eventUid}`, {
                 method: "DELETE",
             });
             if (!response.ok) {
