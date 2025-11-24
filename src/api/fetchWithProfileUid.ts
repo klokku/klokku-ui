@@ -1,4 +1,5 @@
 import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
+import {paths} from "@/pages/links.ts";
 
 export const fetchWithProfileUid = async (
     url: string,
@@ -8,7 +9,14 @@ export const fetchWithProfileUid = async (
     if (!currentProfileUid) {
         throw new Error('No profile id found');
     }
-    return addHeaders(fetch, url, currentProfileUid, options);
+    const response = await addHeaders(fetch, url, currentProfileUid, options);
+
+    if (response.status === 401) {
+        window.location.href = paths.start.path
+        throw new Error('Unauthorized');
+    }
+
+    return response;
 };
 
 const addHeaders = async (
