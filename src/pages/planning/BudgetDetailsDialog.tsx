@@ -109,13 +109,13 @@ export default function BudgetDetailsDialog({budgetStats, periodStart, periodEnd
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-6 w-6 p-0 flex-shrink-0"
+                                                className="h-6 w-6 p-0 shrink-0"
                                                 onClick={() => openTaskInClickUp(task.id)}
                                                 title="Open in ClickUp"
                                             >
                                                 <ExternalLink className="h-3 w-3" />
                                             </Button>
-                                            <Badge variant="outline" className="flex-shrink-0">
+                                            <Badge variant="outline" className="shrink-0">
                                                 {formatSecondsToDuration(task.timeEstimateSec)}
                                             </Badge>
                                         </div>

@@ -11,8 +11,8 @@ export function SearchButton({onClick, className}: SearchButtonProps) {
     return (
         <div className={className + " relative"}>
             <Button variant="outline" onClick={onClick}
-                    className="h-7 border-0 text-white text-opacity-80 w-full text-left justify-start pl-8 bg-white bg-opacity-20
-                        hover:text-white hover:text-opacity-90 focus:outline-none hover:bg-white hover:bg-opacity-30">
+                    className="h-7 border-0 text-white/80 w-full text-left justify-start pl-8 bg-white/20
+                        hover:text-white/90 focus:outline-hidden hover:bg-white/30">
                 Search...
             </Button>
             <Search

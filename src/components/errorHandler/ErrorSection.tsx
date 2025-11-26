@@ -4,8 +4,8 @@ type Props = {
 
 const ErrorSection = ({ message }: Props) => (
   <section className="bg-white">
-    <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
-      <div className="mx-auto max-w-screen-sm text-center">
+    <div className="py-8 px-4 mx-auto max-w-(--breakpoint-xl) lg:py-16 lg:px-6">
+      <div className="mx-auto max-w-(--breakpoint-sm) text-center">
         <h1 className="mb-4 text-7xl tracking-tight font-extrabold lg:text-9xl text-primary-600">
           🙈
         </h1>
@@ -20,7 +20,7 @@ const ErrorSection = ({ message }: Props) => (
         </p>
         <a
           href="/"
-          className="inline-flex bg-primary-600 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center my-4"
+          className="inline-flex bg-primary-600 hover:bg-primary-800 focus:ring-4 focus:outline-hidden focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center my-4"
         >
           Powrót do strony głównej
         </a>

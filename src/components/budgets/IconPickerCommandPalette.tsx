@@ -27,7 +27,7 @@ export const IconPickerCommandPalette = ({value, onChanged}: IconPickerCommandPa
     const { icons } = useIconPicker();
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={open} onOpenChange={setOpen} modal={true}>
             <PopoverTrigger asChild>
                 <Button type="button" variant="outline" role="combobox" aria-expanded={open} className="min-w-[150px]">
                     {value ? (

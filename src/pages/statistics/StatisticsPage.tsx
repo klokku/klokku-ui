@@ -81,7 +81,7 @@ export function StatisticsPage() {
     return (
         <div className="flex flex-col gap-y-4">
             <WeekChooser currentWeekStart={weekFirstDay} onNext={onNextWeek} onPrevious={onPreviousWeek}/>
-            <div className="rounded-md border overflow-hidden shadow-sm">
+            <div className="rounded-md border overflow-hidden shadow-xs">
                 <Table className="w-full border-collapse">
                     <TableHeader>
                         <TableRow className="bg-gray-50">
@@ -131,7 +131,7 @@ export function StatisticsPage() {
                     </TableBody>
                 </Table>
             </div>
-            <div className="rounded-sm border overflow-hidden shadow-sm">
+            <div className="rounded-sm border overflow-hidden shadow-xs">
                 <Table className="w-full border-collapse">
                     <TableHeader>
                         <TableRow className="bg-gray-50">
