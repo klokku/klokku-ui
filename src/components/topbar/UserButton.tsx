@@ -55,7 +55,7 @@ export function UserButton({profile}: UserButtonProps) {
     return (
         <DropdownMenu onOpenChange={setIsOpen}>
             <DropdownMenuTrigger
-                className="mr-4 p-0 rounded-full flex items-center border-0 bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 cursor-pointer focus:outline-none">
+                className="mr-4 p-0 rounded-full flex items-center border-0 bg-white/20 hover:bg-white/30 cursor-pointer focus:outline-hidden">
 
                 <ProfileAvatar className="w-8 h-8 rounded-full cursor-pointer"/>
                 {!isOpen &&

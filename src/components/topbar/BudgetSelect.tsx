@@ -16,13 +16,13 @@ export function BudgetSelect() {
 
     return (
         <Select onValueChange={onBudgetChange}>
-            <SelectTrigger className="relative max-w-36 h-7 border-0 text-white text-opacity-80 pl-8
-            bg-white bg-opacity-20 hover:text-white hover:text-opacity-90 hover:bg-white hover:bg-opacity-30 focus:outline-none focus:ring-0">
+            <SelectTrigger className="relative max-w-36 h-7 border-0 text-white/80 pl-8
+            bg-white/20 hover:text-white/90 hover:bg-white/30 focus:outline-hidden focus:ring-0">
                 <FolderKanbanIcon
                     className="text-white pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 select-none opacity-80 hover:opacity-100"/>
                 <SelectValue placeholder={currentBudgetName ?? "No active budget"} />
             </SelectTrigger>
-            <SelectContent className="bg-gray-50 text-black text-opacity-85 focus:outline-none focus:ring-0 border-0">
+            <SelectContent className="bg-gray-50 text-black/85 focus:outline-hidden focus:ring-0 border-0">
                 { budgets.map(budget => (
                     <SelectItem key={budget.id} value={budget.id?.toString() ?? ""}>{budget.name}</SelectItem>
                 ))}

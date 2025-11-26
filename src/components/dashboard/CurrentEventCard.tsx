@@ -92,7 +92,7 @@ export function CurrentEventCard() {
                             ))}
                         </SelectContent>
                     </Select>
-                    <Button variant="outline" className="border-1" type="button" onClick={openEditCurrentEvent}>
+                    <Button variant="outline" className="border" type="button" onClick={openEditCurrentEvent}>
                         <HistoryIcon/>
                         <span>{new Date(currentEvent?.startTime!!).toLocaleTimeString(userSettings.locale, {timeStyle: "short"})}</span>
                         <span className="hidden md:inline-block">({formatEventDuration(currentEvent)})</span>

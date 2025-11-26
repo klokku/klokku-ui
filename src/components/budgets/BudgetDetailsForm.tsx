@@ -59,7 +59,7 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
 
     return (
         <Form {...form}>
-            <form id={formId} onSubmit={form.handleSubmit(_onSubmit)}>
+            <form id={formId} onSubmit={form.handleSubmit(_onSubmit)} className="flex flex-col gap-2">
 
 
                 <FormField control={form.control} name="name" render={({field}) => (
@@ -88,7 +88,7 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                         <FormItem className="flex gap-2 items-center">
                             <FormLabel className="w-44">Icon</FormLabel>
                             <FormControl className="w-full">
-                                <div className="relative w-full my-96">
+                                <div className="relative w-full">
                                     <IconPickerCommandPalette value={field.value} onChanged={(iconName) => {form.setValue(field.name, iconName)}} />
                                 </div>
                             </FormControl>
@@ -102,7 +102,7 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                             <FormItem className="flex gap-2 items-center">
                                 <FormLabel className="w-44">Start date</FormLabel>
                                 <div className="relative w-full">
-                                    <Popover>
+                                    <Popover modal={true}>
                                         <PopoverTrigger asChild>
                                             <FormControl className="w-full">
                                                 <Button
@@ -158,7 +158,7 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                         <FormItem className="flex gap-2 items-center">
                             <FormLabel className="w-44">End date</FormLabel>
                             <div className="relative w-full">
-                                <Popover>
+                                <Popover modal={true}>
                                     <PopoverTrigger asChild>
                                         <FormControl className="w-full">
                                             <Button
@@ -219,7 +219,7 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                         <FormItem className="flex gap-2 items-center">
                             <FormLabel className="w-44">Weekly occurrences</FormLabel>
                             <FormControl className="w-full">
-                                <div className="relative w-full my-96">
+                                <div className="relative w-full">
                                     <Input type="number" placeholder="How many times per week (optional)" {...field} value={field.value != 0 ? field.value : "" } />
                                     <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                                             onClick={() => {form.setValue(field.name, 0)}}>

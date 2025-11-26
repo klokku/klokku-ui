@@ -118,7 +118,7 @@ export function BudgetsPage() {
                 </div>
             )}
 
-            <div className="rounded-md border overflow-hidden shadow-sm">
+            <div className="rounded-md border overflow-hidden shadow-xs">
                 <Table className="w-full border-collapse">
                     <TableHeader>
                         <TableRow className="bg-gray-50">

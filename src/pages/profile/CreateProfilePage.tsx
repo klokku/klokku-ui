@@ -72,7 +72,7 @@ export function CreateProfilePage() {
             </div>
             <div className="flex flex-col w-screen h-screen items-center justify-center">
                 <div className="min-w-[400px] max-w-[600px]">
-                    <h1 className="font-sour-gummy text-8xl font-light bg-gradient-to-r from-[#464646] to-[#00BCD4] text-transparent bg-clip-text mb-5 text-center">
+                    <h1 className="font-sour-gummy text-8xl font-light bg-linear-to-r from-[#464646] to-[#00BCD4] text-transparent bg-clip-text mb-5 text-center">
                         Hello!
                     </h1>
                     <div>
