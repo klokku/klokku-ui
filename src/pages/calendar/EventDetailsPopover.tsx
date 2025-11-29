@@ -111,8 +111,8 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                             granularity="minute"
                                             hourCycle={24}
                                             className="calendar-unselect-cancel"
-                                            locale={userSettings.locale}
-                                            weekStartsOn={userSettings.locale === "sunday" ? "0" : "1"}
+                                            locale={{code: userSettings.locale}}
+                                            weekStartsOn={userSettings.locale === "sunday" ? 0 : 1}
                                             showWeekNumber={false}
                                             showOutsideDays={true}
                                         />
@@ -129,8 +129,8 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                             granularity="minute"
                                             hourCycle={24}
                                             className="calendar-unselect-cancel"
-                                            locale={userSettings.locale}
-                                            weekStartsOn={userSettings.locale === "sunday" ? "0" : "1"}
+                                            locale={{code: userSettings.locale}}
+                                            weekStartsOn={userSettings.locale === "sunday" ? 0 : 1}
                                             showWeekNumber={false}
                                             showOutsideDays={true}
                                         />
