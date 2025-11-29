@@ -58,48 +58,49 @@ export function CurrentEventCard() {
     }
 
     return (
-        <Card className="shadow-xl">
-            <CardHeader className="pb-1">
-                <CardTitle></CardTitle>
+        <Card className="shadow-lg gap-2">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2" title="Current event">
+                    <div className="flex gap-2 w-full">
+                        <Select onValueChange={onBudgetChange}>
+                            <SelectTrigger
+                                className="relative w-full pl-9 *:data-[slot=select-value]:text-black/80 [&_svg:not([class*='text-'])]:text-black/80">
+                                {currentBudget?.icon && createElement(getIcon(currentBudget.icon), {
+                                    className: "pointer-events-none absolute left-2" +
+                                        " top-1/2 size-4 -translate-y-1/2 select-none opacity-60 hover:opacity-100"
+                                })}
+                                {!currentBudget?.icon && <FolderKanbanIcon
+                                    className=" pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 select-none opacity-80 hover:opacity-100"/>
+                                }
+                                <SelectValue placeholder={currentBudget?.name ?? "No active budget"}>
+                                    {currentBudget?.name ?? "No active budget"}
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {budgets.map(budget => (
+
+                                    <SelectItem key={budget.id} value={budget.id?.toString() ?? ""}>
+                                        <div className="flex items-center gap-2">
+
+                                            {budget.icon ? createElement(getIcon(budget.icon), {className: "size-4 text-gray-500"}) : null}
+                                            {!budget.icon && <Square2StackIcon className="size-5 opacity-60"/>}
+
+                                            <div>{budget.name}</div>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Button variant="outline" className="border" type="button" onClick={openEditCurrentEvent}>
+                            <HistoryIcon/>
+                            <span>{new Date(currentEvent?.startTime!!).toLocaleTimeString(userSettings.locale, {timeStyle: "short"})}</span>
+                            <span className="hidden md:inline-block">({formatEventDuration(currentEvent)})</span>
+                        </Button>
+                    </div>
+                </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-y-1">
-                <div className="flex gap-2">
-                    <Select onValueChange={onBudgetChange}>
-                        <SelectTrigger className="relative pl-9">
-                            {currentBudget?.icon && createElement(getIcon(currentBudget.icon), {
-                                className: "pointer-events-none absolute left-2" +
-                                    " top-1/2 size-4 -translate-y-1/2 select-none opacity-60 hover:opacity-100"
-                            })}
-                            {!currentBudget?.icon && <FolderKanbanIcon
-                                className=" pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 select-none opacity-80 hover:opacity-100"/>
-                            }
-                            <SelectValue placeholder={currentBudget?.name ?? "No active budget"}>
-                                {currentBudget?.name ?? "No active budget"}
-                            </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {budgets.map(budget => (
-
-                                <SelectItem key={budget.id} value={budget.id?.toString() ?? ""}>
-                                    <div className="flex items-center gap-2">
-
-                                        {budget.icon ? createElement(getIcon(budget.icon), {className: "size-4 text-gray-500"}) : null}
-                                        {!budget.icon && <Square2StackIcon className="size-5 opacity-60"/>}
-
-                                        <div>{budget.name}</div>
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Button variant="outline" className="border" type="button" onClick={openEditCurrentEvent}>
-                        <HistoryIcon/>
-                        <span>{new Date(currentEvent?.startTime!!).toLocaleTimeString(userSettings.locale, {timeStyle: "short"})}</span>
-                        <span className="hidden md:inline-block">({formatEventDuration(currentEvent)})</span>
-                    </Button>
-                </div>
-
-                <div className="mt-3">
+            <CardContent>
+                <div>
                     <div className="text-muted-foreground text-xs mb-0.5 pl-2">Previous events</div>
                     <div className="flex flex-col">
                         {lastEvents && lastEvents.slice(0, 4).map(event => (

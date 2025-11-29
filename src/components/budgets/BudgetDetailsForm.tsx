@@ -103,13 +103,14 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                                 <FormLabel className="w-44">Start date</FormLabel>
                                 <div className="relative w-full">
                                     <Popover modal={true}>
-                                        <PopoverTrigger asChild>
+                                        <PopoverTrigger>
                                             <FormControl className="w-full">
                                                 <Button
+                                                    type="button"
                                                     variant={"outline"}
                                                     className={cn(
                                                         "w-[240px] text-left font-normal relative",
-                                                        field.value ? "pl-10" : "pl-3",
+                                                        field.value ? "!pl-10" : "!pl-3",
                                                         !field.value && "text-muted-foreground"
                                                     )}
                                                 >
@@ -130,7 +131,7 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                                                 disabled={(date) =>
                                                     date < new Date("2000-01-01")
                                                 }
-                                                initialFocus
+                                                autoFocus
                                             />
                                         </PopoverContent>
                                     </Popover>
@@ -159,13 +160,14 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                             <FormLabel className="w-44">End date</FormLabel>
                             <div className="relative w-full">
                                 <Popover modal={true}>
-                                    <PopoverTrigger asChild>
+                                    <PopoverTrigger>
                                         <FormControl className="w-full">
                                             <Button
+                                                type="button"
                                                 variant={"outline"}
                                                 className={cn(
                                                     "w-[240px] text-left font-normal relative",
-                                                    field.value ? "pl-10" : "pl-3",
+                                                    field.value ? "!pl-10" : "!pl-3",
                                                     !field.value && "text-muted-foreground"
                                                 )}
                                             >
@@ -191,7 +193,6 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                                                     return date < new Date("2000-01-01")
                                                 }
                                             }}
-                                            captionLayout="dropdown"
                                         />
                                     </PopoverContent>
                                 </Popover>
@@ -221,7 +222,7 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                             <FormControl className="w-full">
                                 <div className="relative w-full">
                                     <Input type="number" placeholder="How many times per week (optional)" {...field} value={field.value != 0 ? field.value : "" } />
-                                    <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                                    <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 mr-8"
                                             onClick={() => {form.setValue(field.name, 0)}}>
                                         <XIcon className="h-4 w-4" />
                                         <span className="sr-only">Clear</span>

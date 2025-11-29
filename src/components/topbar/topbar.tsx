@@ -28,7 +28,7 @@ export function Topbar() {
             <HeaderLogo className="h-5" dark={true}/>
             <div className="w-full flex justify-center items-center gap-4">
                 <SearchButton className="w-full max-w-80 hidden md:inline-block" onClick={() => setCommandMenuOpen(true)}/>
-                <BudgetSelect/>
+                <BudgetSelect />
             </div>
             {!isLoadingCurrent && currentProfile ? (
                 <UserButton profile={currentProfile}/>

@@ -31,11 +31,18 @@ export const paths = {
     path: "/profile",
     title: "Profile"
   },
-
   integrations: {
     path: "/integrations",
     title: "Integrations"
   },
+  security: {
+    path: "/security",
+    title: "Security",
+  },
+  apiKeys: {
+    path: "/api-keys",
+    title: "API Keys",
+  }
 
 };
 

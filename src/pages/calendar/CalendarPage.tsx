@@ -216,7 +216,11 @@ export function CalendarPage() {
                         function (datesSet) {
                             setCalendarStart(datesSet.start)
                             setCalendarEnd(datesSet.end)
-                            setCurrentViewDate(datesSet.start)
+                            if (isMobile) {
+                                setCurrentViewDate(new Date())
+                            } else {
+                                setCurrentViewDate(datesSet.start)
+                            }
                         }
                     }
                     unselectCancel={'.calendar-unselect-cancel'}

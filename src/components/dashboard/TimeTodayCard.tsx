@@ -14,8 +14,8 @@ export function TimeTodayCard() {
         ?.filter(budget => budget.duration > 0)
 
     return (
-        <Card className="shadow-xl">
-            <CardHeader className="pb-3">
+        <Card className="shadow-lg gap-2">
+            <CardHeader>
                 <CardTitle>Time today</CardTitle>
             </CardHeader>
             <CardContent>
@@ -27,8 +27,8 @@ export function TimeTodayCard() {
                 {todaysBudgets && (
                     <div className="grid grid-cols-3 gap-2">
                         {todaysBudgets.map((budget) => (
-                            <Card className="shadow-card" key={budget.budget.name}>
-                                <CardHeader className="pb-3 pt-3">
+                            <Card className="shadow-card py-3" key={budget.budget.name}>
+                                <CardHeader>
                                     <CardTitle className="text-sm">{budget.budget.name}</CardTitle>
                                     <CardDescription className="">{formatSecondsToDuration(budget.duration)}</CardDescription>
                                 </CardHeader>
