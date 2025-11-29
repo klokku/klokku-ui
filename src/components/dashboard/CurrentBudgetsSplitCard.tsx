@@ -16,13 +16,13 @@ export function WeeklyBudgetsSplitCard() {
                 budget: budgetStats.budget.name.replace("TTA", ""),
                 time: thisWeekTimeInSec,
                 timeFormated: formatSecondsToDuration(thisWeekTimeInSec),
-                fill: `hsl(var(--chart-${idx % 5 + 1}))`,
+                fill: `var(--chart-${idx % 5 + 1})`,
             }
         })
 
     return (
-        <Card className="shadow-xl">
-            <CardHeader className="pb-1">
+        <Card className="shadow-lg gap-2">
+            <CardHeader>
                 <CardTitle>Spent time this week</CardTitle>
             </CardHeader>
             <CardContent className="">

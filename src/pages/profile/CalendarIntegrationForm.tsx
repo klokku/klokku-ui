@@ -37,7 +37,7 @@ export function CalendarIntegrationForm({settings, onCalendarTypeChange, onGoogl
             <div className="space-y-2">
                 <Label>Calendar Type</Label>
                 <Select value={settings.eventCalendarType || "klokku"} onValueChange={calendarTypeChange}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                         <SelectValue placeholder="Choose calendar type"/>
                     </SelectTrigger>
                     <SelectContent>

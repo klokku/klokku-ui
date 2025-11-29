@@ -44,7 +44,7 @@ export function StartPage() {
                     <Card className="shadow-card cursor-pointer hover:bg-gray-50 border-0 bg-white/0" role="button" onClick={() => {
                         navigate(paths.createProfile.path)
                     }}>
-                        <CardHeader className="flex-row items-center gap-5 w-72">
+                        <CardHeader className="flex items-center gap-5 w-72">
                             <PlusIcon className="w-12 h-12"/>
                             <div>
                                 <CardTitle>New profile</CardTitle>

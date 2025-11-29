@@ -125,7 +125,7 @@ export function BudgetsPage() {
                             <TableHead className="w-60"></TableHead>
                             <TableHead>Weekly</TableHead>
                             <TableHead>Daily</TableHead>
-                            <TableHead>Events per week</TableHead>
+                            <TableHead className="hidden md:table-cell">Events per week</TableHead>
                             <TableHead className="flex justify-end items-center">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger><MenuIcon className="size-4"/></DropdownMenuTrigger>
@@ -151,7 +151,7 @@ export function BudgetsPage() {
                                 </TableCell>
                                 <TableCell>{formatSecondsToDuration(budget.weeklyTime)}</TableCell>
                                 <TableCell>{formatSecondsToDuration(budget.weeklyTime / 7)}</TableCell>
-                                <TableCell>{budget.weeklyOccurrences !== 0 ? budget.weeklyOccurrences : (
+                                <TableCell className="hidden md:table-cell">{budget.weeklyOccurrences !== 0 ? budget.weeklyOccurrences : (
                                     <Badge variant="outline" className="text-gray-500">undefined</Badge>)}</TableCell>
                                 <TableCell className="flex justify-end items-center">
                                     {isBudgetActive(budget, new Date()) &&
@@ -194,7 +194,7 @@ export function BudgetsPage() {
                                     )}
                                 </div>
                             </TableCell>
-                            <TableCell></TableCell>
+                            <TableCell className="hidden md:table-cell"></TableCell>
                             <TableCell></TableCell>
                         </TableRow>
                     </TableBody>

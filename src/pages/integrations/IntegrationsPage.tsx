@@ -17,7 +17,12 @@ export function IntegrationsPage() {
 
     return (
         <div className="space-y-6 p-4">
-            <h1 className="text-2xl font-bold">Integrations</h1>
+            <div className="space-y-2">
+                <h1 className="text-3xl font-bold">Integrations</h1>
+                <p className="text-gray-500 dark:text-gray-400">
+                    Klokku integrates with popular services to make your time tracking more efficient.
+                </p>
+            </div>
 
             <Card>
                 <CardHeader>

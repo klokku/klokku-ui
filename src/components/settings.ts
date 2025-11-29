@@ -1,3 +1,5 @@
 export const userSettings = {
-    locale: "pl-PL"
+    locale: "pl-PL",
+    weekStartDay: "monday",
+
 }

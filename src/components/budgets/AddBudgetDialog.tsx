@@ -33,7 +33,8 @@ export function AddBudgetDialog({budget, open, onOpenChange, onSave, onDelete, t
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className="max-w-[99vw]">
+
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         {budget?.name ?? "Creating new budget"}
@@ -41,7 +42,7 @@ export function AddBudgetDialog({budget, open, onOpenChange, onSave, onDelete, t
                             <Badge variant="secondary">inactive</Badge>
                         }
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="flex gap-1">
                         Remaining weekly time:
                         <span className={remainingWeeklyTime < 0 ? "text-red-600" : ""}> {formatSecondsToDuration(remainingWeeklyTime)}</span>
                     </DialogDescription>

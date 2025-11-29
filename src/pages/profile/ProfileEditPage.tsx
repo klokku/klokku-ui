@@ -69,7 +69,7 @@ export function ProfileEditPage() {
 
             <div className="flex items-center space-x-4">
                 <DropdownMenu open={avatarDropdownOpen} onOpenChange={setAvatarDropdownOpen}>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger>
                         <Avatar className="rounded-xl h-20 w-20">
                             {avatar &&
                                 <AvatarImage src={URL.createObjectURL(avatar)} />

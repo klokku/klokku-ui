@@ -7,19 +7,20 @@ import * as z from "zod";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormField, FormItem, FormLabel} from "@/components/ui/form.tsx";
+import {userSettings} from "@/components/settings.ts";
 
 const eventDetailsSchema = z.object({
     startDate: z.date(),
     endDate: z.date(),
     budgetId: z.number(),
 }).refine((data) =>
-    data.startDate.getTime() < data.endDate.getTime(),
+        data.startDate.getTime() < data.endDate.getTime(),
     {
         message: "End date must be after start date",
         path: ["endDate"],
     }
 ).refine((data) =>
-    data.budgetId !== 0,
+        data.budgetId !== 0,
     {
         message: "Budget must be selected",
         path: ["budgetId"],
@@ -110,6 +111,10 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                             granularity="minute"
                                             hourCycle={24}
                                             className="calendar-unselect-cancel"
+                                            locale={userSettings.locale}
+                                            weekStartsOn={userSettings.locale === "sunday" ? "0" : "1"}
+                                            showWeekNumber={false}
+                                            showOutsideDays={true}
                                         />
                                     </FormItem>
                                 )
@@ -124,6 +129,10 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                             granularity="minute"
                                             hourCycle={24}
                                             className="calendar-unselect-cancel"
+                                            locale={userSettings.locale}
+                                            weekStartsOn={userSettings.locale === "sunday" ? "0" : "1"}
+                                            showWeekNumber={false}
+                                            showOutsideDays={true}
                                         />
                                         {form.formState.errors.endDate && (
                                             <div className="text-xs text-red-500">
@@ -132,7 +141,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                         )}
                                     </FormItem>
                                 )
-                            }} />
+                            }}/>
                             <FormField control={form.control} name="budgetId" render={({field}) => {
                                 return (
                                     <FormItem className="grid gap-2">
@@ -143,7 +152,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                                 field.onChange(Number(value))
                                             }}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Select budget"/>
                                             </SelectTrigger>
                                             <SelectContent>
@@ -161,7 +170,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                         )}
                                     </FormItem>
                                 )
-                            }} />
+                            }}/>
                             <div className="flex justify-between pt-2">
                                 {!isCreateMode() ? (
                                     <Button variant="destructive" onClick={() => onDelete(input.uid!)}>

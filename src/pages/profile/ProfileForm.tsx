@@ -81,7 +81,7 @@ export function ProfileForm({profile, onSave}: Props) {
                             <FormLabel className="block">What's your timezone?</FormLabel>
                             <FormControl className="w-full">
                                 <Popover>
-                                    <PopoverTrigger asChild>
+                                    <PopoverTrigger>
                                         <FormControl>
                                             <Button
                                                 variant="outline"
@@ -146,7 +146,7 @@ export function ProfileForm({profile, onSave}: Props) {
                                 <FormLabel>Start of the calendar week</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select first day of a week"/>
                                         </SelectTrigger>
                                     </FormControl>

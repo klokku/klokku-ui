@@ -12,22 +12,28 @@ import {CreateProfilePage} from "@/pages/profile/CreateProfilePage.tsx";
 import {ProfileEditPage} from "@/pages/profile/ProfileEditPage.tsx";
 import {IntegrationsPage} from "@/pages/integrations/IntegrationsPage.tsx";
 import {LogoutPage} from "@/pages/profile/LogoutPage.tsx";
+import MainLayout from "@/pages/MainLayout.tsx";
+import UserProfileLayout from "@/pages/UserProfileLayout.tsx";
 
 const AppRoutes = () => (
-  <Routes>
-    <Route path={paths.start.path} element={<StartPage />}/>
-    <Route path={paths.createProfile.path} element={<CreateProfilePage />}/>
-    <Route path={paths.root.path} element={<LoggedInUserRoot />} errorElement={<ErrorPage />}>
-      <Route index element={<DashboardPage />} />
-      <Route path={paths.statistics.path} element={<StatisticsPage />} />
-      <Route path={paths.budgets.path} element={<BudgetsPage />} />
-      <Route path={paths.calendar.path} element={<CalendarPage />} />
-      <Route path={paths.profile.path} element={<ProfileEditPage />} />
-      <Route path={paths.integrations.path} element={<IntegrationsPage />} />
-      <Route path={paths.logout.path} element={<LogoutPage />}/>
-    </Route>
-    <Route path="*" element={<ErrorPage404 />} />
-  </Routes>
+    <Routes>
+        <Route path={paths.start.path} element={<StartPage/>}/>
+        <Route path={paths.createProfile.path} element={<CreateProfilePage/>}/>
+        <Route path={paths.root.path} element={<LoggedInUserRoot/>} errorElement={<ErrorPage/>}>
+            <Route element={<MainLayout/>}>
+                <Route index element={<DashboardPage/>}/>
+                <Route path={paths.statistics.path} element={<StatisticsPage/>}/>
+                <Route path={paths.budgets.path} element={<BudgetsPage/>}/>
+                <Route path={paths.calendar.path} element={<CalendarPage/>}/>
+            </Route>
+            <Route element={<UserProfileLayout/>}>
+                <Route path={paths.profile.path} element={<ProfileEditPage/>}/>
+                <Route path={paths.integrations.path} element={<IntegrationsPage/>}/>
+                <Route path={paths.logout.path} element={<LogoutPage/>}/>
+            </Route>
+        </Route>
+        <Route path="*" element={<ErrorPage404/>} />
+    </Routes>
 );
 
 export default AppRoutes;

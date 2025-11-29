@@ -56,12 +56,12 @@ export function WeeklyBudgetCompletionCard() {
     })
 
     return (
-        <Card className="shadow-xl">
-            <CardHeader className="pb-1">
+        <Card className="shadow-lg gap-2">
+            <CardHeader>
                 <CardTitle>Weekly completion</CardTitle>
                 <CardDescription>Last 5 budget used</CardDescription>
             </CardHeader>
-            <CardContent className="">
+            <CardContent>
                 {(isLoading || loadingLastEvents || loadingCurrentEvent) && (
                     <div className="flex justify-center items-center h-full">
                         Loading...

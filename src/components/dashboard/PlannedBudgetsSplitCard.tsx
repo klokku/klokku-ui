@@ -19,13 +19,13 @@ export function PlannedBudgetsSplitCard() {
             budget: budgetStats.budget.name.replace("TTA", ""),
             time: weeklyTimeInSec,
             timeFormated: formatSecondsToDuration(weeklyTimeInSec),
-            fill: `hsl(var(--chart-${idx % 5 + 1}))`,
+            fill: `var(--chart-${idx % 5 + 1})`,
         }
     })
 
     return (
-        <Card className="shadow-xl">
-            <CardHeader className="pb-1">
+        <Card className="shadow-lg gap-2">
+            <CardHeader>
                 <CardTitle>Planned this week</CardTitle>
             </CardHeader>
             <CardContent className="flex-1">
@@ -34,7 +34,7 @@ export function PlannedBudgetsSplitCard() {
                         Loading...
                     </div>
                 )}
-                <div className="">
+                <div>
                     <BudgetsStatsPieChart chartData={chartData} />
                 </div>
             </CardContent>

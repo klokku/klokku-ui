@@ -116,7 +116,7 @@ export function CreateProfilePage() {
                                         <FormLabel className="block">What's your timezone?</FormLabel>
                                         <FormControl className="w-full">
                                             <Popover>
-                                                <PopoverTrigger asChild>
+                                                <PopoverTrigger>
                                                     <FormControl>
                                                         <Button
                                                             variant="outline"
@@ -180,7 +180,7 @@ export function CreateProfilePage() {
                                             <FormLabel>Which day is your first day of a week?</FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
-                                                    <SelectTrigger>
+                                                    <SelectTrigger className="w-full">
                                                         <SelectValue placeholder="Select first day of a week"/>
                                                     </SelectTrigger>
                                                 </FormControl>
