@@ -13,8 +13,9 @@ import {
 import {ArrowLeftIcon, BlocksIcon, CodeIcon, LockIcon, UserIcon} from "lucide-react";
 import {paths} from "@/pages/links.ts";
 import {NavLink} from "react-router";
-import {useLocation} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import useExternalSecurity from "@/api/useExternalSecurity.ts";
+import {Button} from "@/components/ui/button.tsx";
 
 const items = [
     {
@@ -51,10 +52,13 @@ export function UserProfileSidebar() {
     const location = useLocation();
     const {setOpenMobile} = useSidebar();
     const {externalSecurityEnabled} = useExternalSecurity()
+    const navigate = useNavigate()
 
     const redirectIfNeeded = (item: {url: string, redirect?: boolean}) => {
         if (item.redirect) {
             window.location.href = item.url;
+        } else {
+            navigate(item.url);
         }
     }
 
@@ -83,10 +87,11 @@ export function UserProfileSidebar() {
                                 }).map((item) => (
                                     <SidebarMenuItem key={item.title}>
                                         <SidebarMenuButton asChild isActive={location.pathname == item.url} className="h-11 gap-x-3">
-                                            <NavLink to={item.url} onClick={() => onMenuItemClick(item)}>
+                                            <Button variant="link" className="w-full justify-start text-left cursor-pointer hover:no-underline"
+                                                    onClick={() => onMenuItemClick(item)}>
                                                 <item.icon/>
                                                 <span>{item.title}</span>
-                                            </NavLink>
+                                            </Button>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 ))}
