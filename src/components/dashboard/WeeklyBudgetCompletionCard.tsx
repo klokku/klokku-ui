@@ -7,6 +7,8 @@ import {BudgetStats} from "@/api/types.ts";
 import useEvents from "@/api/useEvents.ts";
 import {NavLink} from "react-router";
 import {paths} from "@/pages/links.ts";
+import useProfile from "@/api/useProfile.ts";
+import {defaultSettings} from "@/components/settings.ts";
 
 const chartConfig = {
 
@@ -14,7 +16,8 @@ const chartConfig = {
 
 export function WeeklyBudgetCompletionCard() {
 
-    const weekFirstDay = getCurrentWeekFirstDay()
+    const {currentProfile} = useProfile();
+    const weekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
     const {isLoading, statsSummary} = useStats(weekFirstDay, weekEndDay(weekFirstDay))
     const {loadingLastEvents, lastEvents, loadingCurrentEvent, currentEvent} = useEvents()
 

@@ -2,10 +2,13 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {formatSecondsToDuration, getCurrentWeekFirstDay, weekEndDay} from "@/lib/dateUtils.ts";
 import useStats from "@/api/useStats.ts";
 import {isToday} from "date-fns";
+import useProfile from "@/api/useProfile.ts";
+import {defaultSettings} from "@/components/settings.ts";
 
 export function TimeTodayCard() {
 
-    const weekFirstDay = getCurrentWeekFirstDay()
+    const {currentProfile} = useProfile();
+    const weekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
     const {isLoading, statsSummary} = useStats(weekFirstDay, weekEndDay(weekFirstDay))
 
     const todaysBudgets = statsSummary?.days

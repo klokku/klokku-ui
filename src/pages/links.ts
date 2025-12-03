@@ -15,6 +15,10 @@ export const paths = {
     path: "/logout",
     title: "Logout"
   },
+  planning: {
+    path: "/planning",
+    title: "Planning"
+  },
   statistics: {
     path: "/statistics",
     title: "Statistics"

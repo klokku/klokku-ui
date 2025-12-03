@@ -49,7 +49,7 @@ export interface Event {
 
 export interface ProfileSettings {
     timezone: string;
-    weekStartDay: string;
+    weekStartDay: "monday" | "sunday";
     eventCalendarType: "google" | "klokku" | "";
     googleCalendar?: {
         calendarId: string;

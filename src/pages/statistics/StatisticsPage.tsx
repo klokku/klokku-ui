@@ -1,6 +1,6 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table"
 import {WeekChooser} from "@/components/statistics/weekChooser.tsx";
-import {userSettings} from "@/components/settings.ts";
+import {defaultSettings, userSettings} from "@/components/settings.ts";
 import useStats from "@/api/useStats.ts";
 import {formatSecondsToDuration, getCurrentWeekFirstDay, nextWeekStart, previousWeekStart, weekEndDay} from "@/lib/dateUtils.ts";
 import {useState} from "react";
@@ -13,10 +13,13 @@ import useBudgetOverrides from "@/api/useBudgetOverrides.ts";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {differenceInSeconds, isToday} from "date-fns";
 import BudgetDetailsDialog from "@/pages/planning/BudgetDetailsDialog.tsx";
+import useProfile from "@/api/useProfile.ts";
 
 export function StatisticsPage() {
 
-    const [weekFirstDay, setWeekFirstDay] = useState(getCurrentWeekFirstDay())
+    const {currentProfile} = useProfile();
+    const initialWeekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
+    const [weekFirstDay, setWeekFirstDay] = useState(initialWeekFirstDay)
     const [overrideDialogOpen, setOverrideDialogOpen] = useState(false)
     const [editedBudgetOverride, setEditedBudgetOverride] = useState<BudgetOverride | undefined>(undefined)
     const [editedBudget, setEditedBudget] = useState<Budget | undefined>(undefined)
@@ -29,6 +32,10 @@ export function StatisticsPage() {
 
     function onPreviousWeek() {
         setWeekFirstDay(previousWeekStart(weekFirstDay))
+    }
+
+    function onWeekChanged(date: Date) {
+        setWeekFirstDay(date)
     }
 
     function openOverrideDialog(budget: Budget, override: BudgetOverride | undefined) {
@@ -80,7 +87,7 @@ export function StatisticsPage() {
 
     return (
         <div className="flex flex-col gap-y-4">
-            <WeekChooser currentWeekStart={weekFirstDay} onNext={onNextWeek} onPrevious={onPreviousWeek}/>
+            <WeekChooser currentWeekStart={weekFirstDay} onNext={onNextWeek} onPrevious={onPreviousWeek} onDateChanged={onWeekChanged}/>
             <div className="rounded-md border overflow-hidden shadow-xs">
                 <Table className="w-full border-collapse">
                     <TableHeader>

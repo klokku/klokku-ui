@@ -7,7 +7,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar"
-import {CalendarDaysIcon, ChartPieIcon, FolderKanbanIcon, LayoutDashboardIcon} from "lucide-react";
+import {CalendarDaysIcon, ChartBarIcon, ChartNoAxesCombinedIcon, FolderKanbanIcon, LayoutDashboardIcon} from "lucide-react";
 import {paths} from "@/pages/links.ts";
 import {NavLink} from "react-router";
 import {useLocation} from "react-router-dom";
@@ -19,9 +19,14 @@ const items = [
         icon: LayoutDashboardIcon
     },
     {
+        title: paths.planning.title,
+        url: paths.planning.path,
+        icon: ChartBarIcon
+    },
+    {
         title: paths.statistics.title,
         url: paths.statistics.path,
-        icon: ChartPieIcon
+        icon: ChartNoAxesCombinedIcon
     },
     {
         title: paths.calendar.title,
