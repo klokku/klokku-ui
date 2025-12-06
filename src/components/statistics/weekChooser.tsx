@@ -40,7 +40,7 @@ export function WeekChooser({currentWeekStart, onPrevious, onNext, onDateChanged
             <span>Week from {currentWeekStart.toLocaleDateString(userSettings.locale)} to {weekEndDay(currentWeekStart)}</span>
             <span>
             <Popover open={isOpen} onOpenChange={(open: boolean) => isOpen && setIsOpen(open)}>
-                <PopoverTrigger className="ml-2 mr-2" onClick={() => setIsOpen(true)}>
+                <PopoverTrigger asChild className="ml-2 mr-2" onClick={() => setIsOpen(true)}>
                     <Button
                         type="button"
                         variant="outline"

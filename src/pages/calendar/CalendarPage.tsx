@@ -5,15 +5,18 @@ import {useRef, useState} from "react";
 import {formatEventDuration, getCurrentWeekFirstDay, toServerFormat, weekEndDay} from "@/lib/dateUtils.ts";
 import {CalendarEvent} from "@/api/types.ts";
 import interactionPlugin from '@fullcalendar/interaction';
-import {userSettings} from "@/components/settings.ts";
+import {defaultSettings, userSettings} from "@/components/settings.ts";
 import {DateSelectArg, EventChangeArg, EventClickArg} from "@fullcalendar/core";
 import useEvents from "@/api/useEvents.ts";
 import {EventDetails, EventDetailsPopover} from "@/pages/calendar/EventDetailsPopover.tsx";
 import {useIsMobile} from "@/hooks/use-mobile.tsx";
+import useProfile from "@/api/useProfile.ts";
 
 export function CalendarPage() {
 
-    const currentWeekFirstDay = getCurrentWeekFirstDay();
+    const {currentProfile} = useProfile()
+    const currentWeekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay);
+
     const lastWeekDay = weekEndDay(currentWeekFirstDay)
     const [calendarStart, setCalendarStart] = useState<Date>(currentWeekFirstDay);
     const [calendarEnd, setCalendarEnd] = useState<Date>(lastWeekDay);

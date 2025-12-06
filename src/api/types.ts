@@ -40,7 +40,7 @@ export interface StatsSummary {
 }
 
 export interface Event {
-    id: number;
+    uid: string;
     budget: Budget;
     startTime: string;
     endTime?: string;

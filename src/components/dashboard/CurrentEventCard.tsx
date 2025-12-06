@@ -1,6 +1,6 @@
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
-import {createElement, useEffect, useState} from "react";
+import {createElement, useState} from "react";
 import {FolderKanbanIcon, HistoryIcon} from "lucide-react";
 import {Square2StackIcon} from "@heroicons/react/24/outline";
 import {Button} from "@/components/ui/button.tsx";
@@ -11,27 +11,27 @@ import {Budget, Event} from "@/api/types.ts";
 import * as Icons from "@heroicons/react/24/solid";
 import useEvents from "@/api/useEvents.ts";
 import useBudgets from "@/api/useBudgets.ts";
-import {EventDetailsDialog} from "@/components/event/EventDetailsDialog.tsx";
+import {CurrentEventDetailsDialog} from "@/components/event/CurrentEventDetailsDialog.tsx";
 
 export function CurrentEventCard() {
 
     const {budgets} = useBudgets(false);
     const {currentEvent, startEvent, lastEvents, updateEventStartTime} = useEvents();
 
-    const [currentBudget, setCurrentBudget] = useState<Budget | undefined>(undefined)
-    const [editEventOpen, setEditEventOpen] = useState<boolean>(false)
-    const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined)
+    const findBudget = (id?: number) => {
+        if (!id) return undefined;
+        return budgets.find(budget => budget.id === id)
+    }
 
-    useEffect(() => {
-        if (budgets && currentEvent) {
-            setCurrentBudget(findBudget(currentEvent.budget.id))
-        }
-    }, [budgets, currentEvent])
+    const currentBudget: Budget | undefined = currentEvent ? findBudget(currentEvent.budget.id) : undefined
+
+    const [editCurrentEventOpen, setEditCurrentEventOpen] = useState<boolean>(false)
+    const [currentEventToEdit, setCurrentEventToEdit] = useState<Event | undefined>(undefined)
 
     const onBudgetChange = async (id: string) => {
         if (!id) return;
         await startEvent(Number(id))
-        setCurrentBudget(findBudget(Number(id)))
+        // setCurrentBudget(findBudget(Number(id)))
     }
 
     const getIcon = (iconName: string) => {
@@ -44,13 +44,8 @@ export function CurrentEventCard() {
 
     function openEditCurrentEvent() {
         if (!currentEvent) return;
-        setEventToEdit(currentEvent)
-        setEditEventOpen(true)
-    }
-
-    const findBudget = (id?: number) => {
-        if (!id) return undefined;
-        return budgets.find(budget => budget.id === id)
+        setCurrentEventToEdit(currentEvent)
+        setEditCurrentEventOpen(true)
     }
 
     async function changeCurrentEventStartTime(updatedEvent: Event) {
@@ -91,30 +86,31 @@ export function CurrentEventCard() {
                                 ))}
                             </SelectContent>
                         </Select>
-                        <Button variant="outline" className="border" type="button" onClick={openEditCurrentEvent}>
-                            <HistoryIcon/>
-                            <span>{new Date(currentEvent?.startTime!!).toLocaleTimeString(userSettings.locale, {timeStyle: "short"})}</span>
-                            <span className="hidden md:inline-block">({formatEventDuration(currentEvent)})</span>
-                        </Button>
+                        {currentEvent &&
+                            <Button variant="outline" className="border" type="button" onClick={openEditCurrentEvent}>
+                                <HistoryIcon/>
+                                <span>{new Date(currentEvent.startTime).toLocaleTimeString(userSettings.locale, {timeStyle: "short"})}</span>
+                                <span className="hidden md:inline-block">({formatEventDuration(currentEvent)})</span>
+                            </Button>
+                        }
                     </div>
                 </CardTitle>
             </CardHeader>
             <CardContent>
                 <div>
                     <div className="text-muted-foreground text-xs mb-0.5 pl-2">Previous events</div>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col gap-2">
                         {lastEvents && lastEvents.slice(0, 4).map(event => (
-                            <PreviousEvent event={event} key={event.startTime} onClick={() => {
-                            }} className="block button"/>
+                            <PreviousEvent event={event} key={event.startTime} className="block button"/>
                         ))}
                     </div>
                 </div>
 
-                {eventToEdit &&
-                    <EventDetailsDialog
-                        open={editEventOpen}
-                        onOpenChange={setEditEventOpen}
-                        event={eventToEdit}
+                {currentEventToEdit &&
+                    <CurrentEventDetailsDialog
+                        open={editCurrentEventOpen}
+                        onOpenChange={setEditCurrentEventOpen}
+                        event={currentEventToEdit}
                         onSave={(updatedEvent) => changeCurrentEventStartTime(updatedEvent)}
                         onDelete={() => {
                         }}

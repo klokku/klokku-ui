@@ -3,7 +3,7 @@ import {Dialog, DialogDescription} from "@radix-ui/react-dialog";
 import {Event} from "@/api/types.ts";
 import {Button} from "@/components/ui/button.tsx";
 import {Trash2Icon} from "lucide-react";
-import {EventDetailsForm} from "@/components/event/EventDetailsForm.tsx";
+import {CurrentEventDetailsForm} from "@/components/event/CurrentEventDetailsForm.tsx";
 
 
 interface EventDetailsDialogProps {
@@ -14,7 +14,7 @@ interface EventDetailsDialogProps {
     event: Event;
 }
 
-export function EventDetailsDialog({open, onOpenChange, event, onSave, onDelete}: EventDetailsDialogProps) {
+export function CurrentEventDetailsDialog({open, onOpenChange, event, onSave, onDelete}: EventDetailsDialogProps) {
 
     const isCurrent = () => {
         return !event.endTime
@@ -40,7 +40,7 @@ export function EventDetailsDialog({open, onOpenChange, event, onSave, onDelete}
                     <DialogTitle>{event.budget.name}</DialogTitle>
                     <DialogDescription></DialogDescription>
                 </DialogHeader>
-                <EventDetailsForm formId="edit-event-form" event={event} onSubmit={onFormSubmit}/>
+                <CurrentEventDetailsForm formId="edit-event-form" event={event} onSubmit={onFormSubmit}/>
                 <DialogFooter>
                     {!isCurrent() &&
                         <Button variant="destructive" onSelect={onDeleteButton}><Trash2Icon/>Delete</Button>
