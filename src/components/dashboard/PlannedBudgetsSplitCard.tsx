@@ -3,10 +3,13 @@ import {formatSecondsToDuration, getCurrentWeekFirstDay, weekEndDay} from "@/lib
 import useStats from "@/api/useStats.ts";
 import {BudgetStats} from "@/api/types.ts";
 import {BudgetsStatsPieChart} from "@/components/dashboard/BudgetsStatsPieChart.tsx";
+import {defaultSettings} from "@/components/settings.ts";
+import useProfile from "@/api/useProfile.ts";
 
 export function PlannedBudgetsSplitCard() {
 
-    const weekFirstDay = getCurrentWeekFirstDay()
+    const {currentProfile} = useProfile();
+    const weekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
     const {isLoading, statsSummary} = useStats(weekFirstDay, weekEndDay(weekFirstDay))
 
     function weeklyTime(budgetStats: BudgetStats): number {

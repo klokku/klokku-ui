@@ -103,7 +103,7 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                                 <FormLabel className="w-44">Start date</FormLabel>
                                 <div className="relative w-full">
                                     <Popover modal={true}>
-                                        <PopoverTrigger>
+                                        <PopoverTrigger asChild>
                                             <FormControl className="w-full">
                                                 <Button
                                                     type="button"
@@ -160,7 +160,7 @@ export function BudgetDetailsForm({formId, budget, onSubmit}: BudgetFormProps) {
                             <FormLabel className="w-44">End date</FormLabel>
                             <div className="relative w-full">
                                 <Popover modal={true}>
-                                    <PopoverTrigger>
+                                    <PopoverTrigger asChild>
                                         <FormControl className="w-full">
                                             <Button
                                                 type="button"

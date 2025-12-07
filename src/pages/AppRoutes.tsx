@@ -14,6 +14,7 @@ import {IntegrationsPage} from "@/pages/integrations/IntegrationsPage.tsx";
 import {LogoutPage} from "@/pages/profile/LogoutPage.tsx";
 import MainLayout from "@/pages/MainLayout.tsx";
 import UserProfileLayout from "@/pages/UserProfileLayout.tsx";
+import PlanningPage from "@/pages/planning/PlanningPage.tsx";
 
 const AppRoutes = () => (
     <Routes>
@@ -25,6 +26,7 @@ const AppRoutes = () => (
                 <Route path={paths.statistics.path} element={<StatisticsPage/>}/>
                 <Route path={paths.budgets.path} element={<BudgetsPage/>}/>
                 <Route path={paths.calendar.path} element={<CalendarPage/>}/>
+                <Route path={paths.weeklyPlanning.path} element={<PlanningPage/>}/>
             </Route>
             <Route element={<UserProfileLayout/>}>
                 <Route path={paths.profile.path} element={<ProfileEditPage/>}/>

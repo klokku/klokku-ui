@@ -5,7 +5,7 @@ import {CheckCircleIcon, ChevronDownIcon, ChevronUpIcon, MenuIcon, MessageCircle
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {AddBudgetDialog} from "@/components/budgets/AddBudgetDialog.tsx";
 import {Budget} from "@/api/types.ts";
-import {createElement, useEffect, useState} from "react";
+import {createElement, useState} from "react";
 import {Badge} from "@/components/ui/badge.tsx";
 import {DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu.tsx";
 import {Button} from "@/components/ui/button.tsx";
@@ -13,6 +13,7 @@ import * as Icons from "@heroicons/react/24/solid";
 import {Square2StackIcon} from "@heroicons/react/24/outline";
 import {isBudgetActive} from "@/lib/budgetUtils.ts";
 import BudgetWizardDialog from "@/pages/budgets/wizard/BudgetWizardDialog.tsx";
+import {EmptyBudget} from "@/pages/budgets/EmptyBudget.tsx";
 
 export function BudgetsPage() {
     const [showInactive, setShowInactive] = useState(false)
@@ -23,12 +24,6 @@ export function BudgetsPage() {
     const [editedBudget, setEditedBudget] = useState<Budget | null>(null)
     const [budgetDialogOpen, setBudgetDialogOpen] = useState<boolean>(false)
     const [wizardOpen, setWizardOpen] = useState<boolean>(false)
-
-    useEffect(() => {
-        if (!isLoading && budgets.length === 0) {
-            setWizardOpen(true)
-        }
-    }, [budgets.length, isLoading])
 
     function editBudget(budget: Budget) {
         setEditedBudget(budget)
@@ -74,20 +69,18 @@ export function BudgetsPage() {
         if (index < 2) {
             await setBudgetPosition(budget.id!)
         }
-        await setBudgetPosition(budget.id!, budgets[index-2].id)
+        await setBudgetPosition(budget.id!, budgets[index - 2].id)
     }
 
     async function moveDown(budget: Budget) {
         const index = budgets.findIndex((b) => b.id === budget.id)
-        await setBudgetPosition(budget.id!, budgets[index+1].id)
+        await setBudgetPosition(budget.id!, budgets[index + 1].id)
     }
 
-    const getIcon = (iconName: string) => {
-        const IconComponent = (Icons as { [index: string]: any })[iconName];
-        if (IconComponent) {
-            return IconComponent;
-        }
-        return null;
+    const getIcon = (iconName: string, className: string) => {
+        const key = iconName as keyof typeof Icons;
+        const iconComponent = Icons[key] as React.ComponentType<React.SVGProps<SVGSVGElement>>;
+        return iconComponent ? createElement(iconComponent, {className}) : null
     };
 
     function sortBudgetsByActive(a: Budget, b: Budget): number {
@@ -112,10 +105,10 @@ export function BudgetsPage() {
             )}
 
             {!isLoading && budgets.length === 0 && (
-                <div className="mb-4 p-6 border rounded text-center">
-                    <p className="mb-2">You don't have any budgets yet.</p>
-                    <Button onClick={() => setWizardOpen(true)}>Open budget wizard</Button>
-                </div>
+                <EmptyBudget
+                    onOpenWizard={() => setWizardOpen(true)}
+                    onAddBudgetItem={addNewBudget}
+                />
             )}
 
             <div className="rounded-md border overflow-hidden shadow-xs">
@@ -145,8 +138,8 @@ export function BudgetsPage() {
                                            onClick={() => {
                                                editBudget(budget)
                                            }}>
-                                    {budget.icon && createElement(getIcon(budget.icon), {className: "size-5 text-gray-500"})}
-                                    {!budget.icon && <Square2StackIcon className="size-5 text-gray-500" /> }
+                                    {budget.icon && getIcon(budget.icon, "size-5 text-gray-500")}
+                                    {!budget.icon && <Square2StackIcon className="size-5 text-gray-500"/>}
                                     {budget.name}
                                 </TableCell>
                                 <TableCell>{formatSecondsToDuration(budget.weeklyTime)}</TableCell>
@@ -157,12 +150,16 @@ export function BudgetsPage() {
                                     {isBudgetActive(budget, new Date()) &&
                                         <div className="flex gap-1">
                                             {!isFirstOnTheList(budget) &&
-                                                <Button type="button" variant="outline" size="icon" className="h-[30px]" onClick={() => {moveUp(budget)}}>
+                                                <Button type="button" variant="outline" size="icon" className="h-[30px]" onClick={() => {
+                                                    moveUp(budget)
+                                                }}>
                                                     <ChevronUpIcon className="size-4"/>
                                                 </Button>
                                             }
                                             {!isLastActiveOnTheList(budget) &&
-                                                <Button type="button" variant="outline" size="icon" className="h-[30px]" onClick={() => {moveDown(budget)}}>
+                                                <Button type="button" variant="outline" size="icon" className="h-[30px]" onClick={() => {
+                                                    moveDown(budget)
+                                                }}>
                                                     <ChevronDownIcon className="size-4"/>
                                                 </Button>
                                             }
@@ -205,7 +202,7 @@ export function BudgetsPage() {
                 budget={editedBudget} open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen} onSave={onBudgetSave} onDelete={onBudgetDelete}
                 totalBudgetsTime={totalBudgetsTime}/>
 
-            <BudgetWizardDialog open={wizardOpen} onOpenChange={setWizardOpen} />
+            <BudgetWizardDialog open={wizardOpen} onOpenChange={setWizardOpen}/>
         </div>
     )
 }

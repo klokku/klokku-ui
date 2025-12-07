@@ -1,5 +1,4 @@
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
-import {DateTimePicker} from "@/components/ui/datetime-picker.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import useBudget from "@/api/useBudgets.ts";
@@ -7,7 +6,7 @@ import * as z from "zod";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormField, FormItem, FormLabel} from "@/components/ui/form.tsx";
-import {userSettings} from "@/components/settings.ts";
+import {DateTimePicker} from "@/components/datetime/DateTimePicker.tsx";
 
 const eventDetailsSchema = z.object({
     startDate: z.date(),
@@ -82,7 +81,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
             onOpenChange={onOpenChange}
         >
             <PopoverTrigger asChild>
-                <button
+                <div
                     aria-hidden
                     style={{
                         position: 'fixed',
@@ -104,17 +103,9 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                 return (
                                     <FormItem className="grid gap-2">
                                         <FormLabel className="text-xs text-muted-foreground">Start</FormLabel>
-
                                         <DateTimePicker
                                             value={field.value}
                                             onChange={field.onChange}
-                                            granularity="minute"
-                                            hourCycle={24}
-                                            className="calendar-unselect-cancel"
-                                            locale={{code: userSettings.locale}}
-                                            weekStartsOn={userSettings.locale === "sunday" ? 0 : 1}
-                                            showWeekNumber={false}
-                                            showOutsideDays={true}
                                         />
                                     </FormItem>
                                 )
@@ -126,13 +117,6 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                         <DateTimePicker
                                             value={field.value}
                                             onChange={field.onChange}
-                                            granularity="minute"
-                                            hourCycle={24}
-                                            className="calendar-unselect-cancel"
-                                            locale={{code: userSettings.locale}}
-                                            weekStartsOn={userSettings.locale === "sunday" ? 0 : 1}
-                                            showWeekNumber={false}
-                                            showOutsideDays={true}
                                         />
                                         {form.formState.errors.endDate && (
                                             <div className="text-xs text-red-500">
@@ -173,7 +157,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                             }}/>
                             <div className="flex justify-between pt-2">
                                 {!isCreateMode() ? (
-                                    <Button variant="destructive" onClick={() => onDelete(input.uid!)}>
+                                    <Button type="button" variant="destructive" onClick={() => onDelete(input.uid!)}>
                                         Delete
                                     </Button>
                                 ) : (

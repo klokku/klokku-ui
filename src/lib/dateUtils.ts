@@ -1,18 +1,22 @@
 import {formatDate, intervalToDuration} from "date-fns";
 
-export function getCurrentWeekFirstDay(): Date {
-    const now = new Date();
-    const dayOfWeek = now.getDay(); // Sunday - Saturday: 0 - 6
+export function getCurrentWeekFirstDay(firstDayOfAWeek: "monday" | "sunday"): Date {
+    return weekStartDay(new Date(), firstDayOfAWeek);
+}
 
-    // Calculate the offset to the nearest Monday
-    const offset = (dayOfWeek === 0) ? -6 : 1 - dayOfWeek;
+export function weekStartDay(date: Date, firstDayOfAWeek: "monday" | "sunday"): Date {
+    const dayOfWeek = date.getDay(); // Sunday - Saturday: 0 - 6
 
-    // Apply the offset to get the Monday of the current week
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + offset);
-    monday.setHours(0, 0, 0, 0);
+    // Calculate the offset to the nearest Monday/Sunday
+    const desiredStart = firstDayOfAWeek === "monday" ? 1 : 0;
+    const offset = -((dayOfWeek - desiredStart + 7) % 7);
 
-    return monday;
+    // Apply the offset to get the Monday/Sunday of the current week
+    const firstDay = new Date(date);
+    firstDay.setDate(date.getDate() + offset);
+    firstDay.setHours(0, 0, 0, 0);
+
+    return firstDay;
 }
 
 export function weekEndDay(weekStartDay: Date): Date {
@@ -27,7 +31,7 @@ export function previousWeekStart(weekStartDay: Date): Date {
     return new Date(weekStartDay.getTime() - 7 * 24 * 60 * 60 * 1000)
 }
 
-export function formatSecondsToDuration(seconds?: number): string {
+export function formatSecondsToDuration(seconds?: number, absolute: boolean = false): string {
     if (seconds === undefined) {
         return "";
     }
@@ -44,7 +48,7 @@ export function formatSecondsToDuration(seconds?: number): string {
     const minutes = duration.minutes ? duration.minutes : 0;
     const result = `${days * 24 + hours}h ${minutes}m`;
 
-    return isNegative ? `-${result}` : result;
+    return isNegative && !absolute ? `-${result}` : result;
 }
 
 export function durationToSeconds(duration?: string): number | undefined {
