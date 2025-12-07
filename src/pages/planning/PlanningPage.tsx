@@ -1,18 +1,20 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
-import {ArrowDownIcon, ArrowUpIcon, CheckCircleIcon, EqualIcon, ReplaceIcon, TextAlignStartIcon, TriangleAlertIcon} from "lucide-react";
+import {CheckCircleIcon, EqualIcon, MinusIcon, PlusIcon, ReplaceIcon, TextAlignStartIcon, TriangleAlertIcon} from "lucide-react";
 import {formatSecondsToDuration, getCurrentWeekFirstDay, nextWeekStart, previousWeekStart, weekEndDay} from "@/lib/dateUtils.ts";
 import {PlannedTimeDialog} from "@/components/statistics/PlannedTimeDialog.tsx";
 import BudgetDetailsDialog from "@/pages/planning/BudgetDetailsDialog.tsx";
 import useStats from "@/api/useStats.ts";
 import useProfile from "@/api/useProfile.ts";
 import {defaultSettings} from "@/components/settings.ts";
-import {useState} from "react";
+import {createElement, useState} from "react";
 import {Spinner} from "@/components/ui/spinner.tsx";
 import {Budget, BudgetOverride, BudgetStats} from "@/api/types.ts";
 import useBudgetOverrides from "@/api/useBudgetOverrides.ts";
 import {WeekChooser} from "@/components/statistics/weekChooser.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
+import {Square2StackIcon} from "@heroicons/react/24/outline";
+import * as Icons from "@heroicons/react/24/solid";
 
 export default function PlanningPage() {
 
@@ -65,11 +67,11 @@ export default function PlanningPage() {
 
     function getUpDownIcon(value: number) {
         if (value > 0) {
-            return <ArrowUpIcon className="size-4 text-green-300"/>
+            return <PlusIcon className="size-4 text-muted-foreground"/>
         } else if (value < 0) {
-            return <ArrowDownIcon className="size-4 text-red-300"/>
+            return <MinusIcon className="size-4 text-muted-foreground"/>
         } else {
-            return <EqualIcon className="size-4 text-gray-400"/>
+            return <EqualIcon className="size-4 text-muted-foreground"/>
         }
     }
 
@@ -92,6 +94,12 @@ export default function PlanningPage() {
         0
     )
 
+    const getIcon = (iconName: string, className: string) => {
+        const key = iconName as keyof typeof Icons;
+        const iconComponent = Icons[key] as React.ComponentType<React.SVGProps<SVGSVGElement>>;
+        return iconComponent ? createElement(iconComponent, {className}) : null
+    };
+
     return (
         <div className="flex-grow flex flex-col gap-2">
             <WeekChooser currentWeekStart={weekFirstDay} onNext={onNextWeek} onPrevious={onPreviousWeek} onDateChanged={onWeekChanged}/>
@@ -109,7 +117,9 @@ export default function PlanningPage() {
                     <TableBody>
                         {weekData!.budgets.map((stat) => (
                             <TableRow className="h-full p-0" key={stat.budget.id}>
-                                <TableCell className="font-medium bg-gray-50 flex items-center space-x-2">
+                                <TableCell className="font-medium flex items-center space-x-2  py-3 pr-4">
+                                    {stat.budget.icon && getIcon(stat.budget.icon, "size-5 text-gray-500")}
+                                    {!stat.budget.icon && <Square2StackIcon className="size-5 text-gray-500"/>}
                                     <span className="cursor-pointer" onClick={() => openBudgetDetailsDialog(stat)}>{stat.budget.name}</span>
                                 </TableCell>
                                 <TableCell>
@@ -118,7 +128,7 @@ export default function PlanningPage() {
                                 <TableCell className="cursor-pointer" onClick={() => openOverrideDialog(stat.budget, stat.budgetOverride)}>
                                     {stat.budgetOverride && (
                                         <div className="flex items-center space-x-2">
-                                            <div className="flex items-center space-x-1">
+                                            <div className="flex items-center space-x-0.5">
                                                 <div>
                                                     {getUpDownIcon(stat.budgetOverride.weeklyTime - stat.budget.weeklyTime)}
                                                 </div>
@@ -134,9 +144,9 @@ export default function PlanningPage() {
                                         </div>
                                     )}
                                     {!stat.budgetOverride && (
-                                            <Badge variant="outline" className="text-muted-foreground">
-                                                Add
-                                            </Badge>
+                                        <Badge variant="outline" className="text-muted-foreground">
+                                            Add
+                                        </Badge>
                                     )}
                                 </TableCell>
                                 <TableCell className="h-full p-0 hidden">

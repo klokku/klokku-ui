@@ -31,15 +31,12 @@ export function CurrentEventCard() {
     const onBudgetChange = async (id: string) => {
         if (!id) return;
         await startEvent(Number(id))
-        // setCurrentBudget(findBudget(Number(id)))
     }
 
-    const getIcon = (iconName: string) => {
-        const IconComponent = (Icons as { [index: string]: any })[iconName];
-        if (IconComponent) {
-            return IconComponent;
-        }
-        return null;
+    const getIcon = (iconName: string, className: string) => {
+        const key = iconName as keyof typeof Icons;
+        const iconComponent = Icons[key] as React.ComponentType<React.SVGProps<SVGSVGElement>>;
+        return iconComponent ? createElement(iconComponent, {className}) : null
     };
 
     function openEditCurrentEvent() {
@@ -60,10 +57,8 @@ export function CurrentEventCard() {
                         <Select onValueChange={onBudgetChange}>
                             <SelectTrigger
                                 className="relative w-full pl-9 *:data-[slot=select-value]:text-black/80 [&_svg:not([class*='text-'])]:text-black/80">
-                                {currentBudget?.icon && createElement(getIcon(currentBudget.icon), {
-                                    className: "pointer-events-none absolute left-2" +
-                                        " top-1/2 size-4 -translate-y-1/2 select-none opacity-60 hover:opacity-100"
-                                })}
+                                {currentBudget?.icon && getIcon(currentBudget.icon, "pointer-events-none absolute left-2" +
+                                        " top-1/2 size-4 -translate-y-1/2 select-none opacity-60 hover:opacity-100")}
                                 {!currentBudget?.icon && <FolderKanbanIcon
                                     className=" pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 select-none opacity-80 hover:opacity-100"/>
                                 }
@@ -77,7 +72,7 @@ export function CurrentEventCard() {
                                     <SelectItem key={budget.id} value={budget.id?.toString() ?? ""}>
                                         <div className="flex items-center gap-2">
 
-                                            {budget.icon ? createElement(getIcon(budget.icon), {className: "size-4 text-gray-500"}) : null}
+                                            {budget.icon && getIcon(budget.icon,"size-4 text-gray-500")}
                                             {!budget.icon && <Square2StackIcon className="size-5 opacity-60"/>}
 
                                             <div>{budget.name}</div>
