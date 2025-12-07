@@ -15,8 +15,8 @@ export const paths = {
     path: "/logout",
     title: "Logout"
   },
-  planning: {
-    path: "/planning",
+  weeklyPlanning: {
+    path: "/planning/weekly",
     title: "Planning"
   },
   statistics: {

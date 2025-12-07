@@ -2,15 +2,10 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import {differenceInSeconds} from "date-fns";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {ReplaceIcon, TimerIcon, TriangleAlertIcon} from "lucide-react";
-import {formatSecondsToDuration, weekEndDay} from "@/lib/dateUtils.ts";
+import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
 import {ProgressCell} from "@/components/statistics/ProgressCell.tsx";
-import {Budget, BudgetOverride, BudgetStats, StatsSummary} from "@/api/types.ts";
+import {Event, StatsSummary} from "@/api/types.ts";
 import {Spinner} from "@/components/ui/spinner.tsx";
-import {Event} from "@/api/types.ts";
-import {PlannedTimeDialog} from "@/components/statistics/PlannedTimeDialog.tsx";
-import BudgetDetailsDialog from "@/pages/planning/BudgetDetailsDialog.tsx";
-import {useState} from "react";
-import useBudgetOverrides from "@/api/useBudgetOverrides.ts";
 
 interface WeeklyStatisticsProps {
     weekData?: StatsSummary
@@ -18,38 +13,6 @@ interface WeeklyStatisticsProps {
 }
 
 export function WeeklyStatistics({weekData, currentEvent}: WeeklyStatisticsProps) {
-
-    const [overrideDialogOpen, setOverrideDialogOpen] = useState(false)
-    const [editedBudgetOverride, setEditedBudgetOverride] = useState<BudgetOverride | undefined>(undefined)
-    const [editedBudget, setEditedBudget] = useState<Budget | undefined>(undefined)
-    const [budgetStatsDetails, setBudgetStatsDetails] = useState<BudgetStats | undefined>(undefined)
-    const [budgetStatsDetailsDialogOpen, setBudgetStatsDetailsDialogOpen] = useState(false)
-
-    function openOverrideDialog(budget: Budget, override: BudgetOverride | undefined) {
-        setEditedBudget(budget)
-        setEditedBudgetOverride(override)
-        setOverrideDialogOpen(true)
-    }
-
-
-    function openBudgetDetailsDialog(budgetStats: BudgetStats) {
-        setBudgetStatsDetails(budgetStats)
-        setBudgetStatsDetailsDialogOpen(true)
-    }
-
-    const {createBudgetOverride, updateBudgetOverride, deleteBudgetOverride} = useBudgetOverrides()
-
-    function saveOverride(budgetOverride: BudgetOverride) {
-        if (budgetOverride.id) {
-            updateBudgetOverride(budgetOverride)
-        } else {
-            createBudgetOverride(budgetOverride)
-        }
-    }
-
-    function deleteOverride(budgetOverrideId: number) {
-        deleteBudgetOverride(budgetOverrideId)
-    }
 
     const isCurrent = (budgetId: number) => {
         return currentEvent?.budget.id == budgetId;
@@ -86,7 +49,7 @@ export function WeeklyStatistics({weekData, currentEvent}: WeeklyStatisticsProps
                     {weekData!.budgets.map((stat) => (
                         <TableRow className="h-full p-0" key={stat.budget.id}>
                             <TableCell className="font-medium bg-gray-50 flex items-center space-x-2">
-                                <span className="cursor-pointer" onClick={() => openBudgetDetailsDialog(stat)}>{stat.budget.name}</span>
+                                <span>{stat.budget.name}</span>
                                 {stat.budget.id && isCurrent(stat.budget.id) && (
                                     <TooltipProvider>
                                         <Tooltip>
@@ -100,13 +63,22 @@ export function WeeklyStatistics({weekData, currentEvent}: WeeklyStatisticsProps
                                     </TooltipProvider>
                                 )}
                             </TableCell>
-                            <TableCell className="cursor-pointer" onClick={() => openOverrideDialog(stat.budget, stat.budgetOverride)}>
+                            <TableCell>
                                 <div className="flex items-center space-x-2">
                                     <div>
                                         {formatSecondsToDuration(stat.budgetOverride ? stat.budgetOverride.weeklyTime : stat.budget.weeklyTime)}
                                     </div>
                                     {stat.budgetOverride && (
-                                        <ReplaceIcon className="size-4"/>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <ReplaceIcon className="size-4"/>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    Original time: {formatSecondsToDuration(stat.budget.weeklyTime)}
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     )}
                                 </div>
                             </TableCell>
@@ -139,28 +111,6 @@ export function WeeklyStatistics({weekData, currentEvent}: WeeklyStatisticsProps
                     </TableRow>
                 </TableBody>
             </Table>
-
-            {overrideDialogOpen && editedBudget &&
-                <PlannedTimeDialog open={overrideDialogOpen}
-                                   onOpenChange={setOverrideDialogOpen}
-                                   budget={editedBudget}
-                                   budgetOverride={editedBudgetOverride}
-                                   currentWeekStartDate={new Date(weekData.startDate)}
-                                   onSave={saveOverride}
-                                   onDelete={deleteOverride}
-                />
-            }
-            {
-                budgetStatsDetailsDialogOpen && budgetStatsDetails && (
-                    <BudgetDetailsDialog
-                        open={budgetStatsDetailsDialogOpen}
-                        onOpenChange={setBudgetStatsDetailsDialogOpen}
-                        budgetStats={budgetStatsDetails}
-                        periodStart={new Date(weekData.startDate)}
-                        periodEnd={weekEndDay(new Date(weekData.startDate))}
-                    />
-                )
-            }
         </div>
     )
 }

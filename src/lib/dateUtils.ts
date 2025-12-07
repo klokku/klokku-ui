@@ -31,7 +31,7 @@ export function previousWeekStart(weekStartDay: Date): Date {
     return new Date(weekStartDay.getTime() - 7 * 24 * 60 * 60 * 1000)
 }
 
-export function formatSecondsToDuration(seconds?: number): string {
+export function formatSecondsToDuration(seconds?: number, absolute: boolean = false): string {
     if (seconds === undefined) {
         return "";
     }
@@ -48,7 +48,7 @@ export function formatSecondsToDuration(seconds?: number): string {
     const minutes = duration.minutes ? duration.minutes : 0;
     const result = `${days * 24 + hours}h ${minutes}m`;
 
-    return isNegative ? `-${result}` : result;
+    return isNegative && !absolute ? `-${result}` : result;
 }
 
 export function durationToSeconds(duration?: string): number | undefined {
