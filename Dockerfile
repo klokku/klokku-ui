@@ -1,6 +1,6 @@
 
 # Step 1: Use an official Node.js base image
-FROM node:22-alpine as builder
+FROM node:24-alpine as builder
 
 # Step 2: Set the working directory inside the container
 WORKDIR /app
