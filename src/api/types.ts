@@ -1,50 +1,67 @@
-export interface Budget {
+export interface BudgetPlan {
     id?: number;
     name: string;
-    weeklyTime: number;
-    startDate?: string; // Using string for the ISO date representation
-    endDate?: string; // Using string for the ISO date representation
+    isCurrent: boolean;
+    items: BudgetPlanItem[];
+}
+
+export interface BudgetPlanItem {
+    id?: number;
+    name: string;
+    weeklyDuration: number;
     weeklyOccurrences: number;
     icon: string;
+    color: string;
 }
 
-export interface BudgetOverride {
+export interface WeeklyPlan {
+    budgetPlanId: number;
+    items: WeeklyPlanItem[];
+}
+
+export interface WeeklyPlanItem {
     id?: number;
-    budgetId: number;
-    startDate: string; // Using string for the ISO date representation
-    weeklyTime: number;
-    notes?: string;
+    budgetItemId: number;
+    name: string;
+    weeklyDuration: number;
+    weeklyOccurrences: number;
+    icon: string;
+    color: string;
+    notes: string;
+    position: number;
 }
 
-export interface BudgetStats {
-    budget: Budget;
-    budgetOverride?: BudgetOverride;
+export interface PlanItemStats {
+    weeklyPlanItem: WeeklyPlanItem;
     duration: number;
     remaining: number;
 }
 
 export interface DailyStats {
     date: string; // Using string for the ISO date representation
-    budgets: BudgetStats[];
+    perPlanItem: PlanItemStats[];
     totalTime: number;
 }
 
 export interface StatsSummary {
     startDate: string; // Using string for the ISO date representation
     endDate: string; // Using string for the ISO date representation
-    days: DailyStats[];
-    budgets: BudgetStats[];
+    perDay: DailyStats[];
+    perPlanItem: PlanItemStats[];
     totalPlanned: number;
     totalTime: number;
     totalRemaining: number;
 }
 
-export interface Event {
-    uid: string;
-    budget: Budget;
+export interface CurrentEvent {
     startTime: string;
-    endTime?: string;
-    notes: string;
+    planItem: CurrentEventPlanItem;
+}
+
+export interface CurrentEventPlanItem {
+    budgetItemId: number;
+    name: string;
+    weeklyDuration: number;
 }
 
 export interface ProfileSettings {
@@ -99,7 +116,7 @@ export interface ClickUpTag {
 export interface ClickUpTagMapping {
     clickUpSpaceId: number;
     clickUpTagName: string;
-    budgetId: number;
+    budgetItemId: number;
     position: number;
 }
 
@@ -121,5 +138,5 @@ export interface CalendarEvent {
     summary: string;
     start: string;
     end: string;
-    budgetId: number;
+    budgetItemId: number;
 }

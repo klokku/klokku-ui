@@ -3,19 +3,18 @@ import {useQuery} from "@tanstack/react-query";
 import {toServerFormat} from "@/lib/dateUtils.ts";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 
-type HookType = (fromDate: Date, toDate: Date) => {
+type HookType = (inWeekDate: Date) => {
     isLoading: boolean,
     statsSummary: StatsSummary | undefined,
 }
 
-const useStats: HookType = (fromDate: Date, toDate: Date) => {
+const useStats: HookType = (inWeekDate: Date) => {
     const fetchWithAuth = useFetchWithProfileUid();
-    const fromDateString = encodeURIComponent(toServerFormat(fromDate))
-    const toDateString = encodeURIComponent(toServerFormat(toDate))
+    const inWeekDateString = encodeURIComponent(toServerFormat(inWeekDate))
     const {isLoading, data} = useQuery({
-        queryKey: ["stats", fromDate, toDate],
+        queryKey: ["stats", inWeekDate],
         queryFn: async () => {
-            const response = await fetchWithAuth(`/api/stats?fromDate=${fromDateString}&toDate=${toDateString}`)
+            const response = await fetchWithAuth(`/api/stats/weekly?date=${inWeekDateString}`)
             return (await response.json()) as StatsSummary
         }
     })

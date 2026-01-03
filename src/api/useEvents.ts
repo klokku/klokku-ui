@@ -1,15 +1,12 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {Event} from "@/api/types.ts";
+import {CurrentEvent} from "@/api/types.ts";
 import {formatDate} from "date-fns";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 
 type HookType = () => {
     loadingCurrentEvent: boolean,
-    currentEvent?: Event,
-    loadingLastEvents: boolean,
-    lastEvents?: Event[],
-    startEvent: (budgetId: number) => Promise<void>,
-    endEvent: () => Promise<void>,
+    currentEvent?: CurrentEvent,
+    startEvent: (budgetItemId: number, itemName: string, weeklyDuration: number) => Promise<void>,
     updateEventStartTime: (startTime: Date) => Promise<void>,
 }
 
@@ -20,64 +17,37 @@ const useEvents: HookType = () => {
         queryKey: ["currentEvent"],
         queryFn: async () => {
             const response = await fetchWithAuth("/api/event/current")
-            return (await response.json()) as Event
-        }
-    })
-    const { isLoading: loadingLastEvents, data: last } = useQuery({
-        queryKey: ["lastEvents"],
-        queryFn: async () => {
-            const response = await fetchWithAuth("/api/event?last=5")
-            return (await response.json()) as Event[]
-        }
+            return (await response.json()) as CurrentEvent
+        },
+        staleTime: 0,
+        refetchOnMount: true,
+        refetchOnWindowFocus: "always"
     })
     const start = useMutation({
-        mutationFn: async (budgetId: number) => {
+        mutationFn: async (startData: {budgetItemId: number, itemName: string, weeklyDuration: number}) => {
             const response = await fetchWithAuth("/api/event", {
                 method: "POST",
                 body: JSON.stringify({
-                    budgetId: budgetId,
+                    budgetItemId: startData.budgetItemId,
+                    name: startData.itemName,
+                    weeklyDuration: startData.weeklyDuration,
                 }),
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to start event with budgetId: ${budgetId}`);
+                throw new Error(`Failed to start event with budgetItemId: ${startData.budgetItemId}`);
             }
 
             return response.json();
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["currentEvent"]});
-            queryClient.invalidateQueries({queryKey: ["lastEvents"]});
             queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
         },
         onError: (error) => {
             console.log(">>>error", error);
         },
     });
-
-    const end = useMutation({
-        mutationFn: async () => {
-            const response = await fetchWithAuth("/api/event/current", {
-                method: "PATCH",
-                body: JSON.stringify({
-                    status: "finished",
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to end event");
-            }
-            return response.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["currentEvent"]});
-            queryClient.invalidateQueries({queryKey: ["lastEvents"]});
-            queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
-        },
-        onError: (error) => {
-            console.log(">>>error", error);
-        },
-    })
 
     const updateStartTime = useMutation({
         mutationFn: async (startTime: Date) => {
@@ -95,7 +65,6 @@ const useEvents: HookType = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["currentEvent"]});
-            queryClient.invalidateQueries({queryKey: ["lastEvents"]});
             queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
         },
         onError: (error) => {
@@ -103,13 +72,9 @@ const useEvents: HookType = () => {
         },
     })
 
-    const startEvent = async (budgetId: number) => {
-        return start.mutate(budgetId);
+    const startEvent = async (budgetItemId: number, itemName: string, weeklyDuration: number) => {
+        return start.mutate({budgetItemId: budgetItemId, itemName, weeklyDuration});
     };
-
-    const endEvent = async () => {
-        return end.mutate();
-    }
 
     const updateEventStartTime = async (startTime: Date) => {
         return updateStartTime.mutate(startTime)
@@ -118,10 +83,7 @@ const useEvents: HookType = () => {
     return {
         loadingCurrentEvent,
         currentEvent: data,
-        loadingLastEvents,
-        lastEvents: last,
         startEvent,
-        endEvent,
         updateEventStartTime,
     }
 }

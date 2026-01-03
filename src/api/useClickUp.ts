@@ -20,7 +20,7 @@ type HookType = () => {
     getSpaces: (workspaceId: number) => Promise<ClickUpSpace[]>;
     getFolders: (spaceId: number) => Promise<ClickUpFolder[]>;
     getTags: (spaceId: number) => Promise<ClickUpTag[]>;
-    getTasks: (budgetId: number) => Promise<ClickUpTask[]>;
+    getTasks: (budgetItemId: number) => Promise<ClickUpTask[]>;
     saveConfig: (config: ClickUpConfig) => Promise<void>;
 }
 
@@ -236,9 +236,9 @@ const useClickUp: HookType = () => {
         return data;
     };
 
-    // Get tasks for a budget
-    const getTasks = async (budgetId: number): Promise<ClickUpTask[]> => {
-        const response = await fetchWithAuth(`/api/integrations/clickup/tasks?budgetId=${budgetId}`, {
+    // Get tasks for a budget item
+    const getTasks = async (budgetItemId: number): Promise<ClickUpTask[]> => {
+        const response = await fetchWithAuth(`/api/integrations/clickup/tasks?budgetItemId=${budgetItemId}`, {
             method: "GET",
         });
 
@@ -246,6 +246,7 @@ const useClickUp: HookType = () => {
             throw new Error("Failed to fetch ClickUp tasks");
         }
         const data = await response.json() as ClickUpTask[];
+        queryClient.setQueryData(["clickUpTasks", currentProfileUid, budgetItemId], data);
         return data;
     };
 

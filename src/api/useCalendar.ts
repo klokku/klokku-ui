@@ -6,6 +6,8 @@ import {toServerFormat} from "@/lib/dateUtils.ts";
 type HookType = (fromDate: Date, toDate: Date) => {
     isLoading: boolean,
     events: CalendarEvent[] | undefined,
+    recentEvents: CalendarEvent[] | undefined,
+    isLoadingRecentEvents: boolean,
     modifyEvent: (event: CalendarEvent) => Promise<void>,
     createEvent: (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => Promise<void>,
     deleteEvent: (eventUid: string) => Promise<void>,
@@ -23,6 +25,14 @@ const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
             const response = await fetchWithAuth(`/api/calendar/event?from=${from}&to=${to}`)
             return (await response.json()) as CalendarEvent[]
         }
+    })
+
+    const { data: recentEvents, isLoading: isLoadingRecentEvents } = useQuery({
+        queryKey: ["calendarEvents"],
+        queryFn: async () => {
+            const response = await fetchWithAuth(`/api/calendar/event/recent?last=5`)
+            return (await response.json()) as CalendarEvent[]
+        },
     })
 
     const modify = useMutation({
@@ -97,6 +107,8 @@ const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
     return {
         isLoading,
         events: data,
+        recentEvents,
+        isLoadingRecentEvents,
         modifyEvent,
         createEvent,
         deleteEvent,
