@@ -2,25 +2,49 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {CheckCircleIcon, EqualIcon, MinusIcon, PlusIcon, ReplaceIcon, TextAlignStartIcon, TriangleAlertIcon} from "lucide-react";
 import {formatSecondsToDuration, getCurrentWeekFirstDay, nextWeekStart, previousWeekStart, weekEndDay} from "@/lib/dateUtils.ts";
-import {PlannedTimeDialog} from "@/components/statistics/PlannedTimeDialog.tsx";
-import BudgetDetailsDialog from "@/pages/planning/BudgetDetailsDialog.tsx";
-import useStats from "@/api/useStats.ts";
+import WeeklyItemDetailsDialog from "@/pages/planning/WeeklyItemDetailsDialog.tsx";
 import useProfile from "@/api/useProfile.ts";
 import {defaultSettings} from "@/components/settings.ts";
 import {createElement, useState} from "react";
 import {Spinner} from "@/components/ui/spinner.tsx";
-import {Budget, BudgetOverride, BudgetStats} from "@/api/types.ts";
-import useBudgetOverrides from "@/api/useBudgetOverrides.ts";
+import {BudgetPlanItem, WeeklyPlanItem} from "@/api/types.ts";
+import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
 import {WeekChooser} from "@/components/statistics/weekChooser.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
 import {Square2StackIcon} from "@heroicons/react/24/outline";
 import * as Icons from "@heroicons/react/24/solid";
+import {WeeklyItemDurationEditDialog} from "@/pages/planning/WeeklyItemDurationEditDialog.tsx";
+import useBudgetPlan from "@/api/useBudgetPlan.ts";
 
-export default function PlanningPage() {
+type WeeklyOverride = {
+    budgetItemId: number
+    weeklyDuration: number
+    notes: string
+}
+
+export default function WeeklyPlanningPage() {
 
     const {currentProfile} = useProfile();
     const initialWeekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
     const [weekFirstDay, setWeekFirstDay] = useState(initialWeekFirstDay)
+
+    // TODO add link to reset the whole weekly plan to original budget plan
+    const {weeklyPlan, isLoading, updateWeeklyPlanItem, resetWeeklyPlanItem, resetWeeklyPlan} = useWeeklyPlan(weekFirstDay)
+    const {budgetPlanDetails, isLoadingBudgetPlanDetails} = useBudgetPlan(weeklyPlan?.budgetPlanId)
+
+    const [weeklyDurationEditDialogOpen, setWeeklyDurationEditDialogOpen] = useState(false)
+    const [editedWeeklyItem, setEditedWeeklyItem] = useState<WeeklyPlanItem | undefined>(undefined)
+    const [editedItemBudgetItem, setEditedItemBudgetItem] = useState<BudgetPlanItem | undefined>(undefined)
+    const [weeklyItemDetails, setWeeklyItemDetails] = useState<WeeklyPlanItem | undefined>(undefined)
+    const [weeklyItemDetailsDialogOpen, setWeeklyItemDetailsDialogOpen] = useState(false)
+
+    if (!weeklyPlan || isLoading || isLoadingBudgetPlanDetails || !budgetPlanDetails) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <Spinner className="size-6"/>
+            </div>
+        )
+    }
 
     function onNextWeek() {
         setWeekFirstDay(nextWeekStart(weekFirstDay))
@@ -34,35 +58,31 @@ export default function PlanningPage() {
         setWeekFirstDay(date)
     }
 
-    const [overrideDialogOpen, setOverrideDialogOpen] = useState(false)
-    const [editedBudgetOverride, setEditedBudgetOverride] = useState<BudgetOverride | undefined>(undefined)
-    const [editedBudget, setEditedBudget] = useState<Budget | undefined>(undefined)
-    const [budgetStatsDetails, setBudgetStatsDetails] = useState<BudgetStats | undefined>(undefined)
-    const [budgetStatsDetailsDialogOpen, setBudgetStatsDetailsDialogOpen] = useState(false)
-
-    function openOverrideDialog(budget: Budget, override: BudgetOverride | undefined) {
-        setEditedBudget(budget)
-        setEditedBudgetOverride(override)
-        setOverrideDialogOpen(true)
+    function openOverrideDialog(weeklyItem: WeeklyPlanItem, budgetPlanItem: BudgetPlanItem) {
+        setEditedWeeklyItem(weeklyItem)
+        setEditedItemBudgetItem(budgetPlanItem)
+        setWeeklyDurationEditDialogOpen(true)
     }
 
-    function openBudgetDetailsDialog(budgetStats: BudgetStats) {
-        setBudgetStatsDetails(budgetStats)
-        setBudgetStatsDetailsDialogOpen(true)
+    function openItemDetailsDialog(weeklyPlanItem: WeeklyPlanItem) {
+        setWeeklyItemDetails(weeklyPlanItem)
+        setWeeklyItemDetailsDialogOpen(true)
     }
 
-    const {createBudgetOverride, updateBudgetOverride, deleteBudgetOverride} = useBudgetOverrides()
-
-    function saveOverride(budgetOverride: BudgetOverride) {
-        if (budgetOverride.id) {
-            updateBudgetOverride(budgetOverride)
-        } else {
-            createBudgetOverride(budgetOverride)
-        }
+    async function saveWeeklyItem(weeklyOverride: WeeklyOverride) {
+        await updateWeeklyPlanItem(weekFirstDay, weeklyOverride)
     }
 
-    function deleteOverride(budgetOverrideId: number) {
-        deleteBudgetOverride(budgetOverrideId)
+    async function resetWeeklyItem(weeklyPlanItemId: number) {
+        await resetWeeklyPlanItem(weeklyPlanItemId)
+    }
+
+    async function resetPlan() {
+        await resetWeeklyPlan(weekFirstDay)
+    }
+
+    function isWeeklyItemModified(weeklyItem: WeeklyPlanItem, budgetItem: BudgetPlanItem): boolean {
+        return weeklyItem.weeklyDuration !== budgetItem.weeklyDuration || weeklyItem.notes !== ""
     }
 
     function getUpDownIcon(value: number) {
@@ -75,24 +95,22 @@ export default function PlanningPage() {
         }
     }
 
-    const {isLoading, statsSummary} = useStats(weekFirstDay, weekEndDay(weekFirstDay))
-    const weekData = statsSummary
-
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Spinner className="size-6"/>
-            </div>
+    const totalOriginalTime = budgetPlanDetails!.items.reduce((acc, item) => acc + item.weeklyDuration, 0)
+    const joinedItems = weeklyPlan!.items.map(weeklyItem => {
+        const budgetItem = budgetPlanDetails!.items.find(b => b.id === weeklyItem.budgetItemId)
+        if (!budgetItem) {
+            console.error(`Budget item not found for weekly plan item with ID: ${weeklyItem.budgetItemId}`)
+            return null
+        }
+        return {budgetItem, weeklyItem}
+    }).filter(item => item !== null)
+    const totalOverrideTimeDiff = joinedItems.reduce(
+            (acc, item) => {
+                return acc + (item.weeklyItem.weeklyDuration - item.budgetItem.weeklyDuration)
+            },
+            0
         )
-    }
-
-    const totalOriginalTime = weekData!.budgets.reduce((acc, budget) => acc + budget.budget.weeklyTime, 0)
-    const totalOverrideTimeDiff = weekData!.budgets.reduce(
-        (acc, budget) => {
-            return acc + ((budget?.budgetOverride?.weeklyTime ?? budget.budget.weeklyTime) - budget.budget.weeklyTime)
-        },
-        0
-    )
+    const totalPlannedTime = weeklyPlan.items.reduce((acc, item) => acc + item.weeklyDuration, 0)
 
     const getIcon = (iconName: string, className: string) => {
         const key = iconName as keyof typeof Icons;
@@ -101,7 +119,7 @@ export default function PlanningPage() {
     };
 
     return (
-        <div className="flex-grow flex flex-col gap-2">
+        <div className="grow flex flex-col gap-2">
             <WeekChooser currentWeekStart={weekFirstDay} onNext={onNextWeek} onPrevious={onPreviousWeek} onDateChanged={onWeekChanged}/>
             <div className="rounded-sm border overflow-hidden shadow-xs">
                 <Table className="w-full border-collapse">
@@ -115,35 +133,40 @@ export default function PlanningPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {weekData!.budgets.map((stat) => (
-                            <TableRow className="h-full p-0" key={stat.budget.id}>
+                        {joinedItems.map(({weeklyItem, budgetItem}) => (
+                            <TableRow className="h-full p-0" key={weeklyItem.budgetItemId}>
                                 <TableCell className="font-medium flex items-center space-x-2  py-3 pr-4">
-                                    {stat.budget.icon && getIcon(stat.budget.icon, "size-5 text-gray-500")}
-                                    {!stat.budget.icon && <Square2StackIcon className="size-5 text-gray-500"/>}
-                                    <span className="cursor-pointer" onClick={() => openBudgetDetailsDialog(stat)}>{stat.budget.name}</span>
+                                    {weeklyItem.icon && getIcon(weeklyItem.icon, "size-5 text-gray-500")}
+                                    {!weeklyItem.icon && <Square2StackIcon className="size-5 text-gray-500"/>}
+                                    <span className="cursor-pointer" onClick={() => openItemDetailsDialog(weeklyItem)}>{weeklyItem.name}</span>
                                 </TableCell>
                                 <TableCell>
-                                    {formatSecondsToDuration(stat.budget.weeklyTime)}
+                                    {formatSecondsToDuration(weeklyItem.weeklyDuration)}
                                 </TableCell>
-                                <TableCell className="cursor-pointer" onClick={() => openOverrideDialog(stat.budget, stat.budgetOverride)}>
-                                    {stat.budgetOverride && (
+                                <TableCell className="cursor-pointer" onClick={() => openOverrideDialog(weeklyItem, budgetItem)}>
+                                    {isWeeklyItemModified(weeklyItem, budgetItem) && (
                                         <div className="flex items-center space-x-2">
                                             <div className="flex items-center space-x-0.5">
                                                 <div>
-                                                    {getUpDownIcon(stat.budgetOverride.weeklyTime - stat.budget.weeklyTime)}
+                                                    {getUpDownIcon(weeklyItem.weeklyDuration - budgetItem.weeklyDuration)}
                                                 </div>
                                                 <div>
-                                                    {formatSecondsToDuration(stat.budgetOverride.weeklyTime - stat.budget.weeklyTime, true)}
+                                                    {formatSecondsToDuration(weeklyItem.weeklyDuration - budgetItem.weeklyDuration, true)}
                                                 </div>
                                             </div>
-                                            {stat.budgetOverride.notes && (
-                                                <div>
-                                                    <TextAlignStartIcon className="size-4 text-muted-foreground"/>
-                                                </div>
+                                            {weeklyItem.notes && ( // TODO something better?
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <TextAlignStartIcon className="size-4 text-muted-foreground"/>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        {weeklyItem.notes}
+                                                    </TooltipContent>
+                                                </Tooltip>
                                             )}
                                         </div>
                                     )}
-                                    {!stat.budgetOverride && (
+                                    {!isWeeklyItemModified(weeklyItem, budgetItem) && (
                                         <Badge variant="outline" className="text-muted-foreground">
                                             Add
                                         </Badge>
@@ -155,9 +178,9 @@ export default function PlanningPage() {
                                 <TableCell>
                                     <div className="flex items-center space-x-2">
                                         <div>
-                                            {formatSecondsToDuration(stat.budgetOverride ? stat.budgetOverride.weeklyTime : stat.budget.weeklyTime)}
+                                            {formatSecondsToDuration(weeklyItem.weeklyDuration)}
                                         </div>
-                                        {stat.budgetOverride && (
+                                        {isWeeklyItemModified(weeklyItem, budgetItem) && (
                                             <ReplaceIcon className="size-4"/>
                                         )}
                                     </div>
@@ -206,11 +229,11 @@ export default function PlanningPage() {
                             </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                    <span>{formatSecondsToDuration(weekData!.totalPlanned)}</span>
-                                    {weekData!.totalPlanned === 7 * 24 * 60 * 60 &&
+                                    <span>{formatSecondsToDuration(totalPlannedTime)}</span>
+                                    {totalPlannedTime === 7 * 24 * 60 * 60 &&
                                         <CheckCircleIcon className="size-4 text-green-500"/>
                                     }
-                                    {weekData!.totalPlanned !== 7 * 24 * 60 * 60 &&
+                                    {totalPlannedTime !== 7 * 24 * 60 * 60 &&
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger className="p-0 border-0 bg-muted">
@@ -228,24 +251,23 @@ export default function PlanningPage() {
                     </TableBody>
                 </Table>
 
-                {overrideDialogOpen && editedBudget && weekData &&
-                    <PlannedTimeDialog open={overrideDialogOpen}
-                                       onOpenChange={setOverrideDialogOpen}
-                                       budget={editedBudget}
-                                       budgetOverride={editedBudgetOverride}
-                                       currentWeekStartDate={new Date(weekData.startDate)}
-                                       onSave={saveOverride}
-                                       onDelete={deleteOverride}
+                {weeklyDurationEditDialogOpen && editedWeeklyItem && editedItemBudgetItem &&
+                    <WeeklyItemDurationEditDialog open={weeklyDurationEditDialogOpen}
+                                                  onOpenChange={setWeeklyDurationEditDialogOpen}
+                                                  budgetPlanItem={editedItemBudgetItem}
+                                                  weeklyPlanItem={editedWeeklyItem}
+                                                  currentWeekStartDate={weekFirstDay}
+                                                  onSave={saveWeeklyItem}
+                                                  onDelete={resetWeeklyItem}
                     />
                 }
-                {
-                    budgetStatsDetailsDialogOpen && budgetStatsDetails && weekData && (
-                        <BudgetDetailsDialog
-                            open={budgetStatsDetailsDialogOpen}
-                            onOpenChange={setBudgetStatsDetailsDialogOpen}
-                            budgetStats={budgetStatsDetails}
-                            periodStart={new Date(weekData.startDate)}
-                            periodEnd={weekEndDay(new Date(weekData.startDate))}
+                {weeklyItemDetailsDialogOpen && weeklyItemDetails && (
+                        <WeeklyItemDetailsDialog
+                            open={weeklyItemDetailsDialogOpen}
+                            onOpenChange={setWeeklyItemDetailsDialogOpen}
+                            weeklyPlanItem={weeklyItemDetails}
+                            periodStart={weekFirstDay}
+                            periodEnd={weekEndDay(weekFirstDay)}
                         />
                     )
                 }

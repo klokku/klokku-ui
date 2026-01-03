@@ -1,46 +1,48 @@
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {Budget, BudgetOverride} from "@/api/types.ts";
+import {BudgetPlanItem, WeeklyPlanItem} from "@/api/types.ts";
 import {Input} from "@/components/ui/input.tsx";
 import {durationToSeconds, formatSecondsToDuration} from "@/lib/dateUtils.ts";
 import {userSettings} from "@/components/settings.ts";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {useState} from "react";
-import {formatDate} from "date-fns";
 import {Trash2Icon} from "lucide-react";
 
 interface PlannedTimeDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSave: (budgetOverride: BudgetOverride) => void;
-    onDelete: (budgetOverrideId: number) => void;
-    budget: Budget;
-    budgetOverride?: BudgetOverride;
+    onSave: (weeklyPlanItem: WeeklyPlanItem) => void;
+    onDelete: (weeklyPlanItemId: number) => void;
+    budgetPlanItem: BudgetPlanItem;
+    weeklyPlanItem: WeeklyPlanItem;
     currentWeekStartDate: Date;
 }
 
-export function PlannedTimeDialog({open, onOpenChange, onSave, onDelete, budget, budgetOverride, currentWeekStartDate}: PlannedTimeDialogProps) {
+export function WeeklyItemDurationEditDialog({open, onOpenChange, onSave, onDelete, budgetPlanItem, weeklyPlanItem, currentWeekStartDate}: PlannedTimeDialogProps) {
 
-    const [overrideDuration, setOverrideDuration] = useState<number | undefined>(budgetOverride?.weeklyTime);
-    const [overrideNotes, setOverrideNotes] = useState<string | undefined>(budgetOverride?.notes);
+    const hasOverride = weeklyPlanItem.weeklyDuration !== budgetPlanItem.weeklyDuration || weeklyPlanItem.notes !== "";
+    const [overrideDuration, setOverrideDuration] = useState<number | undefined>(hasOverride ? weeklyPlanItem.weeklyDuration : undefined);
+    const [overrideNotes, setOverrideNotes] = useState<string>(weeklyPlanItem.notes);
+
+
 
     function onSaveButton() {
-        if (overrideDuration !== undefined) {
-            const changedOverride: BudgetOverride = {
-                id: budgetOverride?.id,
-                budgetId: budget.id!,
-                startDate: formatDate(currentWeekStartDate, "yyyy-MM-dd'T'HH:mm:ssXXX"),
-                weeklyTime: overrideDuration,
+        console.log("Saving item", weeklyPlanItem.id, overrideDuration, overrideNotes);
+        const hasOverrideChanged = overrideDuration !== weeklyPlanItem.weeklyDuration || overrideNotes !== weeklyPlanItem.notes;
+        if (hasOverrideChanged) {
+            const changedWeeklyItem: WeeklyPlanItem = {
+                ...weeklyPlanItem,
+                weeklyDuration: overrideDuration || budgetPlanItem.weeklyDuration,
                 notes: overrideNotes,
             }
-            onSave(changedOverride)
+            onSave(changedWeeklyItem)
         }
         onOpenChange(false)
     }
 
-    function onDeleteOverrideButton() {
-        if (budgetOverride?.id) {
-            onDelete(budgetOverride.id)
+    function onResetButton() {
+        if (weeklyPlanItem?.id) {
+            onDelete(weeklyPlanItem.id)
         }
         onOpenChange(false)
     }
@@ -50,22 +52,28 @@ export function PlannedTimeDialog({open, onOpenChange, onSave, onDelete, budget,
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        Budget Planned Time
+                        Adjust weekly planned time
                     </DialogTitle>
                     <DialogDescription>
-                        {budget.name} (week starting {currentWeekStartDate.toLocaleDateString(userSettings.locale)})
+                        {weeklyPlanItem.name} (week starting {currentWeekStartDate.toLocaleDateString(userSettings.locale)})
                     </DialogDescription>
                 </DialogHeader>
                 <div className="text-sm space-y-2">
                     <div className="flex gap-2 items-center">
-                        <div className="w-40">Planned time:</div>
-                        <div className="w-full">{formatSecondsToDuration(budget.weeklyTime)}</div>
+                        <div className="w-40">Original time:</div>
+                        <div className="w-full">{formatSecondsToDuration(budgetPlanItem.weeklyDuration)}</div>
                     </div>
                     <div className="flex gap-2 items-center">
-                        <div className="w-40">Weekly Override:</div>
+                        <div className="w-40">Weekly override:</div>
                         <div className="w-full">
                             <Input type="text"
-                                   onBlur={(event) => setOverrideDuration(durationToSeconds(event.target.value))}
+                                   onBlur={(event) => {
+                                       if (event.target.value !== "") {
+                                           setOverrideDuration(durationToSeconds(event.target.value))
+                                       } else {
+                                           setOverrideDuration(weeklyPlanItem.weeklyDuration)
+                                       }
+                                   }}
                                    defaultValue={formatSecondsToDuration(overrideDuration)}
                                    placeholder="example: 13h 27m"
                             />
@@ -83,8 +91,8 @@ export function PlannedTimeDialog({open, onOpenChange, onSave, onDelete, budget,
                     </div>
                 </div>
                 <DialogFooter>
-                    { budgetOverride &&
-                        <Button type="reset" variant="destructive" onClick={() => onDeleteOverrideButton()}><Trash2Icon />Delete override</Button>
+                    { weeklyPlanItem &&
+                        <Button type="reset" variant="destructive" onClick={() => onResetButton()}><Trash2Icon />Reset Item</Button>
                     }
                     <Button type="submit" onClick={() => onSaveButton()} disabled={overrideDuration === undefined}>Save</Button>
                 </DialogFooter>
