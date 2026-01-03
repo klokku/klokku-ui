@@ -3,7 +3,7 @@ import {SearchButton} from "@/components/topbar/SearchButton.tsx";
 import {CommandMenu} from "@/components/commandMenu/CommandMenu.tsx";
 import {useEffect, useState} from "react";
 import {UserButton} from "@/components/topbar/UserButton.tsx";
-import {BudgetSelect} from "@/components/topbar/BudgetSelect.tsx";
+import {PlanItemSelect} from "@/components/topbar/PlanItemSelect.tsx";
 import useProfile from "@/api/useProfile.ts";
 
 export function Topbar() {
@@ -28,7 +28,7 @@ export function Topbar() {
             <HeaderLogo className="h-5" dark={true}/>
             <div className="w-full flex justify-center items-center gap-4">
                 <SearchButton className="w-full max-w-80 hidden md:inline-block" onClick={() => setCommandMenuOpen(true)}/>
-                <BudgetSelect />
+                <PlanItemSelect />
             </div>
             {!isLoadingCurrent && currentProfile ? (
                 <UserButton profile={currentProfile}/>

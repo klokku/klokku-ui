@@ -1,9 +1,9 @@
-import {UseBudgetWizard} from "../hooks/useBudgetWizard.ts";
+import {UseBudgetPlanWizard} from "../hooks/useBudgetPlanWizard.ts";
 import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {TimeInputs} from "./_TimeInputs.tsx";
 
-export function CustomActivitiesStep({wiz}: {wiz: UseBudgetWizard}) {
+export function CustomActivitiesStep({wiz}: {wiz: UseBudgetPlanWizard}) {
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground">Would you like to add a budget for any other recurring weekly task with a predictable duration?</p>

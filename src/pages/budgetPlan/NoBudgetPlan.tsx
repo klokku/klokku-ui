@@ -4,26 +4,27 @@ import {ArrowUpRightIcon, FolderIcon} from "lucide-react";
 
 type Props = {
     onOpenWizard: () => void
-    onAddBudgetItem?: () => void
+    onCreateEmptyBudgetPlan?: () => void
 }
 
-export function EmptyBudget({onOpenWizard, onAddBudgetItem}: Props) {
+export function NoBudgetPlan({onOpenWizard, onCreateEmptyBudgetPlan}: Props) {
     return (
         <Empty className="mb-4 border rounded text-center">
             <EmptyHeader>
                 <EmptyMedia variant="icon">
                     <FolderIcon/>
                 </EmptyMedia>
-                <EmptyTitle>No Budget Items Yet</EmptyTitle>
+                <EmptyTitle>No Budget Plan Yet</EmptyTitle>
                 <EmptyDescription>
-                    {onAddBudgetItem && (
+                    {onCreateEmptyBudgetPlan && (
                         <span>
-                            Get started by creating first budget or use budget wizard to go through the process step by step.
+                            It's time to create your first Budget Plan.<br /><br />
+                            Create new empty Budget Plan or use budget plan wizard to go through the process step by step.
                         </span>
                     )}
-                    {!onAddBudgetItem && (
+                    {!onCreateEmptyBudgetPlan && (
                         <span>
-                            Use budget wizard to go create your first budget plan step by step.
+                            Use budget plan wizard to go create your first budget plan step by step.
                         </span>
                     )}
 
@@ -31,8 +32,8 @@ export function EmptyBudget({onOpenWizard, onAddBudgetItem}: Props) {
             </EmptyHeader>
             <EmptyContent>
                 <div className="flex gap-2">
-                    {onAddBudgetItem && (
-                        <Button variant="outline" onClick={onAddBudgetItem}>Create Budget</Button>
+                    {onCreateEmptyBudgetPlan && (
+                        <Button variant="outline" onClick={onCreateEmptyBudgetPlan}>Create Empty Plan</Button>
                     )}
                     <Button onClick={onOpenWizard}>Start Wizard</Button>
                 </div>

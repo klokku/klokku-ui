@@ -1,9 +1,8 @@
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {useBudgetWizard} from "./hooks/useBudgetWizard.ts";
+import {useBudgetPlanWizard} from "./hooks/useBudgetPlanWizard.ts";
 import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
 import {useEffect} from "react";
-import useBudgets from "@/api/useBudgets.ts";
 import {useNavigate} from "react-router-dom";
 import {paths} from "@/pages/links.ts";
 import {WelcomeStep} from "./steps/WelcomeStep.tsx";
@@ -12,47 +11,65 @@ import {WorkStep} from "./steps/WorkStep.tsx";
 import {ActivitiesStep} from "./steps/ActivitiesStep.tsx";
 import {CustomActivitiesStep} from "./steps/CustomActivitiesStep.tsx";
 import {RemainingStep} from "./steps/RemainingStep.tsx";
+import useBudgetPlan from "@/api/useBudgetPlan.ts";
+import useBudgetPlanItem from "@/api/useBudgetPlanItem.ts";
+import {BudgetPlanStep} from "@/pages/budgetPlan/wizard/steps/BudgetPlanStep.tsx";
 
 export interface BudgetWizardDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  budgetPlanId: number | undefined;
 }
 
-export function BudgetWizardDialog({open, onOpenChange}: BudgetWizardDialogProps) {
-  const wiz = useBudgetWizard();
-  const { createBudget } = useBudgets(false);
+export function BudgetPlanWizardDialog({open, onOpenChange, budgetPlanId}: BudgetWizardDialogProps) {
+  const wiz = useBudgetPlanWizard(budgetPlanId);
+  const { createBudgetPlan } = useBudgetPlan();
+  const { addBudgetPlanItem } = useBudgetPlanItem();
   const navigate = useNavigate();
 
-  useEffect(() => { wiz.setOpen(open); }, [open]);
-  useEffect(() => { onOpenChange(wiz.state.isOpen); }, [wiz.state.isOpen]);
+  useEffect(() => {
+    if (open !== wiz.state.isOpen) {
+      wiz.setOpen(open);
+    }
+  }, [open]);
 
   async function finish() {
-    const budgets = wiz.buildBudgets();
-    for (const b of budgets) { // sequential to preserve order server-side if applicable
-      await createBudget(b);
+    let stateBudgetPlanId = wiz.state.budgetPlanId;
+    if (budgetPlanId === undefined) {
+      const plan = await createBudgetPlan({name: wiz.state.budgetPlanName});
+      stateBudgetPlanId = plan.id!;
     }
-    wiz.reset();
+    const items = wiz.buildBudgetPlanItems();
+    for (const item of items) { // sequential to preserve order server-side if applicable
+      await addBudgetPlanItem(stateBudgetPlanId, item);
+    }
     onOpenChange(false);
+    wiz.reset();
     navigate(paths.budgets.path);
   }
 
   const steps = [
-    { id: "welcome", el: <WelcomeStep /> },
-    { id: "sleep", el: <SleepStep wiz={wiz} /> },
-    { id: "work", el: <WorkStep wiz={wiz} /> },
-    { id: "activities", el: <ActivitiesStep wiz={wiz} /> },
-    { id: "customs", el: <CustomActivitiesStep wiz={wiz} /> },
-    { id: "remaining", el: <RemainingStep wiz={wiz} /> },
-  ];
+    { id: "welcome", isVisible: true,  el: <WelcomeStep /> },
+    { id: "budgetplan", isVisible: budgetPlanId === undefined, el: <BudgetPlanStep wiz={wiz} /> },
+    { id: "sleep", isVisible: true, el: <SleepStep wiz={wiz} /> },
+    { id: "work", isVisible: true, el: <WorkStep wiz={wiz} /> },
+    { id: "activities", isVisible: true, el: <ActivitiesStep wiz={wiz} /> },
+    { id: "customs", isVisible: true, el: <CustomActivitiesStep wiz={wiz} /> },
+    { id: "remaining", isVisible: true, el: <RemainingStep wiz={wiz} /> },
+  ].filter(s => s.isVisible);
 
-  const isLast = wiz.state.currentStep === steps.length - 1;
+  const isLast = wiz.state.currentStep === wiz.state.steps.length - 1;
+
   const isFirst = wiz.state.currentStep === 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={(newOpen) => {
+        if (!newOpen) wiz.reset();
+        onOpenChange(newOpen);
+      }}>
       <DialogContent className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create your budgets</DialogTitle>
+          <DialogTitle>Create budget items</DialogTitle>
         </DialogHeader>
 
         <div className="mb-4">
@@ -64,7 +81,7 @@ export function BudgetWizardDialog({open, onOpenChange}: BudgetWizardDialogProps
         </div>
 
         <div className="min-h-48 sm:min-h-64">
-          {steps[wiz.state.currentStep].el}
+          {steps[wiz.state.currentStep]?.el || <div>Loading...</div>}
         </div>
 
         <div className="mt-4 sm:mt-6 flex flex-col gap-3">
@@ -82,7 +99,7 @@ export function BudgetWizardDialog({open, onOpenChange}: BudgetWizardDialogProps
             </Button>
             <div className="flex gap-2">
               {!isLast && (
-                <Button onClick={() => wiz.goNext()} className="flex-1 sm:flex-none min-w-20">Next</Button>
+                <Button onClick={() => wiz.goNext()} disabled={!wiz.state.steps[wiz.state.currentStep]?.isValid} className="flex-1 sm:flex-none min-w-20">Next</Button>
               )}
               {isLast && (
                 <Button onClick={finish} className="flex-1 sm:flex-none min-w-20">Finish</Button>
@@ -95,4 +112,4 @@ export function BudgetWizardDialog({open, onOpenChange}: BudgetWizardDialogProps
   );
 }
 
-export default BudgetWizardDialog;
+export default BudgetPlanWizardDialog;

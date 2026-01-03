@@ -1,32 +1,30 @@
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog.tsx";
 import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
 import {Button} from "@/components/ui/button.tsx";
-import {Budget} from "@/api/types.ts";
-import {BudgetDetailsForm} from "@/components/budgets/BudgetDetailsForm.tsx";
-import {Badge} from "@/components/ui/badge.tsx";
-import {isBudgetActive} from "@/lib/budgetUtils.ts";
+import {BudgetPlanItem} from "@/api/types.ts";
+import {BudgetPlanItemDetailsForm} from "@/components/budgetPlanItem/BudgetPlanItemDetailsForm.tsx";
 
 interface AddBudgetDialogProps {
-    budget: Budget | null;
+    budgetPlanItem: BudgetPlanItem | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSave: (budget: Budget) => void;
-    onDelete: (budget: Budget) => void;
+    onSave: (budget: BudgetPlanItem) => void;
+    onDelete: (budget: BudgetPlanItem) => void;
     totalBudgetsTime: number;
 }
 
-export function AddBudgetDialog({budget, open, onOpenChange, onSave, onDelete, totalBudgetsTime}: AddBudgetDialogProps) {
+export function AddBudgetPlanItemDialog({budgetPlanItem, open, onOpenChange, onSave, onDelete, totalBudgetsTime}: AddBudgetDialogProps) {
 
     const remainingWeeklyTime = 168 * 60 * 60 - totalBudgetsTime
 
-    function onSaveButton(budget: Budget) {
+    function onSaveButton(budget: BudgetPlanItem) {
         onSave(budget)
         onOpenChange(false)
     }
 
     function onDeleteButton() {
-        if (budget?.id) {
-            onDelete(budget)
+        if (budgetPlanItem?.id) {
+            onDelete(budgetPlanItem)
         }
         onOpenChange(false)
     }
@@ -37,17 +35,14 @@ export function AddBudgetDialog({budget, open, onOpenChange, onSave, onDelete, t
 
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        {budget?.name ?? "Creating new budget"}
-                        {budget && !isBudgetActive(budget, new Date()) &&
-                            <Badge variant="secondary">inactive</Badge>
-                        }
+                        {budgetPlanItem?.name ?? "Creating new budget"}
                     </DialogTitle>
                     <DialogDescription className="flex gap-1">
                         Remaining weekly time:
                         <span className={remainingWeeklyTime < 0 ? "text-red-600" : ""}> {formatSecondsToDuration(remainingWeeklyTime)}</span>
                     </DialogDescription>
                 </DialogHeader>
-                <BudgetDetailsForm formId="add-budget-form" budget={budget} onSubmit={(formData) => onSaveButton(formData)}/>
+                <BudgetPlanItemDetailsForm formId="add-budget-form" item={budgetPlanItem} onSubmit={(formData) => onSaveButton(formData)}/>
                 <DialogFooter>
                     <div className="flex justify-between w-full">
                         <div className="flex gap-2">

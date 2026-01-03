@@ -1,7 +1,7 @@
-import {UseBudgetWizard} from "../hooks/useBudgetWizard.ts";
+import {UseBudgetPlanWizard} from "../hooks/useBudgetPlanWizard.ts";
 import {TimeInputs} from "./_TimeInputs.tsx";
 
-export function WorkStep({wiz}: {wiz: UseBudgetWizard}) {
+export function WorkStep({wiz}: {wiz: UseBudgetPlanWizard}) {
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground">How much time do you spend at work?</p>

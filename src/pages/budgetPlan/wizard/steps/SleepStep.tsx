@@ -1,7 +1,7 @@
-import {UseBudgetWizard} from "../hooks/useBudgetWizard.ts";
+import {UseBudgetPlanWizard} from "../hooks/useBudgetPlanWizard.ts";
 import {TimeInputs} from "./_TimeInputs.tsx";
 
-export function SleepStep({wiz}: {wiz: UseBudgetWizard}) {
+export function SleepStep({wiz}: {wiz: UseBudgetPlanWizard}) {
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground">How much time would you like to spend sleeping?</p>

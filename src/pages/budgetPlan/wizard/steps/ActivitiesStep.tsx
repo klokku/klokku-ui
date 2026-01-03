@@ -1,8 +1,8 @@
-import {UseBudgetWizard} from "../hooks/useBudgetWizard.ts";
+import {UseBudgetPlanWizard} from "../hooks/useBudgetPlanWizard.ts";
 import {TimeInputs} from "./_TimeInputs.tsx";
 import {Switch} from "@/components/ui/switch.tsx";
 
-export function ActivitiesStep({wiz}: {wiz: UseBudgetWizard}) {
+export function ActivitiesStep({wiz}: {wiz: UseBudgetPlanWizard}) {
   const entries = Object.entries(wiz.state.activities);
   return (
     <div className="space-y-4">

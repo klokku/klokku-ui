@@ -1,6 +1,6 @@
 import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {TimeAmount} from "../hooks/useBudgetWizard.ts";
+import {TimeAmount} from "../hooks/useBudgetPlanWizard.ts";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 
 interface Props {
