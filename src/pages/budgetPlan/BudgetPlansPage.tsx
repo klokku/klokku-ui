@@ -100,7 +100,7 @@ export function BudgetPlansPage() {
     };
 
     return (
-        <div>
+        <div className="grow flex flex-col gap-2">
 
             {!budgetPlanDetails && (
                 <NoBudgetPlan

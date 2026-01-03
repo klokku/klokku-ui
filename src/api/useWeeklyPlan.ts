@@ -28,7 +28,7 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
 
     const resetPlan = useMutation({
         mutationFn: async (inWeekDate: Date) => {
-            const response = await fetchWithAuth(`/api/weeklyPlan?date=${inWeekDate.toISOString()}`, {
+            const response = await fetchWithAuth(`/api/weeklyplan?date=${inWeekDate.toISOString()}`, {
                 method: "DELETE",
                 body: JSON.stringify({date: inWeekDate.toISOString()}),
             });
@@ -70,7 +70,7 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
 
     const resetPlanItem = useMutation({
         mutationFn: async (weeklyPlanItemId: number) => {
-            const response = await fetchWithAuth(`/api/weeklyPlan/item/${weeklyPlanItemId}`, {
+            const response = await fetchWithAuth(`/api/weeklyplan/item/${weeklyPlanItemId}`, {
                 method: "DELETE",
                 body: JSON.stringify({date: inWeekDate.toISOString()}),
             });

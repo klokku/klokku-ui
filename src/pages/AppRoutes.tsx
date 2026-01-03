@@ -3,7 +3,7 @@ import {paths} from "@/pages/links.ts";
 import ErrorPage from "@/pages/ErrorPage.tsx";
 import ErrorPage404 from "@/pages/ErrorPage404.tsx";
 import {StatisticsPage} from "@/pages/statistics/StatisticsPage.tsx";
-import {BudgetsPage} from "@/pages/budgets/BudgetsPage.tsx";
+import {BudgetPlansPage} from "@/pages/budgetPlan/BudgetPlansPage.tsx";
 import {CalendarPage} from "@/pages/calendar/CalendarPage.tsx";
 import {DashboardPage} from "@/pages/dashboard/DashboardPage.tsx";
 import LoggedInUserRoot from "@/pages/LoggedInUserRoot.tsx";
@@ -14,7 +14,7 @@ import {IntegrationsPage} from "@/pages/integrations/IntegrationsPage.tsx";
 import {LogoutPage} from "@/pages/profile/LogoutPage.tsx";
 import MainLayout from "@/pages/MainLayout.tsx";
 import UserProfileLayout from "@/pages/UserProfileLayout.tsx";
-import PlanningPage from "@/pages/planning/PlanningPage.tsx";
+import WeeklyPlanningPage from "@/pages/planning/WeeklyPlanningPage.tsx";
 
 const AppRoutes = () => (
     <Routes>
@@ -24,9 +24,9 @@ const AppRoutes = () => (
             <Route element={<MainLayout/>}>
                 <Route index element={<DashboardPage/>}/>
                 <Route path={paths.statistics.path} element={<StatisticsPage/>}/>
-                <Route path={paths.budgets.path} element={<BudgetsPage/>}/>
+                <Route path={paths.budgets.path} element={<BudgetPlansPage/>}/>
                 <Route path={paths.calendar.path} element={<CalendarPage/>}/>
-                <Route path={paths.weeklyPlanning.path} element={<PlanningPage/>}/>
+                <Route path={paths.weeklyPlanning.path} element={<WeeklyPlanningPage/>}/>
             </Route>
             <Route element={<UserProfileLayout/>}>
                 <Route path={paths.profile.path} element={<ProfileEditPage/>}/>

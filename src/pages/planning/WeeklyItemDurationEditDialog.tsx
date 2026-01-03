@@ -2,7 +2,7 @@ import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, Di
 import {Button} from "@/components/ui/button.tsx";
 import {BudgetPlanItem, WeeklyPlanItem} from "@/api/types.ts";
 import {Input} from "@/components/ui/input.tsx";
-import {durationToSeconds, formatSecondsToDuration} from "@/lib/dateUtils.ts";
+import {parseDurationInput, formatSecondsToDuration} from "@/lib/dateUtils.ts";
 import {userSettings} from "@/components/settings.ts";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {useState} from "react";
@@ -69,13 +69,16 @@ export function WeeklyItemDurationEditDialog({open, onOpenChange, onSave, onDele
                             <Input type="text"
                                    onBlur={(event) => {
                                        if (event.target.value !== "") {
-                                           setOverrideDuration(durationToSeconds(event.target.value))
+                                           const parsed = parseDurationInput(event.target.value, budgetPlanItem.weeklyDuration);
+                                           if (parsed !== undefined) {
+                                               setOverrideDuration(parsed);
+                                           }
                                        } else {
                                            setOverrideDuration(weeklyPlanItem.weeklyDuration)
                                        }
                                    }}
                                    defaultValue={formatSecondsToDuration(overrideDuration)}
-                                   placeholder="example: 13h 27m"
+                                   placeholder="5h 30m, +3h20m, +80m, -2h20m"
                             />
                         </div>
                     </div>

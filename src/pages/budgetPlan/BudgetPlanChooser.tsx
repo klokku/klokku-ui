@@ -64,7 +64,7 @@ export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanI
 
     return (
         <div>
-            <div className="mb-4 flex items-center gap-2">
+            <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2">
                     <Select
                         value={selectedPlanId?.toString()}
