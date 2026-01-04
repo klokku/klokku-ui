@@ -13,9 +13,10 @@ type Props = {
     onPrevious: () => void;
     onNext: () => void;
     onDateChanged: (date: Date) => void;
+    isPreviousEnabled: () => boolean;
 };
 
-export function WeekChooser({currentWeekStart, onPrevious, onNext, onDateChanged}: Props) {
+export function WeekChooser({currentWeekStart, onPrevious, onNext, onDateChanged, isPreviousEnabled}: Props) {
 
     const [date, setDate] = useState<Date>(currentWeekStart)
     const [isOpen, setIsOpen] = useState<boolean>(false)
@@ -35,7 +36,7 @@ export function WeekChooser({currentWeekStart, onPrevious, onNext, onDateChanged
 
     return (
         <div className="gap-y-2 flex items-center text-sm">
-            <Button variant="outline" className="w-24 rounded-r-none border-r" onClick={onPrevious}>Previous</Button>
+            <Button variant="outline" className="w-24 rounded-r-none border-r" onClick={onPrevious} disabled={!isPreviousEnabled()}>Previous</Button>
             <Button variant="outline" className="w-24 rounded-l-none mr-3 border-l" onClick={onNext}>Next</Button>
             <span>Week from {currentWeekStart.toLocaleDateString(userSettings.locale)} to {weekEndDay(currentWeekStart)}</span>
             <span>

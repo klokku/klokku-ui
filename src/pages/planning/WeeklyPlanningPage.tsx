@@ -3,7 +3,6 @@ import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.t
 import {Badge} from "@/components/ui/badge.tsx";
 import {CheckCircleIcon, PencilIcon, TextAlignStartIcon, TriangleAlertIcon} from "lucide-react";
 import {formatSecondsToDuration, getCurrentWeekFirstDay, nextWeekStart, previousWeekStart, weekEndDay} from "@/lib/dateUtils.ts";
-import WeeklyItemDetailsDialog from "@/pages/planning/WeeklyItemDetailsDialog.tsx";
 import useProfile from "@/api/useProfile.ts";
 import {defaultSettings} from "@/components/settings.ts";
 import {createElement, useState} from "react";
@@ -26,6 +25,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog.tsx";
+import WeeklyPlanItemDetailsDialog from "@/components/weeklyPlanItem/WeeklyPlanItemDetailsDialog.tsx";
 
 type WeeklyOverride = {
     budgetItemId: number
@@ -42,10 +42,11 @@ export default function WeeklyPlanningPage() {
     const {weeklyPlan, isLoading, updateWeeklyPlanItem, resetWeeklyPlanItem, resetWeeklyPlan} = useWeeklyPlan(weekFirstDay)
     const {budgetPlanDetails, isLoadingBudgetPlanDetails} = useBudgetPlan(weeklyPlan?.budgetPlanId)
 
+    const {weeklyPlan: previousWeek, isLoading: previousWeekIsLoading} = useWeeklyPlan(previousWeekStart(weekFirstDay))
+
     const [weeklyDurationEditDialogOpen, setWeeklyDurationEditDialogOpen] = useState(false)
-    const [editedWeeklyItem, setEditedWeeklyItem] = useState<WeeklyPlanItem | undefined>(undefined)
-    const [editedItemBudgetItem, setEditedItemBudgetItem] = useState<BudgetPlanItem | undefined>(undefined)
-    const [weeklyItemDetails, setWeeklyItemDetails] = useState<WeeklyPlanItem | undefined>(undefined)
+    const [selectedWeeklyItem, setSelectedWeeklyItem] = useState<WeeklyPlanItem | undefined>(undefined)
+    const [selectedItemBudgetItem, setSelectedItemBudgetItem] = useState<BudgetPlanItem | undefined>(undefined)
     const [weeklyItemDetailsDialogOpen, setWeeklyItemDetailsDialogOpen] = useState(false)
     const [resetConfirmDialogOpen, setResetConfirmDialogOpen] = useState(false)
 
@@ -55,6 +56,14 @@ export default function WeeklyPlanningPage() {
                 <Spinner className="size-6"/>
             </div>
         )
+    }
+
+    function isPreviousEnabled() {
+        if (previousWeekIsLoading) return false
+
+        const previousWeekIsInThePast = weekEndDay(previousWeekStart(weekFirstDay)) < new Date()
+        const weeklyItemsDoNotExist = previousWeek?.items.some(item => item.id === 0)
+        return !(previousWeekIsInThePast && weeklyItemsDoNotExist);
     }
 
     function onNextWeek() {
@@ -70,13 +79,14 @@ export default function WeeklyPlanningPage() {
     }
 
     function openOverrideDialog(weeklyItem: WeeklyPlanItem, budgetPlanItem: BudgetPlanItem) {
-        setEditedWeeklyItem(weeklyItem)
-        setEditedItemBudgetItem(budgetPlanItem)
+        setSelectedWeeklyItem(weeklyItem)
+        setSelectedItemBudgetItem(budgetPlanItem)
         setWeeklyDurationEditDialogOpen(true)
     }
 
-    function openItemDetailsDialog(weeklyPlanItem: WeeklyPlanItem) {
-        setWeeklyItemDetails(weeklyPlanItem)
+    function openItemDetailsDialog(weeklyPlanItem: WeeklyPlanItem, budgetPlanItem: BudgetPlanItem) {
+        setSelectedWeeklyItem(weeklyPlanItem)
+        setSelectedItemBudgetItem(budgetPlanItem)
         setWeeklyItemDetailsDialogOpen(true)
     }
 
@@ -116,7 +126,7 @@ export default function WeeklyPlanningPage() {
     return (
         <div className="grow flex flex-col gap-2">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                <WeekChooser currentWeekStart={weekFirstDay} onNext={onNextWeek} onPrevious={onPreviousWeek} onDateChanged={onWeekChanged}/>
+                <WeekChooser currentWeekStart={weekFirstDay} onNext={onNextWeek} onPrevious={onPreviousWeek} onDateChanged={onWeekChanged} isPreviousEnabled={isPreviousEnabled} />
                 <Button variant="outline" size="sm" onClick={() => setResetConfirmDialogOpen(true)} className="w-full md:w-auto">
                     Reset to Budget Plan
                 </Button>
@@ -142,7 +152,7 @@ export default function WeeklyPlanningPage() {
                                             {!weeklyItem.icon && <Square2StackIcon className="size-5 text-gray-500 flex-shrink-0"/>}
                                             <span
                                                 className="cursor-pointer hover:text-blue-600 transition-colors"
-                                                onClick={() => openItemDetailsDialog(weeklyItem)}
+                                                onClick={() => openItemDetailsDialog(weeklyItem, budgetItem)}
                                             >
                                                 {weeklyItem.name}
                                             </span>
@@ -215,23 +225,23 @@ export default function WeeklyPlanningPage() {
                     </TableBody>
                 </Table>
 
-                {weeklyDurationEditDialogOpen && editedWeeklyItem && editedItemBudgetItem &&
+                {weeklyDurationEditDialogOpen && selectedWeeklyItem && selectedItemBudgetItem &&
                     <WeeklyItemDurationEditDialog open={weeklyDurationEditDialogOpen}
                                                   onOpenChange={setWeeklyDurationEditDialogOpen}
-                                                  budgetPlanItem={editedItemBudgetItem}
-                                                  weeklyPlanItem={editedWeeklyItem}
+                                                  budgetPlanItem={selectedItemBudgetItem}
+                                                  weeklyPlanItem={selectedWeeklyItem}
                                                   currentWeekStartDate={weekFirstDay}
                                                   onSave={saveWeeklyItem}
                                                   onDelete={resetWeeklyItem}
                     />
                 }
-                {weeklyItemDetailsDialogOpen && weeklyItemDetails && (
-                    <WeeklyItemDetailsDialog
+                {weeklyItemDetailsDialogOpen && selectedWeeklyItem && selectedItemBudgetItem && (
+                    <WeeklyPlanItemDetailsDialog
                         open={weeklyItemDetailsDialogOpen}
                         onOpenChange={setWeeklyItemDetailsDialogOpen}
-                        weeklyPlanItem={weeklyItemDetails}
-                        periodStart={weekFirstDay}
-                        periodEnd={weekEndDay(weekFirstDay)}
+                        budgetPlanId={weeklyPlan?.budgetPlanId}
+                        budgetPlanItemId={selectedItemBudgetItem.id!}
+                        inWeekDate={weekFirstDay}
                     />
                 )
                 }
