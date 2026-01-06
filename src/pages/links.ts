@@ -27,9 +27,9 @@ export const paths = {
     path: "/calendar",
     title: "Calendar"
   },
-  budgets: {
-    path: "/budgets",
-    title: "Budgets"
+  budgetPlans: {
+    path: "/budget-plans",
+    title: "Budget Plans"
   },
   profile: {
     path: "/profile",

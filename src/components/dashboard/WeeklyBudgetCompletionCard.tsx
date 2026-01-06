@@ -4,7 +4,7 @@ import useWeeklyStats from "@/api/useStats.ts";
 import {Bar, BarChart, LabelList, XAxis, YAxis} from "recharts"
 import {ChartConfig, ChartContainer} from "@/components/ui/chart"
 import {PlanItemStats} from "@/api/types.ts";
-import useEvents from "@/api/useEvents.ts";
+import useCurrentEvent from "@/api/useCurrentEvent.ts";
 import {NavLink} from "react-router";
 import {paths} from "@/pages/links.ts";
 import useProfile from "@/api/useProfile.ts";
@@ -20,7 +20,7 @@ export function WeeklyBudgetCompletionCard() {
     const {currentProfile} = useProfile();
     const weekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
     const {isLoading, weeklyStatsSummary} = useWeeklyStats(weekFirstDay)
-    const {loadingCurrentEvent, currentEvent} = useEvents()
+    const {loadingCurrentEvent, currentEvent} = useCurrentEvent()
     const {recentEvents, isLoadingRecentEvents} = useCalendar(weekFirstDay, weekEndDay(weekFirstDay))
 
     const lastEventsBudgetItemIds = recentEvents?.map(event => event.budgetItemId)

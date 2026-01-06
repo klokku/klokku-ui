@@ -24,7 +24,7 @@ const AppRoutes = () => (
             <Route element={<MainLayout/>}>
                 <Route index element={<DashboardPage/>}/>
                 <Route path={paths.history.path} element={<HistoryPage/>}/>
-                <Route path={paths.budgets.path} element={<BudgetPlansPage/>}/>
+                <Route path={paths.budgetPlans.path} element={<BudgetPlansPage/>}/>
                 <Route path={paths.calendar.path} element={<CalendarPage/>}/>
                 <Route path={paths.weeklyPlanning.path} element={<WeeklyPlanningPage/>}/>
             </Route>

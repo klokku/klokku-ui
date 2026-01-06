@@ -27,8 +27,8 @@ const pagesItems = [
         icon: CalendarDaysIcon
     },
     {
-        title: paths.budgets.title,
-        url: paths.budgets.path,
+        title: paths.budgetPlans.title,
+        url: paths.budgetPlans.path,
         icon: FolderKanbanIcon
     },
 ]

@@ -5,7 +5,7 @@ import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 
 type HookType = (inWeekDate: Date) => {
     isLoading: boolean,
-    weeklyStatsSummary: StatsSummary | undefined,
+    weeklyStatsSummary?: StatsSummary | null,
 }
 
 const useWeeklyStats: HookType = (inWeekDate: Date) => {
@@ -15,6 +15,12 @@ const useWeeklyStats: HookType = (inWeekDate: Date) => {
         queryKey: ["stats", inWeekDate],
         queryFn: async () => {
             const response = await fetchWithAuth(`/api/stats/weekly?date=${inWeekDateString}`)
+            if (response.status === 404) {
+                return null;
+            }
+            if (!response.ok) {
+                throw new Error("Failed to fetch weekly stats summary");
+            }
             return (await response.json()) as StatsSummary
         }
     })

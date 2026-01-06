@@ -5,18 +5,24 @@ import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 
 type HookType = () => {
     loadingCurrentEvent: boolean,
-    currentEvent?: CurrentEvent,
+    currentEvent?: CurrentEvent | null,
     startEvent: (budgetItemId: number, itemName: string, weeklyDuration: number) => Promise<void>,
     updateEventStartTime: (startTime: Date) => Promise<void>,
 }
 
-const useEvents: HookType = () => {
+const useCurrentEvent: HookType = () => {
     const fetchWithAuth = useFetchWithProfileUid()
     const queryClient = useQueryClient();
     const { isLoading: loadingCurrentEvent, data } = useQuery({
         queryKey: ["currentEvent"],
         queryFn: async () => {
             const response = await fetchWithAuth("/api/event/current")
+            if (response.status === 404) {
+                return null;
+            }
+            if (!response.ok) {
+                throw new Error("Failed to fetch current event");
+            }
             return (await response.json()) as CurrentEvent
         },
         staleTime: 0,
@@ -88,4 +94,4 @@ const useEvents: HookType = () => {
     }
 }
 
-export default useEvents;
+export default useCurrentEvent;

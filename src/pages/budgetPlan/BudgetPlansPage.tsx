@@ -38,7 +38,6 @@ export function BudgetPlansPage() {
             </div>
         )
     }
-    // TODO test on always empty that everything is working as expected - not only this page, but EVERYTHING
 
     const totalItemsTime = budgetPlanDetails?.items?.reduce((acc, budget) => acc + budget.weeklyDuration, 0) || 0
 

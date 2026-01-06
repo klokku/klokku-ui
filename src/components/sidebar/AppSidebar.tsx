@@ -44,7 +44,7 @@ const items = [
             },
             {
                 title: "Budget Plans",
-                url: paths.budgets.path,
+                url: paths.budgetPlans.path,
             },
         ]
     },

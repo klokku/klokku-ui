@@ -11,7 +11,7 @@ import {ProgressCell} from "@/pages/history/ProgressCell.tsx";
 
 interface DailyStatisticsProps {
     weekData?: StatsSummary
-    currentEvent?: CurrentEvent
+    currentEvent?: CurrentEvent | null
 }
 
 export function DailyHistory({weekData, currentEvent}: DailyStatisticsProps) {

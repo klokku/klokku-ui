@@ -45,7 +45,7 @@ export function BudgetPlanWizardDialog({open, onOpenChange, budgetPlanId}: Budge
     }
     onOpenChange(false);
     wiz.reset();
-    navigate(paths.budgets.path);
+    navigate(paths.budgetPlans.path);
   }
 
   const steps = [

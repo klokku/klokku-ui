@@ -9,7 +9,7 @@ import {formatEventDuration} from "@/lib/dateUtils.ts";
 import {PreviousEvent} from "@/components/dashboard/PreviousEvent.tsx";
 import {CurrentEvent, WeeklyPlanItem} from "@/api/types.ts";
 import * as Icons from "@heroicons/react/24/solid";
-import useEvents from "@/api/useEvents.ts";
+import useCurrentEvent from "@/api/useCurrentEvent.ts";
 import {CurrentEventDetailsDialog} from "@/components/event/CurrentEventDetailsDialog.tsx";
 import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
 import useCalendar from "@/api/useCalendar.ts";
@@ -18,7 +18,7 @@ import {Skeleton} from "@/components/ui/skeleton.tsx";
 export function CurrentEventCard() {
 
     const {weeklyPlan, isLoading} = useWeeklyPlan(new Date());
-    const {currentEvent, startEvent, updateEventStartTime} = useEvents();
+    const {currentEvent, startEvent, updateEventStartTime} = useCurrentEvent();
 
     const now = new Date();
     const threeDaysAgo = new Date(now.setDate(now.getDate() - 3));

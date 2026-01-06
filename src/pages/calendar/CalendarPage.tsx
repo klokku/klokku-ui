@@ -7,7 +7,7 @@ import {CalendarEvent} from "@/api/types.ts";
 import interactionPlugin from '@fullcalendar/interaction';
 import {defaultSettings, userSettings} from "@/components/settings.ts";
 import {DateSelectArg, EventChangeArg, EventClickArg} from "@fullcalendar/core";
-import useEvents from "@/api/useEvents.ts";
+import useCurrentEvent from "@/api/useCurrentEvent.ts";
 import {EventDetails, EventDetailsPopover} from "@/pages/calendar/EventDetailsPopover.tsx";
 import {useIsMobile} from "@/hooks/use-mobile.tsx";
 import useProfile from "@/api/useProfile.ts";
@@ -26,7 +26,7 @@ export function CalendarPage() {
     const calendarRef = useRef<FullCalendar>(null);
 
     const {isLoading, events, modifyEvent, createEvent, deleteEvent} = useCalendar(calendarStart, calendarEnd);
-    const {currentEvent} = useEvents();
+    const {currentEvent} = useCurrentEvent();
     const {weeklyPlan} = useWeeklyPlan(currentWeekFirstDay)
 
     const isMobile = useIsMobile();

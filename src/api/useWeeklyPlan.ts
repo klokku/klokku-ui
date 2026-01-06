@@ -4,7 +4,7 @@ import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 import {toServerFormat} from "@/lib/dateUtils.ts";
 
 type HookType = (inWeekDate: Date) => {
-    weeklyPlan?: WeeklyPlan;
+    weeklyPlan?: WeeklyPlan | null;
     isLoading: boolean;
     resetWeeklyPlan: (inWeekDate: Date) => Promise<WeeklyPlan>;
     resetWeeklyPlanItem: (weeklyPlanItemId: number) => Promise<WeeklyPlanItem>;
@@ -23,6 +23,12 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
         queryKey: ["weeklyPlan", dateKey],
         queryFn: async () => {
             const response = await fetchWithAuth(`/api/weeklyplan?date=${encodeURIComponent(toServerFormat(inWeekDate))}`);
+            if (response.status === 404) {
+                return null;
+            }
+            if (!response.ok) {
+                throw new Error("Failed to fetch weekly plan");
+            }
             return (await response.json()) as WeeklyPlan
         },
     });

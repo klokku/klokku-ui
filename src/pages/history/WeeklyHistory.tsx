@@ -9,7 +9,7 @@ import {ProgressCell} from "@/pages/history/ProgressCell.tsx";
 
 interface WeeklyStatisticsProps {
     weekData?: StatsSummary
-    currentEvent?: CurrentEvent
+    currentEvent?: CurrentEvent | null
 }
 
 export function WeeklyHistory({weekData, currentEvent}: WeeklyStatisticsProps) {

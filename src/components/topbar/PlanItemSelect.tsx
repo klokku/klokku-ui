@@ -1,5 +1,5 @@
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select"
-import useEvents from "@/api/useEvents.ts";
+import useCurrentEvent from "@/api/useCurrentEvent.ts";
 import {FolderKanbanIcon} from "lucide-react";
 import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
 import {useEffect, useState} from "react";
@@ -7,7 +7,7 @@ import {useEffect, useState} from "react";
 export function PlanItemSelect() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const {weeklyPlan, isLoading} = useWeeklyPlan(currentDate);
-    const {currentEvent, loadingCurrentEvent, startEvent} = useEvents();
+    const {currentEvent, loadingCurrentEvent, startEvent} = useCurrentEvent();
 
     const currentBudgetName = currentEvent?.planItem.name
 

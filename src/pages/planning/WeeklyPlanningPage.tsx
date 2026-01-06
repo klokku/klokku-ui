@@ -1,7 +1,7 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
-import {CheckCircleIcon, PencilIcon, TextAlignStartIcon, TriangleAlertIcon} from "lucide-react";
+import {CheckCircleIcon, FolderIcon, PencilIcon, TextAlignStartIcon, TriangleAlertIcon} from "lucide-react";
 import {formatSecondsToDuration, getCurrentWeekFirstDay, nextWeekStart, previousWeekStart, weekEndDay} from "@/lib/dateUtils.ts";
 import useProfile from "@/api/useProfile.ts";
 import {defaultSettings} from "@/components/settings.ts";
@@ -26,6 +26,9 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog.tsx";
 import WeeklyPlanItemDetailsDialog from "@/components/weeklyPlanItem/WeeklyPlanItemDetailsDialog.tsx";
+import {Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty.tsx";
+import {paths} from "@/pages/links.ts";
+import {NavLink} from "react-router";
 
 type WeeklyOverride = {
     budgetItemId: number
@@ -50,11 +53,28 @@ export default function WeeklyPlanningPage() {
     const [weeklyItemDetailsDialogOpen, setWeeklyItemDetailsDialogOpen] = useState(false)
     const [resetConfirmDialogOpen, setResetConfirmDialogOpen] = useState(false)
 
-    if (!weeklyPlan || isLoading || isLoadingBudgetPlanDetails || !budgetPlanDetails) {
+    if (isLoading || (weeklyPlan && isLoadingBudgetPlanDetails)) {
         return (
             <div className="flex items-center justify-center h-screen">
                 <Spinner className="size-6"/>
             </div>
+        )
+    }
+
+    // it means there is no budget plan yet
+    if (!weeklyPlan) {
+        return (
+            <Empty className="mb-4 border rounded text-center">
+                <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                        <FolderIcon/>
+                    </EmptyMedia>
+                    <EmptyTitle>No Budget Plan Yet</EmptyTitle>
+                    <EmptyDescription>
+                        Go to <NavLink to={paths.budgetPlans.path}>Budget Plans page</NavLink> to create your first Budget Plan.
+                    </EmptyDescription>
+                </EmptyHeader>
+            </Empty>
         )
     }
 
