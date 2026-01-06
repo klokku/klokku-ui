@@ -79,11 +79,11 @@ const useCurrentEvent: HookType = () => {
     })
 
     const startEvent = async (budgetItemId: number, itemName: string, weeklyDuration: number) => {
-        return start.mutate({budgetItemId: budgetItemId, itemName, weeklyDuration});
+        return start.mutateAsync({budgetItemId: budgetItemId, itemName, weeklyDuration});
     };
 
     const updateEventStartTime = async (startTime: Date) => {
-        return updateStartTime.mutate(startTime)
+        return updateStartTime.mutateAsync(startTime)
     }
 
     return {

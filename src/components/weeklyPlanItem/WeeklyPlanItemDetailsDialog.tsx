@@ -223,7 +223,7 @@ export default function WeeklyPlanItemDetailsDialog({budgetPlanItemId, inWeekDat
                         <CardContent>
                             {weeklyDurationsList.length > 0 ? (
                                 <div className="space-y-2">
-                                    {weeklyDurationsList.reverse().map((week, index) => (
+                                    {[...weeklyDurationsList].reverse().map((week, index) => (
                                         <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
                                             <span className="text-sm">{week.weekRange}</span>
                                             <div className="flex gap-4">

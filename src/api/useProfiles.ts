@@ -79,7 +79,7 @@ const useProfiles: HookType = (username) => {
     };
 
     const deleteProfile = async (profileUid: string) => {
-        return deleteIt.mutate(profileUid);
+        return deleteIt.mutateAsync(profileUid);
     };
 
     return {

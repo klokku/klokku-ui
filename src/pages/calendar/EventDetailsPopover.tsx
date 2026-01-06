@@ -53,6 +53,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
 
     const form = useForm<EventDetailsForm>({
         resolver: zodResolver(eventDetailsSchema),
+        mode: "onChange",
         defaultValues: {
             startDate: input.startDate,
             endDate: input.endDate,
@@ -75,11 +76,15 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
         })
     }
 
+    // Extract formState properties to ensure proper subscription
+    const { isDirty, isValid } = form.formState;
+
     return (
 
         <Popover
             open={open}
             onOpenChange={onOpenChange}
+            key={input.uid || 'new-event'}
         >
             <PopoverTrigger asChild>
                 <div
@@ -168,7 +173,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                     <Button type="reset" variant="outline" onClick={() => onOpenChange(false)}>
                                         Cancel
                                     </Button>
-                                    <Button type="submit" disabled={!form.formState.isDirty && !form.formState.isValid}>
+                                    <Button type="submit" disabled={isCreateMode() ? !isValid : (!isDirty || !isValid)}>
                                         Save
                                     </Button>
                                 </div>

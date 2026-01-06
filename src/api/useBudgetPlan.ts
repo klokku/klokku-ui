@@ -19,6 +19,9 @@ const useBudgetPlan: HookType = (planId?: number) => {
         queryKey: ["budgetPlans"],
         queryFn: async () => {
             const response = await fetchWithAuth("/api/budgetplan");
+            if (!response.ok) {
+                throw new Error("Failed to fetch budget plans");
+            }
             return (await response.json()) as BudgetPlan[]
         },
     });
@@ -30,6 +33,9 @@ const useBudgetPlan: HookType = (planId?: number) => {
             const response = await fetchWithAuth(`/api/budgetplan/${planId}`, {
                 method: "GET"
             })
+            if (!response.ok) {
+                throw new Error("Failed to fetch budget plan details");
+            }
             return (await response.json()) as BudgetPlan
         },
         enabled: !!planId

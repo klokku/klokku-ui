@@ -20,9 +20,7 @@ export function CurrentEventCard() {
     const {weeklyPlan, isLoading} = useWeeklyPlan(new Date());
     const {currentEvent, startEvent, updateEventStartTime} = useCurrentEvent();
 
-    const now = new Date();
-    const threeDaysAgo = new Date(now.setDate(now.getDate() - 3));
-    const {recentEvents, isLoadingRecentEvents} = useCalendar(threeDaysAgo, now);
+    const {recentEvents, isLoadingRecentEvents} = useCalendar();
 
     const findPlanItem = (budgetItemId?: number) => {
         if (!budgetItemId) return undefined;

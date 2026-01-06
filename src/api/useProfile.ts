@@ -2,6 +2,7 @@ import {Profile} from "@/api/types.ts";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
+import {useState} from "react";
 
 
 type HookType = () => {
@@ -16,7 +17,7 @@ type HookType = () => {
 }
 
 const useProfile: HookType = () => {
-    let isUploadingAvatar: boolean = false
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const { currentProfileUid } = useCurrentProfile()
     const fetchWithAuth = useFetchWithProfileUid()
     const queryClient = useQueryClient();
@@ -74,7 +75,7 @@ const useProfile: HookType = () => {
         mutationFn: async (file: File) => {
             const formData = new FormData();
             formData.append("photo", file);
-            isUploadingAvatar = true
+            setIsUploadingAvatar(true);
             const response = await fetchWithAuth("/api/user/current/photo", {
                 method: "PUT",
                 body: formData,
@@ -84,13 +85,13 @@ const useProfile: HookType = () => {
             }
         },
         onSuccess: () => {
-            isUploadingAvatar = false
+            setIsUploadingAvatar(false);
             queryClient.invalidateQueries({queryKey: ["allProfiles"]});
             queryClient.invalidateQueries({queryKey: ["currentProfile"]});
         },
         onError: (error) => {
             console.log(">>>error", error);
-            isUploadingAvatar = false
+            setIsUploadingAvatar(false);
         },
     })
 

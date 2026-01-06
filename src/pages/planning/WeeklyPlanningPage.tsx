@@ -82,7 +82,7 @@ export default function WeeklyPlanningPage() {
         if (previousWeekIsLoading) return false
 
         const previousWeekIsInThePast = weekEndDay(previousWeekStart(weekFirstDay)) < new Date()
-        const weeklyItemsDoNotExist = previousWeek?.items.some(item => item.id === 0)
+        const weeklyItemsDoNotExist = previousWeek?.items.some(item => item.id === undefined || item.id === 0) ?? true;
         return !(previousWeekIsInThePast && weeklyItemsDoNotExist);
     }
 

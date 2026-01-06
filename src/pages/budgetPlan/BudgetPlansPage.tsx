@@ -80,23 +80,26 @@ export function BudgetPlansPage() {
 
     function isLastOnTheList(item: BudgetPlanItem): boolean {
         const index = budgetPlanDetails?.items.findIndex((b) => b.id === item.id)
-        if (index === budgetPlanDetails!.items.length - 1) {
-            return true
-        }
-        return !budgetPlanDetails!.items[index! + 1];
+        if (index === undefined || index === -1) return false;
+        return index === budgetPlanDetails!.items.length - 1;
     }
 
     async function moveUp(item: BudgetPlanItem) {
         const index = budgetPlanDetails?.items.findIndex((b) => b.id === item.id)
-        if (index! < 2) {
+        if (index === undefined || index === -1) return;
+
+        if (index < 2) {
             await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, 0)
+            return;
         }
-        await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, budgetPlanDetails!.items[index! - 2].id!)
+        await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, budgetPlanDetails!.items[index - 2].id!)
     }
 
     async function moveDown(item: BudgetPlanItem) {
         const index = budgetPlanDetails?.items.findIndex((b) => b.id === item.id)
-        await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, budgetPlanDetails!.items[index! + 1].id!)
+        if (index === undefined || index === -1 || index >= budgetPlanDetails!.items.length - 1) return;
+
+        await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, budgetPlanDetails!.items[index + 1].id!)
     }
 
     const getIcon = (iconName: string, className: string) => {

@@ -24,7 +24,7 @@ export function WeeklyBudgetCompletionCard() {
     const {recentEvents, isLoadingRecentEvents} = useCalendar(weekFirstDay, weekEndDay(weekFirstDay))
 
     const lastEventsBudgetItemIds = recentEvents?.map(event => event.budgetItemId)
-    weeklyStatsSummary?.perPlanItem.sort((a, b) => {
+    const sortedPlanItems = [...(weeklyStatsSummary?.perPlanItem || [])].sort((a, b) => {
         if (currentEvent && a.planItem.budgetItemId === currentEvent.planItem.budgetItemId) return -1;
         else if (currentEvent && b.planItem.budgetItemId === currentEvent.planItem.budgetItemId) return 1;
         if (!lastEventsBudgetItemIds) return 0;
@@ -49,10 +49,10 @@ export function WeeklyBudgetCompletionCard() {
         return `hsl(${hue}, 100%, 50%)`;
     }
 
-    const completions = weeklyStatsSummary?.perPlanItem.slice(0, 5).map(budgetStats => completionPercent(budgetStats)) ?? []
+    const completions = sortedPlanItems.slice(0, 5).map(budgetStats => completionPercent(budgetStats))
     const maxCompletion = Math.max(...completions, 1)
 
-    const chartData = weeklyStatsSummary?.perPlanItem.slice(0, 5).map((budgetStats, index) => {
+    const chartData = sortedPlanItems.slice(0, 5).map((budgetStats, index) => {
         const completion = completions[index]
         const relativeSize = completion / maxCompletion
         return {

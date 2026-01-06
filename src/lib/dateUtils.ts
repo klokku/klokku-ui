@@ -21,7 +21,9 @@ export function weekStartDay(date: Date, firstDayOfAWeek: "monday" | "sunday"): 
 }
 
 export function weekEndDay(weekStartDay: Date): Date {
-    return new Date(weekStartDay.getTime() -1 + 7 * 24 * 60 * 60 * 1000)
+    const endDay = new Date(weekStartDay.getTime() + 6 * 24 * 60 * 60 * 1000)
+    endDay.setHours(23, 59, 59, 999);
+    return endDay;
 }
 
 export function nextWeekStart(weekStartDay: Date): Date {

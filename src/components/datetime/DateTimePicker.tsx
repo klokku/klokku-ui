@@ -54,8 +54,9 @@ export function DateTimePicker({value, onChange}: Props) {
                 </Popover>
             </div>
             <div className="flex flex-col gap-3">
-                <TimePicker hours={date?.getHours()} minutes={date?.getMinutes()}
+                <TimePicker hours={date?.getHours() ?? 0} minutes={date?.getMinutes() ?? 0}
                             onChange={(hours, minutes) => {
+                                if (!date) return;
                                 const newDate = new Date(date)
                                 newDate.setHours(hours)
                                 newDate.setMinutes(minutes)
