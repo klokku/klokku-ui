@@ -15,6 +15,7 @@ interface AddBudgetDialogProps {
 
 export function AddBudgetPlanItemDialog({budgetPlanItem, open, onOpenChange, onSave, onDelete, totalBudgetsTime}: AddBudgetDialogProps) {
 
+    console.log("totalBudgetsTime", totalBudgetsTime)
     const remainingWeeklyTime = 168 * 60 * 60 - totalBudgetsTime
 
     function onSaveButton(budget: BudgetPlanItem) {

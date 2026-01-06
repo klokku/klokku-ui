@@ -23,7 +23,7 @@ export interface WeeklyPlanItem {
     id?: number;
     budgetItemId: number;
     name: string;
-    weeklyDuration: number;
+    weeklyDuration: number; // Planned duration for the whole week in seconds
     weeklyOccurrences: number;
     icon: string;
     color: string;
@@ -31,10 +31,26 @@ export interface WeeklyPlanItem {
     position: number;
 }
 
+export interface PlanItem {
+    budgetPlanId: number;
+    budgetItemId: number;
+    weeklyItemId: number;
+    name: string;
+    icon: string;
+    color: string;
+    position: number;
+    weeklyItemDuration: number;
+    budgetItemDuration: number;
+    weeklyOccurrences: number;
+    notes: string;
+}
+
 export interface PlanItemStats {
-    weeklyPlanItem: WeeklyPlanItem;
-    duration: number;
-    remaining: number;
+    planItem: PlanItem;
+    duration: number; // Actual duration of this item in the given time period (week) in seconds
+    remaining: number; // Remaining duration of this item in the given time period (week) in seconds
+    startDate: string; // Using string for the ISO date representation
+    endDate: string; // Using string for the ISO date representation
 }
 
 export interface DailyStats {
@@ -51,6 +67,12 @@ export interface StatsSummary {
     totalPlanned: number;
     totalTime: number;
     totalRemaining: number;
+}
+
+export interface PlanItemHistoryStats {
+    startDate: string;
+    endDate: string;
+    statsPerWeek: PlanItemStats[];
 }
 
 export interface CurrentEvent {
@@ -114,7 +136,7 @@ export interface ClickUpTag {
 }
 
 export interface ClickUpTagMapping {
-    clickUpSpaceId: number;
+    clickUpSpaceId: string;
     clickUpTagName: string;
     budgetItemId: number;
     position: number;
@@ -127,9 +149,9 @@ export interface ClickUpTask {
 }
 
 export interface ClickUpConfig {
-    workspaceId: number;
-    spaceId: number;
-    folderId?: number;
+    workspaceId: string;
+    spaceId: string;
+    folderId?: string;
     mappings: ClickUpTagMapping[];
 }
 

@@ -2,7 +2,7 @@ import {Route, Routes} from "react-router";
 import {paths} from "@/pages/links.ts";
 import ErrorPage from "@/pages/ErrorPage.tsx";
 import ErrorPage404 from "@/pages/ErrorPage404.tsx";
-import {StatisticsPage} from "@/pages/statistics/StatisticsPage.tsx";
+import {HistoryPage} from "@/pages/history/HistoryPage.tsx";
 import {BudgetPlansPage} from "@/pages/budgetPlan/BudgetPlansPage.tsx";
 import {CalendarPage} from "@/pages/calendar/CalendarPage.tsx";
 import {DashboardPage} from "@/pages/dashboard/DashboardPage.tsx";
@@ -23,7 +23,7 @@ const AppRoutes = () => (
         <Route path={paths.root.path} element={<LoggedInUserRoot/>} errorElement={<ErrorPage/>}>
             <Route element={<MainLayout/>}>
                 <Route index element={<DashboardPage/>}/>
-                <Route path={paths.statistics.path} element={<StatisticsPage/>}/>
+                <Route path={paths.history.path} element={<HistoryPage/>}/>
                 <Route path={paths.budgets.path} element={<BudgetPlansPage/>}/>
                 <Route path={paths.calendar.path} element={<CalendarPage/>}/>
                 <Route path={paths.weeklyPlanning.path} element={<WeeklyPlanningPage/>}/>

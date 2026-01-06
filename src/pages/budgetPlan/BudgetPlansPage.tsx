@@ -16,20 +16,20 @@ import useBudgetPlan from "@/api/useBudgetPlan.ts";
 import {BudgetPlanChooser} from "@/pages/budgetPlan/BudgetPlanChooser.tsx";
 import {Spinner} from "@/components/ui/spinner.tsx";
 import {NoBudgetPlan} from "@/pages/budgetPlan/NoBudgetPlan.tsx";
+import {BudgetPlanEdit} from "@/components/budgetPlan/BudgetPlanEdit.tsx";
 
 export function BudgetPlansPage() {
 
-    const {budgetPlans, isLoadingPlans} = useBudgetPlan();
-    const [selectedPlanId, setSelectedPlanId] = useState<number | undefined>(budgetPlans.find(p => p.isCurrent)?.id);
+    const {budgetPlans, isLoadingPlans, createBudgetPlan} = useBudgetPlan();
+    const [selectedPlanId, setSelectedPlanId] = useState<number | undefined>();
 
-    const effectivePlanId = selectedPlanId ?? budgetPlans.find(p => p.isCurrent)?.id ?? budgetPlans[0]?.id;
-
-    const {budgetPlanDetails, isLoadingBudgetPlanDetails} = useBudgetPlan(effectivePlanId)
+    const {budgetPlanDetails, isLoadingBudgetPlanDetails} = useBudgetPlan(selectedPlanId)
     const {addBudgetPlanItem, updateBudgetPlanItem, deleteBudgetPlanItem, changeBudgetPlanItemPosition} = useBudgetPlanItem()
 
     const [editedItem, setEditedItem] = useState<BudgetPlanItem | null>(null)
     const [itemDialogOpen, setItemDialogOpen] = useState<boolean>(false)
     const [wizardOpen, setWizardOpen] = useState<boolean>(false)
+    const [createPlanDialogOpen, setCreatePlanDialogOpen] = useState<boolean>(false)
 
     if (isLoadingPlans || isLoadingBudgetPlanDetails) {
         return (
@@ -38,9 +38,16 @@ export function BudgetPlansPage() {
             </div>
         )
     }
+    // TODO test on always empty that everything is working as expected - not only this page, but EVERYTHING
 
-    const totalItemsTime = budgetPlanDetails?.items?.reduce((acc, budget) => acc + budget.weeklyDuration, 0)
+    const totalItemsTime = budgetPlanDetails?.items?.reduce((acc, budget) => acc + budget.weeklyDuration, 0) || 0
 
+    const createNewBudgetPlan = async (planName: string) => {
+        if (planName.trim()) {
+            await createBudgetPlan({name: planName});
+            setCreatePlanDialogOpen(false)
+        }
+    };
 
     function editItem(budget: BudgetPlanItem) {
         setEditedItem(budget)
@@ -53,17 +60,17 @@ export function BudgetPlansPage() {
     }
 
     async function onItemSave(item: BudgetPlanItem) {
-        if (effectivePlanId && item.id) {
-            await updateBudgetPlanItem(effectivePlanId, item)
-        } else if (effectivePlanId) {
-            await addBudgetPlanItem(effectivePlanId, item)
+        if (selectedPlanId && item.id) {
+            await updateBudgetPlanItem(selectedPlanId, item)
+        } else if (selectedPlanId) {
+            await addBudgetPlanItem(selectedPlanId, item)
         }
         setItemDialogOpen(false)
         setEditedItem(null)
     }
 
     async function onItemDelete(item: BudgetPlanItem) {
-        await deleteBudgetPlanItem(effectivePlanId!, item.id!)
+        await deleteBudgetPlanItem(selectedPlanId!, item.id!)
         setItemDialogOpen(false)
         setEditedItem(null)
     }
@@ -83,14 +90,14 @@ export function BudgetPlansPage() {
     async function moveUp(item: BudgetPlanItem) {
         const index = budgetPlanDetails?.items.findIndex((b) => b.id === item.id)
         if (index! < 2) {
-            await changeBudgetPlanItemPosition(effectivePlanId!, item.id!, 0)
+            await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, 0)
         }
-        await changeBudgetPlanItemPosition(effectivePlanId!, item.id!, budgetPlanDetails!.items[index! - 2].id!)
+        await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, budgetPlanDetails!.items[index! - 2].id!)
     }
 
     async function moveDown(item: BudgetPlanItem) {
         const index = budgetPlanDetails?.items.findIndex((b) => b.id === item.id)
-        await changeBudgetPlanItemPosition(effectivePlanId!, item.id!, budgetPlanDetails!.items[index! + 1].id!)
+        await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, budgetPlanDetails!.items[index! + 1].id!)
     }
 
     const getIcon = (iconName: string, className: string) => {
@@ -102,22 +109,22 @@ export function BudgetPlansPage() {
     return (
         <div className="grow flex flex-col gap-2">
 
-            {!budgetPlanDetails && (
+            {budgetPlans.length === 0 && (
                 <NoBudgetPlan
                     onOpenWizard={() => {
                         setWizardOpen(true)
                     }}
-                    onCreateEmptyBudgetPlan={addNewBudget}
+                    onCreateEmptyBudgetPlan={() => setCreatePlanDialogOpen(true)}
                 />
             )}
 
-            {budgetPlanDetails && (
+            {budgetPlans.length > 0 && (
                 <BudgetPlanChooser
                     budgetPlans={budgetPlans}
-                    selectedPlanId={effectivePlanId}
+                    selectedPlanId={selectedPlanId}
                     setSelectedPlanId={setSelectedPlanId}
-                />)
-            }
+                />
+            )}
 
             {budgetPlanDetails && (totalItemsTime !== 7 * 24 * 60 * 60) && (
                 <Alert className="mb-4 border-amber-300 bg-amber-50">
@@ -212,14 +219,18 @@ export function BudgetPlansPage() {
                             </TableBody>
                         </Table>
                     </div>
-                    <AddBudgetPlanItemDialog
-                        key={editedItem?.id ?? `new-budget-item-dialog`}
-                        budgetPlanItem={editedItem} open={itemDialogOpen} onOpenChange={setItemDialogOpen} onSave={onItemSave} onDelete={onItemDelete}
-                        totalBudgetsTime={totalItemsTime!}/>
                 </>
             )}
 
+            <AddBudgetPlanItemDialog
+                budgetPlanItem={editedItem}
+                open={itemDialogOpen} onOpenChange={setItemDialogOpen}
+                onSave={onItemSave} onDelete={onItemDelete}
+                totalBudgetsTime={totalItemsTime!}
+            />
             <BudgetPlanWizardDialog open={wizardOpen} onOpenChange={setWizardOpen} budgetPlanId={budgetPlanDetails?.id}/>
+            <BudgetPlanEdit open={createPlanDialogOpen} onSave={createNewBudgetPlan} onOpenChange={setCreatePlanDialogOpen} action={"create"}
+            />
         </div>
     )
 }

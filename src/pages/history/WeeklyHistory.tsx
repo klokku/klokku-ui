@@ -3,19 +3,19 @@ import {differenceInSeconds} from "date-fns";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {ReplaceIcon, TimerIcon, TriangleAlertIcon} from "lucide-react";
 import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
-import {ProgressCell} from "@/components/statistics/ProgressCell.tsx";
-import {Event, StatsSummary} from "@/api/types.ts";
+import {CurrentEvent, StatsSummary} from "@/api/types.ts";
 import {Spinner} from "@/components/ui/spinner.tsx";
+import {ProgressCell} from "@/pages/history/ProgressCell.tsx";
 
 interface WeeklyStatisticsProps {
     weekData?: StatsSummary
-    currentEvent?: Event
+    currentEvent?: CurrentEvent
 }
 
-export function WeeklyStatistics({weekData, currentEvent}: WeeklyStatisticsProps) {
+export function WeeklyHistory({weekData, currentEvent}: WeeklyStatisticsProps) {
 
-    const isCurrent = (budgetId: number) => {
-        return currentEvent?.budget.id == budgetId;
+    const isCurrent = (budgetItemId: number) => {
+        return currentEvent?.planItem.budgetItemId == budgetItemId;
     }
 
     const currentEventDuration = () => {
@@ -46,11 +46,11 @@ export function WeeklyStatistics({weekData, currentEvent}: WeeklyStatisticsProps
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {weekData!.budgets.map((stat) => (
-                        <TableRow className="h-full p-0" key={stat.budget.id}>
+                    {weekData!.perPlanItem.map((stat) => (
+                        <TableRow className="h-full p-0" key={stat.planItem.budgetItemId}>
                             <TableCell className="font-medium bg-gray-50 flex items-center space-x-2">
-                                <span>{stat.budget.name}</span>
-                                {stat.budget.id && isCurrent(stat.budget.id) && (
+                                <span>{stat.planItem.name}</span>
+                                {stat.planItem.budgetItemId && isCurrent(stat.planItem.budgetItemId) && (
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
@@ -66,16 +66,16 @@ export function WeeklyStatistics({weekData, currentEvent}: WeeklyStatisticsProps
                             <TableCell>
                                 <div className="flex items-center space-x-2">
                                     <div>
-                                        {formatSecondsToDuration(stat.budgetOverride ? stat.budgetOverride.weeklyTime : stat.budget.weeklyTime)}
+                                        {formatSecondsToDuration(stat.planItem.weeklyItemDuration)}
                                     </div>
-                                    {stat.budgetOverride && (
+                                    {stat.planItem.weeklyItemDuration !== stat.planItem.budgetItemDuration && (
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <ReplaceIcon className="size-4"/>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    Original time: {formatSecondsToDuration(stat.budget.weeklyTime)}
+                                                    Original time: {formatSecondsToDuration(stat.planItem.budgetItemDuration)}
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -84,7 +84,7 @@ export function WeeklyStatistics({weekData, currentEvent}: WeeklyStatisticsProps
                             </TableCell>
                             <TableCell className="h-full p-0 bg-gray-50">
                                 <ProgressCell duration={stat.duration}
-                                              maxDuration={stat.budgetOverride ? stat.budgetOverride.weeklyTime : stat.budget.weeklyTime}/>
+                                              maxDuration={stat.planItem.weeklyItemDuration}/>
                             </TableCell>
                             <TableCell>{formatSecondsToDuration(stat.remaining)}</TableCell>
                         </TableRow>

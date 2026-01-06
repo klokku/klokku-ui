@@ -17,8 +17,8 @@ const pagesItems = [
         icon: LayoutDashboardIcon
     },
     {
-        title: paths.statistics.title,
-        url: paths.statistics.path,
+        title: paths.history.title,
+        url: paths.history.path,
         icon: ChartPieIcon
     },
     {

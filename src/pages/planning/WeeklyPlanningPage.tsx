@@ -136,7 +136,13 @@ export default function WeeklyPlanningPage() {
                     <TableHeader>
                         <TableRow className="bg-gray-50">
                             <TableHead className="font-medium w-[40%]"></TableHead>
-                            <TableHead className="font-medium w-[30%]">Planned</TableHead>
+                            <TableHead className="font-medium w-[30%]">
+                                <div className="flex items-center gap-1.5">
+                                    {/* Empty space to match note icon width */}
+                                    <div className="w-4 flex-shrink-0"></div>
+                                    <span>Planned</span>
+                                </div>
+                            </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -204,7 +210,9 @@ export default function WeeklyPlanningPage() {
                         <TableRow className="bg-gray-50 font-medium">
                             <TableCell className="font-bold">TOTAL</TableCell>
                             <TableCell>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5">
+                                    {/* Empty space to match note icon width */}
+                                    <div className="w-4 flex-shrink-0"></div>
                                     <span className="font-bold">{formatSecondsToDuration(totalPlannedTime)}</span>
                                     {totalPlannedTime === 7 * 24 * 60 * 60 &&
                                         <CheckCircleIcon className="size-4 text-green-500"/>
@@ -239,7 +247,6 @@ export default function WeeklyPlanningPage() {
                     <WeeklyPlanItemDetailsDialog
                         open={weeklyItemDetailsDialogOpen}
                         onOpenChange={setWeeklyItemDetailsDialogOpen}
-                        budgetPlanId={weeklyPlan?.budgetPlanId}
                         budgetPlanItemId={selectedItemBudgetItem.id!}
                         inWeekDate={weekFirstDay}
                     />

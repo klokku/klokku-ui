@@ -1,12 +1,9 @@
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
-import {Badge} from "@/components/ui/badge.tsx";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger} from "@/components/ui/dropdown-menu.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {CheckIcon, PencilIcon, PlusIcon, Settings2Icon, Trash2Icon} from "lucide-react";
 import {BudgetPlan} from "@/api/types.ts";
 import {useState} from "react";
 import useBudgetPlan from "@/api/useBudgetPlan.ts";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog.tsx";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -17,8 +14,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog.tsx";
-import {Label} from "@/components/ui/label.tsx";
-import {Input} from "@/components/ui/input.tsx";
+import {BudgetPlanSelect} from "@/components/budgetPlan/BudgetPlanSelect.tsx";
+import {BudgetPlanEdit} from "@/components/budgetPlan/BudgetPlanEdit.tsx";
 
 interface BudgetPlanChooserProps {
     budgetPlans: BudgetPlan[]
@@ -31,17 +28,14 @@ export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanI
     const {updateBudgetPlan, createBudgetPlan, deleteBudgetPlan} = useBudgetPlan();
 
     const currentPlanId = budgetPlans.find(p => p.isCurrent)?.id;
-    const activePlan = budgetPlans.find(p => p.id === selectedPlanId);
+    const selectedPlan = budgetPlans.find(p => p.id === selectedPlanId);
 
-    const [isRenaming, setIsRenaming] = useState(false);
-    const [isCreating, setIsCreating] = useState(false);
+    const [planAction, setPlanAction] = useState<"rename" | "create" | undefined>(undefined);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [planName, setPlanName] = useState("");
 
-    const handleRename = async () => {
-        if (activePlan && selectedPlanId) {
-            await updateBudgetPlan(selectedPlanId, {name: planName, isCurrent: activePlan.isCurrent});
-            setIsRenaming(false);
+    const handleRename = async (newName: string) => {
+        if (selectedPlan && selectedPlanId) {
+            await updateBudgetPlan(selectedPlanId, {name: newName, isCurrent: selectedPlan.isCurrent});
         }
     };
 
@@ -53,12 +47,10 @@ export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanI
         }
     };
 
-    const handleCreate = async () => {
+    const handleCreate = async (planName: string) => {
         if (planName.trim()) {
-            const newPlan = await createBudgetPlan({ name: planName });
+            const newPlan = await createBudgetPlan({name: planName});
             setSelectedPlanId(newPlan.id);
-            setIsCreating(false);
-            setPlanName("");
         }
     };
 
@@ -66,24 +58,7 @@ export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanI
         <div>
             <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2">
-                    <Select
-                        value={selectedPlanId?.toString()}
-                        onValueChange={planId => setSelectedPlanId(Number(planId))}
-                    >
-                        <SelectTrigger className="w-80">
-                            <SelectValue placeholder="Budget Plan"/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {budgetPlans.map((plan) => (
-                                <SelectItem key={`plan-${plan.id}`} value={plan.id!.toString()}>
-                                    <div className="flex items-center gap-2">
-                                        {plan.name}
-                                        {plan.isCurrent && <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">Current</Badge>}
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <BudgetPlanSelect selectedId={selectedPlanId} onPlanSelected={setSelectedPlanId}/>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -93,37 +68,35 @@ export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanI
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-48">
                             <DropdownMenuItem onClick={() => {
-                                setPlanName(activePlan?.name || "");
-                                setIsRenaming(true);
+                                setPlanAction("rename");
                             }}>
                                 <PencilIcon className="mr-2 size-4"/>
                                 Rename Plan
                             </DropdownMenuItem>
                             {selectedPlanId !== currentPlanId && (
                                 <DropdownMenuItem onClick={async () => {
-                                    await updateBudgetPlan(selectedPlanId!, {name: activePlan!.name, isCurrent: true});
+                                    await updateBudgetPlan(selectedPlanId!, {name: selectedPlan!.name, isCurrent: true});
                                 }}>
                                     <CheckIcon className="mr-2 size-4"/>
                                     Set as Current
                                 </DropdownMenuItem>
                             )}
-                            <DropdownMenuSeparator />
+                            <DropdownMenuSeparator/>
                             <DropdownMenuItem onClick={() => {
-                                setPlanName("");
-                                setIsCreating(true);
+                                setPlanAction("create");
                             }}>
-                                <PlusIcon className="mr-2 size-4" />
+                                <PlusIcon className="mr-2 size-4"/>
                                 Create New Plan
                             </DropdownMenuItem>
 
                             {selectedPlanId !== currentPlanId && (
                                 <>
-                                    <DropdownMenuSeparator />
+                                    <DropdownMenuSeparator/>
                                     <DropdownMenuItem
                                         className="text-red-600 focus:text-red-600 focus:bg-red-50"
                                         onClick={() => setIsDeleting(true)}
                                     >
-                                        <Trash2Icon className="mr-2 size-4" />
+                                        <Trash2Icon className="mr-2 size-4"/>
                                         Delete Plan
                                     </DropdownMenuItem>
                                 </>
@@ -133,46 +106,33 @@ export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanI
                 </div>
             </div>
 
-            <Dialog open={isRenaming || isCreating} onOpenChange={(open) => {
-                if (!open) {
-                    setIsRenaming(false);
-                    setIsCreating(false);
-                }
-            }}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>{isCreating ? "Create New Budget Plan" : "Rename Budget Plan"}</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right">Name</Label>
-                            <Input
-                                id="name"
-                                value={planName}
-                                onChange={(e) => setPlanName(e.target.value)}
-                                className="col-span-3"
-                                placeholder="e.g. Summer 2024"
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => {
-                            setIsRenaming(false);
-                            setIsCreating(false);
-                        }}>Cancel</Button>
-                        <Button onClick={isCreating ? handleCreate : handleRename}>
-                            {isCreating ? "Create Plan" : "Save changes"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {planAction && (
+                <BudgetPlanEdit
+                    planName={selectedPlan?.name || ""}
+                    open={planAction !== undefined}
+                    onSave={async (name) => {
+                        if (planAction === "create") {
+                            await handleCreate(name);
+                        } else if (planAction === "rename") {
+                            await handleRename(name);
+                        }
+                        setPlanAction(undefined);
+                    }}
+                    onOpenChange={(open) => {
+                        if (!open) {
+                            setPlanAction(undefined);
+                        }
+                    }}
+                    action={planAction}
+                />
+            )}
 
             <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete the budget plan <strong>{activePlan?.name}</strong> and all its items.
+                            This will permanently delete the budget plan <strong>{selectedPlan?.name}</strong> and all its items.
                             This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

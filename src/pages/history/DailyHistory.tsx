@@ -4,20 +4,20 @@ import {userSettings} from "@/components/settings.ts";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {TimerIcon} from "lucide-react";
 import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
-import {ProgressCell} from "@/components/statistics/ProgressCell.tsx";
 import {StatsSummary} from "@/api/types.ts";
 import {Spinner} from "@/components/ui/spinner.tsx";
-import {Event} from "@/api/types.ts";
+import {CurrentEvent} from "@/api/types.ts";
+import {ProgressCell} from "@/pages/history/ProgressCell.tsx";
 
 interface DailyStatisticsProps {
     weekData?: StatsSummary
-    currentEvent?: Event
+    currentEvent?: CurrentEvent
 }
 
-export function DailyStatistics({weekData, currentEvent}: DailyStatisticsProps) {
+export function DailyHistory({weekData, currentEvent}: DailyStatisticsProps) {
 
-    const isCurrent = (budgetId: number) => {
-        return currentEvent?.budget.id == budgetId;
+    const isCurrent = (budgetItemId: number) => {
+        return currentEvent?.planItem.budgetItemId == budgetItemId;
     }
 
     const currentEventDuration = () => {
@@ -42,7 +42,7 @@ export function DailyStatistics({weekData, currentEvent}: DailyStatisticsProps) 
                 <TableHeader>
                     <TableRow className="bg-gray-50">
                         <TableHead className="w-[150px]"></TableHead>
-                        {weekData!.days.map((day) => (
+                        {weekData!.perDay.map((day) => (
                             <TableHead
                                 key={day.date}
                                 className={isToday(new Date(day.date)) ? "bg-blue-100" : ""}>
@@ -53,11 +53,11 @@ export function DailyStatistics({weekData, currentEvent}: DailyStatisticsProps) 
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {weekData!.budgets.map((stat) => (
-                        <TableRow className="h-full p-0" key={stat.budget.id}>
+                    {weekData!.perPlanItem.map((stat) => (
+                        <TableRow className="h-full p-0" key={stat.planItem.budgetItemId}>
                             <TableCell className="font-medium bg-gray-50 flex items-center space-x-2">
-                                <span>{stat.budget.name}</span>
-                                {stat.budget.id && isCurrent(stat.budget.id) && (
+                                <span>{stat.planItem.name}</span>
+                                {stat.planItem.budgetItemId && isCurrent(stat.planItem.budgetItemId) && (
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
@@ -70,17 +70,17 @@ export function DailyStatistics({weekData, currentEvent}: DailyStatisticsProps) 
                                     </TooltipProvider>
                                 )}
                             </TableCell>
-                            {weekData!.days.map((day) => (
+                            {weekData!.perDay.map((day) => (
                                 <TableCell
                                     key={day.date}
                                     className={isToday(new Date(day.date)) ? "bg-blue-50" : ""}
                                 >
-                                    {formatSecondsToDuration(day.budgets.find(it => it.budget.id == stat.budget.id)?.duration ?? 0)}
+                                    {formatSecondsToDuration(day.perPlanItem.find(it => it.planItem.budgetItemId == stat.planItem.budgetItemId)?.duration ?? 0)}
                                 </TableCell>
                             ))}
                             <TableCell className="font-medium bg-gray-50 p-0">
                                 <ProgressCell duration={stat.duration}
-                                              maxDuration={stat.budgetOverride?.weeklyTime || stat.budget.weeklyTime}/>
+                                              maxDuration={stat.planItem.weeklyItemDuration}/>
                             </TableCell>
                         </TableRow>
                     ))}

@@ -7,17 +7,15 @@ type Props = {
 }
 
 export function TimePicker({ hours, minutes, onChange }: Props) {
-
     return (
         <Input
             type="time"
             id="time-picker"
             step="60"
-            defaultValue={hours ? `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}` : ''}
+            defaultValue={`${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`}
             className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
             onChange={(e) => {
-                const hours = parseInt(e.target.value.split(":")[0])
-                const minutes = parseInt(e.target.value.split(":")[1])
+                const [hours, minutes] = e.target.value.split(":").map(Number)
                 onChange(hours, minutes)
             }}
         />

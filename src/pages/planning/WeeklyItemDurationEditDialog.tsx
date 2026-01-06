@@ -27,7 +27,6 @@ export function WeeklyItemDurationEditDialog({open, onOpenChange, onSave, onDele
 
 
     function onSaveButton() {
-        console.log("Saving item", weeklyPlanItem.id, overrideDuration, overrideNotes);
         const hasOverrideChanged = overrideDuration !== weeklyPlanItem.weeklyDuration || overrideNotes !== weeklyPlanItem.notes;
         if (hasOverrideChanged) {
             const changedWeeklyItem: WeeklyPlanItem = {

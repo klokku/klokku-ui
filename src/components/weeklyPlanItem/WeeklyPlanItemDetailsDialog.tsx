@@ -7,7 +7,6 @@ import {Button} from "@/components/ui/button.tsx";
 import useProfile from "@/api/useProfile.ts";
 import {Spinner} from "@/components/ui/spinner.tsx";
 import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
-import useBudgetPlan from "@/api/useBudgetPlan.ts";
 import {useState} from "react";
 import useWeeklyStats, {useItemHistoryStats} from "@/api/useStats.ts";
 import {Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
@@ -16,13 +15,12 @@ import {ChevronLeft, ChevronRight} from "lucide-react";
 
 type Props = {
     budgetPlanItemId: number
-    budgetPlanId: number
     inWeekDate: Date
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
-export default function WeeklyPlanItemDetailsDialog({budgetPlanItemId, budgetPlanId, inWeekDate, open, onOpenChange}: Props) {
+export default function WeeklyPlanItemDetailsDialog({budgetPlanItemId, inWeekDate, open, onOpenChange}: Props) {
 
     const [currentWeekDate, setCurrentWeekDate] = useState<Date>(inWeekDate)
 
@@ -31,13 +29,11 @@ export default function WeeklyPlanItemDetailsDialog({budgetPlanItemId, budgetPla
     const statsStartDate = new Date(weekStartDay(inWeekDate, currentProfile?.settings?.weekStartDay || "monday"))
     statsStartDate.setDate(statsStartDate.getDate() - (7 * 5))
 
-    const {weeklyPlan, isLoading: isLoadingWeeklyPlan} = useWeeklyPlan(currentWeekDate)
     const {weeklyPlan: previousWeek, isLoading: previousWeekIsLoading} = useWeeklyPlan(previousWeekStart(currentWeekDate))
-    const {budgetPlanDetails, isLoadingBudgetPlanDetails} = useBudgetPlan(budgetPlanId)
     const {weeklyStatsSummary, isLoading: isLoadingStats} = useWeeklyStats(currentWeekDate)
     const {itemHistoryStats, isLoading} = useItemHistoryStats(statsStartDate, weekEndDay(currentWeekDate), budgetPlanItemId)
 
-    if (isLoadingCurrent || isLoadingWeeklyPlan || isLoadingBudgetPlanDetails || isLoadingStats) {
+    if (isLoadingCurrent || isLoadingStats) {
         return (
             <Dialog open={open} onOpenChange={onOpenChange}>
                 <div className="flex items-center justify-center h-screen">
@@ -47,10 +43,13 @@ export default function WeeklyPlanItemDetailsDialog({budgetPlanItemId, budgetPla
         )
     }
 
-    const weeklyPlanItem = weeklyPlan?.items?.find(item => item.budgetItemId === budgetPlanItemId)
-    const budgetPlanItem = budgetPlanDetails?.items?.find(item => item.id === budgetPlanItemId)
+    const weekStart = weekStartDay(currentWeekDate, currentProfile!.settings.weekStartDay)
+    const weekEnd = weekEndDay(weekStart)
 
-    if (!weeklyPlanItem || !budgetPlanItem) {
+    const statsItem = weeklyStatsSummary?.perPlanItem.find(it => it.planItem.budgetItemId === budgetPlanItemId)
+    const planItem = statsItem?.planItem
+
+    if (!planItem) {
         return (
             <Dialog open={open} onOpenChange={onOpenChange}>
                 <div className="flex items-center justify-center h-screen">
@@ -60,25 +59,20 @@ export default function WeeklyPlanItemDetailsDialog({budgetPlanItemId, budgetPla
         )
     }
 
-    const weekStart = weekStartDay(currentWeekDate, currentProfile!.settings.weekStartDay)
-    const weekEnd = weekEndDay(weekStart)
-
-    const statsItem = weeklyStatsSummary?.perPlanItem.find(it => it.weeklyPlanItem.budgetItemId === budgetPlanItemId)
-
     // Prepare chart data for the last 5 weeks
     const chartData = itemHistoryStats?.statsPerWeek.slice(-5).map(stat => {
         const statWeekStart = new Date(stat.startDate)
         const statWeekEnd = new Date(stat.endDate)
         return {
             week: `${statWeekStart.toLocaleDateString(userSettings.locale, {month: 'short', day: 'numeric'})} - ${statWeekEnd.toLocaleDateString(userSettings.locale, {month: 'short', day: 'numeric'})}`,
-            planned: stat.weeklyPlanItem.weeklyDuration / 3600,
+            planned: stat.planItem.weeklyItemDuration / 3600,
             actual: stat.duration / 3600,
         }
     }) || []
 
     // Calculate progress for current week
     const usedDuration = statsItem?.duration || 0
-    const plannedDuration = weeklyPlanItem.weeklyDuration
+    const plannedDuration = planItem.weeklyItemDuration
     const remainingDuration = statsItem?.remaining || plannedDuration
     const usedPercentage = plannedDuration > 0 ? (usedDuration / plannedDuration) * 100 : 0
 
@@ -109,8 +103,8 @@ export default function WeeklyPlanItemDetailsDialog({budgetPlanItemId, budgetPla
         const statWeekEnd = new Date(stat.endDate)
 
         // Find the corresponding budget plan item for this week (original duration)
-        const originalDuration = stat.weeklyPlanItem.weeklyDuration
-        const actualPlanned = stat.weeklyPlanItem.weeklyDuration
+        const originalDuration = stat.planItem.budgetItemDuration
+        const actualPlanned = stat.planItem.weeklyItemDuration
 
         return {
             weekRange: `${statWeekStart.toLocaleDateString(userSettings.locale)} - ${statWeekEnd.toLocaleDateString(userSettings.locale)}`,
@@ -125,15 +119,15 @@ export default function WeeklyPlanItemDetailsDialog({budgetPlanItemId, budgetPla
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-3">
                         <span>
-                            {weeklyPlanItem.name}
+                            {planItem.name}
                         </span>
-                        {weeklyPlanItem.weeklyDuration !== budgetPlanItem.weeklyDuration && (
+                        {planItem.weeklyItemDuration !== planItem.budgetItemDuration && (
                             <Badge variant="outline" className="opacity-50 line-through">
-                                {formatSecondsToDuration(budgetPlanItem.weeklyDuration)}
+                                {formatSecondsToDuration(planItem.budgetItemDuration)}
                             </Badge>
                         )}
                         <Badge variant="outline" className="opacity-80">
-                            {formatSecondsToDuration(weeklyPlanItem.weeklyDuration)}
+                            {formatSecondsToDuration(planItem.weeklyItemDuration)}
                         </Badge>
                     </DialogTitle>
                 </DialogHeader>
@@ -257,7 +251,7 @@ export default function WeeklyPlanItemDetailsDialog({budgetPlanItemId, budgetPla
                             <CardTitle className="text-base">ClickUp Tasks</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <ClickupTasksList budgetItemId={weeklyPlanItem.budgetItemId}/>
+                            <ClickupTasksList budgetItemId={planItem.budgetItemId}/>
                         </CardContent>
                     </Card>
                 </div>

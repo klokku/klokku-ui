@@ -1,6 +1,7 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {WeeklyPlan, WeeklyPlanItem} from "@/api/types.ts";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
+import {toServerFormat} from "@/lib/dateUtils.ts";
 
 type HookType = (inWeekDate: Date) => {
     weeklyPlan?: WeeklyPlan;
@@ -16,21 +17,21 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
 
     // Normalize the date to a string (e.g., "2023-10-27") to ensure
     // the cache key is stable for the same calendar day.
-    const dateKey = inWeekDate.toISOString().split('T')[0];
+    const dateKey = toServerFormat(inWeekDate).split('T')[0];
 
     const {data, isLoading} = useQuery({
         queryKey: ["weeklyPlan", dateKey],
         queryFn: async () => {
-            const response = await fetchWithAuth(`/api/weeklyplan?date=${inWeekDate.toISOString()}`);
+            const response = await fetchWithAuth(`/api/weeklyplan?date=${encodeURIComponent(toServerFormat(inWeekDate))}`);
             return (await response.json()) as WeeklyPlan
         },
     });
 
     const resetPlan = useMutation({
         mutationFn: async (inWeekDate: Date) => {
-            const response = await fetchWithAuth(`/api/weeklyplan?date=${inWeekDate.toISOString()}`, {
+            const response = await fetchWithAuth(`/api/weeklyplan?date=${encodeURIComponent(toServerFormat(inWeekDate))}`, {
                 method: "DELETE",
-                body: JSON.stringify({date: inWeekDate.toISOString()}),
+                body: JSON.stringify({date: toServerFormat(inWeekDate)}),
             });
 
             if (!response.ok) {
@@ -49,7 +50,7 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
 
     const updatePlanItem = useMutation({
         mutationFn: async (itemUpdate: {inWeekDate: Date, budgetItemId: number, weeklyDuration: number, notes: string}) => {
-            const response = await fetchWithAuth(`/api/weeklyplan/item?date=${itemUpdate.inWeekDate.toISOString()}`, {
+            const response = await fetchWithAuth(`/api/weeklyplan/item?date=${encodeURIComponent(toServerFormat(itemUpdate.inWeekDate))}`, {
                 method: "PUT",
                 body: JSON.stringify(itemUpdate),
             });
@@ -72,7 +73,7 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
         mutationFn: async (weeklyPlanItemId: number) => {
             const response = await fetchWithAuth(`/api/weeklyplan/item/${weeklyPlanItemId}`, {
                 method: "DELETE",
-                body: JSON.stringify({date: inWeekDate.toISOString()}),
+                body: JSON.stringify({date: toServerFormat(inWeekDate)}),
             });
 
             if (!response.ok) {
