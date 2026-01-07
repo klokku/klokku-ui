@@ -31,7 +31,7 @@ export function WeeklyItemDurationEditDialog({open, onOpenChange, onSave, onDele
         if (hasOverrideChanged) {
             const changedWeeklyItem: WeeklyPlanItem = {
                 ...weeklyPlanItem,
-                weeklyDuration: overrideDuration || budgetPlanItem.weeklyDuration,
+                weeklyDuration: overrideDuration !== undefined ? overrideDuration : budgetPlanItem.weeklyDuration,
                 notes: overrideNotes,
             }
             onSave(changedWeeklyItem)
