@@ -1,27 +1,21 @@
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
-import {formatSecondsToDuration, getCurrentWeekFirstDay, weekEndDay} from "@/lib/dateUtils.ts";
-import useStats from "@/api/useStats.ts";
-import {BudgetStats} from "@/api/types.ts";
+import {formatSecondsToDuration, getCurrentWeekFirstDay} from "@/lib/dateUtils.ts";
 import {BudgetsStatsPieChart} from "@/components/dashboard/BudgetsStatsPieChart.tsx";
 import {defaultSettings} from "@/components/settings.ts";
 import useProfile from "@/api/useProfile.ts";
+import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
 
 export function PlannedBudgetsSplitCard() {
 
     const {currentProfile} = useProfile();
     const weekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
-    const {isLoading, statsSummary} = useStats(weekFirstDay, weekEndDay(weekFirstDay))
+    const {weeklyPlan, isLoading} = useWeeklyPlan(weekFirstDay)
 
-    function weeklyTime(budgetStats: BudgetStats): number {
-        return budgetStats.budgetOverride ? budgetStats.budgetOverride.weeklyTime : budgetStats.budget.weeklyTime
-    }
-
-    const chartData = statsSummary?.budgets.map((budgetStats, idx) => {
-        const weeklyTimeInSec = weeklyTime(budgetStats);
+    const chartData = weeklyPlan?.items?.map((item, idx) => {
         return {
-            budget: budgetStats.budget.name.replace("TTA", ""),
-            time: weeklyTimeInSec,
-            timeFormated: formatSecondsToDuration(weeklyTimeInSec),
+            budget: item.name,
+            time: item.weeklyDuration,
+            timeFormated: formatSecondsToDuration(item.weeklyDuration),
             fill: `var(--chart-${idx % 5 + 1})`,
         }
     })

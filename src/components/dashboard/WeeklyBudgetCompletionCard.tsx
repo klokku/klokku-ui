@@ -1,14 +1,15 @@
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {getCurrentWeekFirstDay, weekEndDay} from "@/lib/dateUtils.ts";
-import useStats from "@/api/useStats.ts";
+import useWeeklyStats from "@/api/useStats.ts";
 import {Bar, BarChart, LabelList, XAxis, YAxis} from "recharts"
 import {ChartConfig, ChartContainer} from "@/components/ui/chart"
-import {BudgetStats} from "@/api/types.ts";
-import useEvents from "@/api/useEvents.ts";
+import {PlanItemStats} from "@/api/types.ts";
+import useCurrentEvent from "@/api/useCurrentEvent.ts";
 import {NavLink} from "react-router";
 import {paths} from "@/pages/links.ts";
 import useProfile from "@/api/useProfile.ts";
 import {defaultSettings} from "@/components/settings.ts";
+import useCalendar from "@/api/useCalendar.ts";
 
 const chartConfig = {
 
@@ -18,23 +19,24 @@ export function WeeklyBudgetCompletionCard() {
 
     const {currentProfile} = useProfile();
     const weekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
-    const {isLoading, statsSummary} = useStats(weekFirstDay, weekEndDay(weekFirstDay))
-    const {loadingLastEvents, lastEvents, loadingCurrentEvent, currentEvent} = useEvents()
+    const {isLoading, weeklyStatsSummary} = useWeeklyStats(weekFirstDay)
+    const {loadingCurrentEvent, currentEvent} = useCurrentEvent()
+    const {recentEvents, isLoadingRecentEvents} = useCalendar(weekFirstDay, weekEndDay(weekFirstDay))
 
-    const lastEventsBudgetIds = lastEvents?.map(event => event.budget.id)
-    statsSummary?.budgets.sort((a, b) => {
-        if (currentEvent && a.budget.id === currentEvent.budget.id) return -1;
-        else if (currentEvent && b.budget.id === currentEvent.budget.id) return 1;
-        if (!lastEventsBudgetIds) return 0;
-        let indexOfA = lastEventsBudgetIds.indexOf(a.budget.id);
-        let indexOfB = lastEventsBudgetIds.indexOf(b.budget.id);
+    const lastEventsBudgetItemIds = recentEvents?.map(event => event.budgetItemId)
+    const sortedPlanItems = [...(weeklyStatsSummary?.perPlanItem || [])].sort((a, b) => {
+        if (currentEvent && a.planItem.budgetItemId === currentEvent.planItem.budgetItemId) return -1;
+        else if (currentEvent && b.planItem.budgetItemId === currentEvent.planItem.budgetItemId) return 1;
+        if (!lastEventsBudgetItemIds) return 0;
+        let indexOfA = lastEventsBudgetItemIds.indexOf(a.planItem.budgetItemId);
+        let indexOfB = lastEventsBudgetItemIds.indexOf(b.planItem.budgetItemId);
         indexOfA = indexOfA != -1 ? indexOfA : 10
         indexOfB = indexOfB != -1 ? indexOfB : 10
         return indexOfA - indexOfB
     })
 
-    function completionPercent(budgetStats: BudgetStats): number {
-        const weeklyTime = budgetStats.budgetOverride ? budgetStats.budgetOverride.weeklyTime : budgetStats.budget.weeklyTime
+    function completionPercent(budgetStats: PlanItemStats): number {
+        const weeklyTime = budgetStats.planItem.weeklyItemDuration
         return Math.round(budgetStats.duration / weeklyTime * 100)
     }
 
@@ -47,13 +49,18 @@ export function WeeklyBudgetCompletionCard() {
         return `hsl(${hue}, 100%, 50%)`;
     }
 
-    const chartData = statsSummary?.budgets.slice(0, 5).map((budgetStats) => {
-        const completion = completionPercent(budgetStats)
+    const completions = sortedPlanItems.slice(0, 5).map(budgetStats => completionPercent(budgetStats))
+    const maxCompletion = Math.max(...completions, 1)
+
+    const chartData = sortedPlanItems.slice(0, 5).map((budgetStats, index) => {
+        const completion = completions[index]
+        const relativeSize = completion / maxCompletion
         return {
-            budget: budgetStats.budget.name.replace("TTA", ""),
+            budget: budgetStats.planItem.name,
             completionCut: Math.min(completion, 100),
             completion: completion,
             fill: calculateColor(completion),
+            labelPosition: relativeSize < 0.15 ? 'right' : 'insideRight',
         }
 
     })
@@ -65,7 +72,7 @@ export function WeeklyBudgetCompletionCard() {
                 <CardDescription>Last 5 budget used</CardDescription>
             </CardHeader>
             <CardContent>
-                {(isLoading || loadingLastEvents || loadingCurrentEvent) && (
+                {(isLoading || isLoadingRecentEvents || loadingCurrentEvent) && (
                     <div className="flex justify-center items-center h-full">
                         Loading...
                     </div>
@@ -86,16 +93,36 @@ export function WeeklyBudgetCompletionCard() {
                             tickLine={false}
                             tickMargin={5}
                             axisLine={false}
-                            tickFormatter={(value) => value.slice(0, 10)}
+                            width={100}
                         />
                         <Bar dataKey="completion" layout="vertical" radius={5} unit="%" name="Completion (%)">
                         <LabelList
                             dataKey="completion"
-                            formatter={(value: string) => `${value}%`}
+                            formatter={(value: number) => `${value}%`}
                             position="insideRight"
                             offset={8}
                             className="fill-gray-700"
                             fontSize={12}
+                            content={(props: any) => {
+                                const { x, y, width, height, value, index } = props;
+                                const item = chartData?.[index];
+                                const position = item?.labelPosition || 'insideRight';
+                                const xPos = position === 'right' ? x + width + 8 : x + width - 8;
+                                const textAnchor = position === 'right' ? 'start' : 'end';
+
+                                return (
+                                    <text
+                                        x={xPos}
+                                        y={y + height / 2}
+                                        fill="currentColor"
+                                        textAnchor={textAnchor}
+                                        dominantBaseline="middle"
+                                        fontSize={12}
+                                    >
+                                        {value}%
+                                    </text>
+                                );
+                            }}
                         />
                         </Bar>
                     </BarChart>
@@ -103,7 +130,7 @@ export function WeeklyBudgetCompletionCard() {
             </CardContent>
             <CardFooter className="flex-col items-end gap-2 text-sm">
                 <div className="leading-none text-muted-foreground">
-                    <NavLink to={paths.statistics.path}>See more</NavLink>
+                    <NavLink to={paths.history.path}>See more</NavLink>
                 </div>
             </CardFooter>
         </Card>

@@ -81,7 +81,7 @@ export function ProfileForm({profile, onSave}: Props) {
                             <FormLabel className="block">What's your timezone?</FormLabel>
                             <FormControl className="w-full">
                                 <Popover>
-                                    <PopoverTrigger>
+                                    <PopoverTrigger asChild>
                                         <FormControl>
                                             <Button
                                                 variant="outline"

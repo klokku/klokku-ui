@@ -1,4 +1,5 @@
 import {formatDate, intervalToDuration} from "date-fns";
+import parseDuration from "parse-duration";
 
 export function getCurrentWeekFirstDay(firstDayOfAWeek: "monday" | "sunday"): Date {
     return weekStartDay(new Date(), firstDayOfAWeek);
@@ -20,7 +21,9 @@ export function weekStartDay(date: Date, firstDayOfAWeek: "monday" | "sunday"): 
 }
 
 export function weekEndDay(weekStartDay: Date): Date {
-    return new Date(weekStartDay.getTime() -1 + 7 * 24 * 60 * 60 * 1000)
+    const endDay = new Date(weekStartDay.getTime() + 6 * 24 * 60 * 60 * 1000)
+    endDay.setHours(23, 59, 59, 999);
+    return endDay;
 }
 
 export function nextWeekStart(weekStartDay: Date): Date {
@@ -59,10 +62,57 @@ export function durationToSeconds(duration?: string): number | undefined {
     return hours * 60 * 60 + minutes * 60;
 }
 
-export function formatEventDuration(event?: {startTime: string, endTime?: string}): string {
+/**
+ * Parses duration input with support for absolute and relative formats.
+ * Supports:
+ * - "5h 30m" - absolute duration
+ * - "+3h20m" - add to base duration
+ * - "+80m" - add minutes to base duration
+ * - "-2h20m" - subtract from base duration
+ *
+ * @param input The duration string to parse
+ * @param baseDurationSeconds The base duration in seconds (for relative calculations)
+ * @returns The calculated duration in seconds, or undefined if parsing fails. Never returns negative values.
+ */
+export function parseDurationInput(input?: string, baseDurationSeconds?: number): number | undefined {
+    if (!input || input.trim() === "") {
+        return undefined;
+    }
+
+    const trimmed = input.trim();
+    const isRelative = trimmed.startsWith('+') || trimmed.startsWith('-');
+
+    if (isRelative) {
+        const isAddition = trimmed.startsWith('+');
+        const durationStr = trimmed.substring(1); // Remove the +/- prefix
+        const milliseconds = parseDuration(durationStr);
+
+        if (milliseconds === null || milliseconds === undefined) {
+            return undefined;
+        }
+
+        const deltaSeconds = Math.floor(milliseconds / 1000);
+        const base = baseDurationSeconds || 0;
+        const result = isAddition ? base + deltaSeconds : base - deltaSeconds;
+
+        // Never return negative values
+        return Math.max(0, result);
+    } else {
+        // Absolute duration
+        const milliseconds = parseDuration(trimmed);
+
+        if (milliseconds === null || milliseconds === undefined) {
+            return undefined;
+        }
+
+        return Math.max(0, Math.floor(milliseconds / 1000));
+    }
+}
+
+export function formatEventDuration(event?: {start: string, end?: string}): string {
     if (!event) return ""
-    const start = new Date(event.startTime)
-    const end = event.endTime ? new Date(event.endTime) : new Date()
+    const start = new Date(event.start)
+    const end = event.end ? new Date(event.end) : new Date()
     const diffInSec = (end.getTime() - start.getTime()) / 1000
     return formatSecondsToDuration(diffInSec)
 }

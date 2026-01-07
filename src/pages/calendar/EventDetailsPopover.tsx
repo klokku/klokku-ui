@@ -1,17 +1,17 @@
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import useBudget from "@/api/useBudgets.ts";
 import * as z from "zod";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormField, FormItem, FormLabel} from "@/components/ui/form.tsx";
 import {DateTimePicker} from "@/components/datetime/DateTimePicker.tsx";
+import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
 
 const eventDetailsSchema = z.object({
     startDate: z.date(),
     endDate: z.date(),
-    budgetId: z.number(),
+    budgetPlanItemId: z.number(),
 }).refine((data) =>
         data.startDate.getTime() < data.endDate.getTime(),
     {
@@ -19,7 +19,7 @@ const eventDetailsSchema = z.object({
         path: ["endDate"],
     }
 ).refine((data) =>
-        data.budgetId !== 0,
+        data.budgetPlanItemId !== 0,
     {
         message: "Budget must be selected",
         path: ["budgetId"],
@@ -33,7 +33,7 @@ export type EventDetails = {
     summary?: string;
     startDate: Date;
     endDate: Date;
-    budgetId?: number;
+    budgetPlanItemId?: number;
 }
 
 type Props = {
@@ -48,14 +48,16 @@ type Props = {
 export function EventDetailsPopover({open, onOpenChange, position, input, onSave, onDelete}: Props) {
 
     // Budgets for re-linking
-    const {budgets} = useBudget(false);
+    const {weeklyPlan} = useWeeklyPlan(input.startDate);
+    const planItems = weeklyPlan?.items
 
     const form = useForm<EventDetailsForm>({
         resolver: zodResolver(eventDetailsSchema),
+        mode: "onChange",
         defaultValues: {
             startDate: input.startDate,
             endDate: input.endDate,
-            budgetId: input.budgetId || 0,
+            budgetPlanItemId: input.budgetPlanItemId || 0,
         }
     })
 
@@ -64,21 +66,25 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
     }
 
     const handleSave = async (formData: z.infer<typeof eventDetailsSchema>) => {
-        const budgetName = budgets?.find((b) => b.id === formData.budgetId)?.name ?? 'Event';
+        const itemName = planItems?.find((b) => b.budgetItemId === formData.budgetPlanItemId)?.name ?? 'Event';
         onSave({
             startDate: formData.startDate,
             endDate: formData.endDate,
-            budgetId: formData.budgetId,
+            budgetPlanItemId: formData.budgetPlanItemId,
             uid: input.uid,
-            summary: budgetName,
+            summary: itemName,
         })
     }
+
+    // Extract formState properties to ensure proper subscription
+    const { isDirty, isValid } = form.formState;
 
     return (
 
         <Popover
             open={open}
             onOpenChange={onOpenChange}
+            key={input.uid || 'new-event'}
         >
             <PopoverTrigger asChild>
                 <div
@@ -126,10 +132,10 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                     </FormItem>
                                 )
                             }}/>
-                            <FormField control={form.control} name="budgetId" render={({field}) => {
+                            <FormField control={form.control} name="budgetPlanItemId" render={({field}) => {
                                 return (
                                     <FormItem className="grid gap-2">
-                                        <FormLabel className="text-xs text-muted-foreground">Budget</FormLabel>
+                                        <FormLabel className="text-xs text-muted-foreground">Plan item</FormLabel>
                                         <Select
                                             value={field.value?.toString()}
                                             onValueChange={(value) => {
@@ -137,19 +143,19 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                             }}
                                         >
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select budget"/>
+                                                <SelectValue placeholder="Select item"/>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {budgets?.map((b) => (
-                                                    <SelectItem key={b.id} value={String(b.id!)} className="calendar-unselect-cancel">
-                                                        {b.name}
+                                                {planItems?.map((item) => (
+                                                    <SelectItem key={`plan-item-${item.budgetItemId}`} value={String(item.budgetItemId!)} className="calendar-unselect-cancel">
+                                                        {item.name}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        {form.formState.errors.budgetId && (
+                                        {form.formState.errors.budgetPlanItemId && (
                                             <div className="text-xs text-red-500">
-                                                {form.formState.errors.budgetId.message}
+                                                {form.formState.errors.budgetPlanItemId.message}
                                             </div>
                                         )}
                                     </FormItem>
@@ -167,7 +173,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                     <Button type="reset" variant="outline" onClick={() => onOpenChange(false)}>
                                         Cancel
                                     </Button>
-                                    <Button type="submit" disabled={!form.formState.isDirty && !form.formState.isValid}>
+                                    <Button type="submit" disabled={isCreateMode() ? !isValid : (!isDirty || !isValid)}>
                                         Save
                                     </Button>
                                 </div>

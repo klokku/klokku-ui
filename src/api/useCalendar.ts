@@ -3,26 +3,37 @@ import {CalendarEvent} from "@/api/types.ts";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 import {toServerFormat} from "@/lib/dateUtils.ts";
 
-type HookType = (fromDate: Date, toDate: Date) => {
+type HookType = (fromDate?: Date, toDate?: Date) => {
     isLoading: boolean,
     events: CalendarEvent[] | undefined,
+    recentEvents: CalendarEvent[] | undefined,
+    isLoadingRecentEvents: boolean,
     modifyEvent: (event: CalendarEvent) => Promise<void>,
     createEvent: (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => Promise<void>,
     deleteEvent: (eventUid: string) => Promise<void>,
 }
 
-const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
+const useCalendar: HookType = (fromDate?: Date, toDate?: Date) => {
     const fetchWithAuth = useFetchWithProfileUid()
     const queryClient = useQueryClient();
 
-    const from = encodeURIComponent(toServerFormat(fromDate))
-    const to = encodeURIComponent(toServerFormat(toDate))
+    const from = fromDate ? encodeURIComponent(toServerFormat(fromDate)) : undefined
+    const to = toDate ? encodeURIComponent(toServerFormat(toDate)) : undefined
     const { isLoading, data } = useQuery({
         queryKey: ["calendarEvents", from, to],
         queryFn: async () => {
             const response = await fetchWithAuth(`/api/calendar/event?from=${from}&to=${to}`)
             return (await response.json()) as CalendarEvent[]
-        }
+        },
+        enabled: !!from && !!to
+    })
+
+    const { data: recentEvents, isLoading: isLoadingRecentEvents } = useQuery({
+        queryKey: ["calendarEvents"],
+        queryFn: async () => {
+            const response = await fetchWithAuth(`/api/calendar/event/recent?last=5`)
+            return (await response.json()) as CalendarEvent[]
+        },
     })
 
     const modify = useMutation({
@@ -83,20 +94,22 @@ const useCalendar: HookType = (fromDate: Date, toDate: Date) => {
     })
 
     const modifyEvent = async (event: CalendarEvent) => {
-        return modify.mutate(event)
+        return modify.mutateAsync(event)
     }
 
     const createEvent = async (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => {
-        return create.mutate(event)
+        return create.mutateAsync(event)
     }
 
     const deleteEvent = async (eventUid: string) => {
-        return deleteEv.mutate(eventUid)
+        return deleteEv.mutateAsync(eventUid)
     }
 
     return {
         isLoading,
         events: data,
+        recentEvents,
+        isLoadingRecentEvents,
         modifyEvent,
         createEvent,
         deleteEvent,

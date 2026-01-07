@@ -35,13 +35,27 @@ export function ProfileEditPage() {
     }
 
     async function onCalendarTypeChange(value: "klokku" | "google") {
-        currentProfile!!.settings.eventCalendarType = value
-        await saveProfileChanges(currentProfile!!)
+        if (!currentProfile) return;
+        const updatedProfile = {
+            ...currentProfile,
+            settings: {
+                ...currentProfile.settings,
+                eventCalendarType: value
+            }
+        };
+        await saveProfileChanges(updatedProfile);
     }
 
     async function onGoogleCalendarChange(value: string) {
-        currentProfile!!.settings.googleCalendar = {calendarId: value}
-        await saveProfileChanges(currentProfile!!)
+        if (!currentProfile) return;
+        const updatedProfile = {
+            ...currentProfile,
+            settings: {
+                ...currentProfile.settings,
+                googleCalendar: { calendarId: value }
+            }
+        };
+        await saveProfileChanges(updatedProfile);
     }
 
     if (!currentProfile) return (

@@ -1,6 +1,6 @@
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
 import {z} from "zod";
-import {Event} from "@/api/types.ts";
+import {CurrentEvent} from "@/api/types.ts";
 import {toServerFormat} from "@/lib/dateUtils.ts";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -9,25 +9,20 @@ import {ClockIcon} from "lucide-react";
 
 const formSchema = z.object({
     startTime: z.date(),
-    endTime: z.date().optional(),
 })
 
 interface EventDetailsFormProps {
     formId: string;
-    event: Event;
-    onSubmit: (event: Event) => void;
-    onDelete?: (event: Event) => void;
+    event: CurrentEvent;
+    onSubmit: (event: CurrentEvent) => void;
 }
 
 export function CurrentEventDetailsForm({formId, event, onSubmit}: EventDetailsFormProps) {
 
     const onFormSubmit = (formData: z.infer<typeof formSchema>) => {
-        const eventToSave: Event = {
-            uid: event.uid,
+        const eventToSave: CurrentEvent = {
             startTime: toServerFormat(formData.startTime),
-            endTime: formData.endTime ? toServerFormat(formData.endTime) : undefined,
-            budget: event.budget,
-            notes: event.notes,
+            planItem: event.planItem,
         }
         onSubmit(eventToSave)
     }
@@ -36,7 +31,6 @@ export function CurrentEventDetailsForm({formId, event, onSubmit}: EventDetailsF
         resolver: zodResolver(formSchema),
         defaultValues: {
             startTime: new Date(event.startTime),
-            endTime: event.endTime ? new Date(event.endTime) : undefined,
         }
     });
 

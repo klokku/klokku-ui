@@ -3,11 +3,16 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarGroup,
-    SidebarGroupContent, SidebarMenu,
+    SidebarGroupContent,
+    SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, useSidebar,
+    SidebarMenuItem,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
+    useSidebar,
 } from "@/components/ui/sidebar"
-import {CalendarDaysIcon, ChartBarIcon, ChartNoAxesCombinedIcon, LayoutDashboardIcon} from "lucide-react";
+import {CalendarDaysIcon, ChartBarIcon, HistoryIcon, LayoutDashboardIcon} from "lucide-react";
 import {paths} from "@/pages/links.ts";
 import {NavLink} from "react-router";
 import {useLocation} from "react-router-dom";
@@ -19,9 +24,9 @@ const items = [
         icon: LayoutDashboardIcon
     },
     {
-        title: paths.statistics.title,
-        url: paths.statistics.path,
-        icon: ChartNoAxesCombinedIcon
+        title: paths.history.title,
+        url: paths.history.path,
+        icon: HistoryIcon
     },
     {
         title: paths.calendar.title,
@@ -39,7 +44,7 @@ const items = [
             },
             {
                 title: "Budget Plans",
-                url: paths.budgets.path,
+                url: paths.budgetPlans.path,
             },
         ]
     },

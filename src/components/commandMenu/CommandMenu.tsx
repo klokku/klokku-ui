@@ -17,8 +17,8 @@ const pagesItems = [
         icon: LayoutDashboardIcon
     },
     {
-        title: paths.statistics.title,
-        url: paths.statistics.path,
+        title: paths.history.title,
+        url: paths.history.path,
         icon: ChartPieIcon
     },
     {
@@ -27,8 +27,8 @@ const pagesItems = [
         icon: CalendarDaysIcon
     },
     {
-        title: paths.budgets.title,
-        url: paths.budgets.path,
+        title: paths.budgetPlans.title,
+        url: paths.budgetPlans.path,
         icon: FolderKanbanIcon
     },
 ]

@@ -3,7 +3,7 @@ import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 
-type HookType = () => {
+type HookType = (budgetPlanId?: number) => {
     isAuthenticated: boolean;
     isLoadingWorkspaces: boolean;
     workspaces?: ClickUpWorkspace[];
@@ -15,16 +15,17 @@ type HookType = () => {
     tags?: ClickUpTag[];
     isLoadingConfig: boolean;
     config?: ClickUpConfig;
+    deleteConfig: (budgetPlanId: number) => Promise<void>;
     authLogin: () => Promise<ClickUpAuthRedirect>;
     authLogout: () => Promise<void>;
-    getSpaces: (workspaceId: number) => Promise<ClickUpSpace[]>;
-    getFolders: (spaceId: number) => Promise<ClickUpFolder[]>;
-    getTags: (spaceId: number) => Promise<ClickUpTag[]>;
-    getTasks: (budgetId: number) => Promise<ClickUpTask[]>;
-    saveConfig: (config: ClickUpConfig) => Promise<void>;
+    getSpaces: (workspaceId: string) => Promise<ClickUpSpace[]>;
+    getFolders: (spaceId: string) => Promise<ClickUpFolder[]>;
+    getTags: (spaceId: string) => Promise<ClickUpTag[]>;
+    getTasks: (budgetItemId: number) => Promise<ClickUpTask[]>;
+    saveConfig: (budgetPlanId: number, config: ClickUpConfig) => Promise<void>;
 }
 
-const useClickUp: HookType = () => {
+const useClickUp: HookType = (budgetPlanId?: number) => {
     const { currentProfileUid } = useCurrentProfile()
     const fetchWithAuth = useFetchWithProfileUid()
     const queryClient = useQueryClient()
@@ -104,11 +105,11 @@ const useClickUp: HookType = () => {
 
     // Get ClickUp configuration
     const { isLoading: isLoadingConfig, data: config } = useQuery({
-        queryKey: ["clickUpConfig", currentProfileUid],
+        queryKey: ["clickUpConfig", budgetPlanId],
         queryFn: async () => {
             if (!isAuthenticated) return undefined;
 
-            const response = await fetchWithAuth("/api/integrations/clickup/configuration", {
+            const response = await fetchWithAuth(`/api/integrations/clickup/configuration/${budgetPlanId}`, {
                 method: "GET",
             })
             if (!response.ok) {
@@ -120,9 +121,27 @@ const useClickUp: HookType = () => {
             }
             return (await response.json()) as ClickUpConfig;
         },
-        enabled: isAuthenticated && !!currentProfileUid,
+        enabled: isAuthenticated && !!currentProfileUid && !!budgetPlanId,
         retry: false,
     });
+
+    const deleteBudgetPlanConfig = useMutation({
+        mutationFn: async (budgetPlanId: number) => {
+            const response = await fetchWithAuth(`/api/integrations/clickup/configuration/${budgetPlanId}`, {
+                method: "DELETE",
+            })
+            if (!response.ok) {
+                throw new Error("Failed to delete ClickUp configuration");
+            }
+        },
+        onSuccess: async (_, deletedBudgetPlanId) => {
+            await queryClient.invalidateQueries({queryKey: ["clickUpConfig", deletedBudgetPlanId]});
+        },
+        onError: (error) => {
+            console.error(">>>error", error);
+        }
+    })
+
 
     // ClickUp authentication login
     const authLoginClickUp = useMutation({
@@ -172,13 +191,13 @@ const useClickUp: HookType = () => {
 
     // Save ClickUp configuration
     const saveClickUpConfig = useMutation({
-        mutationFn: async (config: ClickUpConfig) => {
-            const response = await fetchWithAuth("/api/integrations/clickup/configuration", {
+        mutationFn: async (data: {config: ClickUpConfig, budgetPlanId: number}) => {
+            const response = await fetchWithAuth(`/api/integrations/clickup/configuration/${data.budgetPlanId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(config),
+                body: JSON.stringify(data.config),
             });
 
             if (!response.ok) {
@@ -195,7 +214,7 @@ const useClickUp: HookType = () => {
     });
 
     // Get spaces for a workspace
-    const getSpaces = async (workspaceId: number): Promise<ClickUpSpace[]> => {
+    const getSpaces = async (workspaceId: string): Promise<ClickUpSpace[]> => {
         const response = await fetchWithAuth(`/api/integrations/clickup/space?workspaceId=${workspaceId}`, {
             method: "GET",
         });
@@ -209,7 +228,7 @@ const useClickUp: HookType = () => {
     };
 
     // Get folders for a space
-    const getFolders = async (spaceId: number): Promise<ClickUpFolder[]> => {
+    const getFolders = async (spaceId: string): Promise<ClickUpFolder[]> => {
         const response = await fetchWithAuth(`/api/integrations/clickup/folder?spaceId=${spaceId}`, {
             method: "GET",
         });
@@ -222,8 +241,8 @@ const useClickUp: HookType = () => {
         return data;
     };
 
-    // Get tags for a workspace
-    const getTags = async (spaceId: number): Promise<ClickUpTag[]> => {
+    // Get tags for a space
+    const getTags = async (spaceId: string): Promise<ClickUpTag[]> => {
         const response = await fetchWithAuth(`/api/integrations/clickup/tag?spaceId=${spaceId}`, {
             method: "GET",
         });
@@ -236,9 +255,11 @@ const useClickUp: HookType = () => {
         return data;
     };
 
-    // Get tasks for a budget
-    const getTasks = async (budgetId: number): Promise<ClickUpTask[]> => {
-        const response = await fetchWithAuth(`/api/integrations/clickup/tasks?budgetId=${budgetId}`, {
+    // Get tasks for a budget item
+    const getTasks = async (budgetItemId: number): Promise<ClickUpTask[]> => {
+        if (!isAuthenticated) return [];
+
+        const response = await fetchWithAuth(`/api/integrations/clickup/tasks?budgetItemId=${budgetItemId}`, {
             method: "GET",
         });
 
@@ -246,7 +267,12 @@ const useClickUp: HookType = () => {
             throw new Error("Failed to fetch ClickUp tasks");
         }
         const data = await response.json() as ClickUpTask[];
+        queryClient.setQueryData(["clickUpTasks", currentProfileUid, budgetItemId], data);
         return data;
+    };
+
+    const deleteConfig = async (budgetPlanId: number): Promise<void> => {
+        return deleteBudgetPlanConfig.mutateAsync(budgetPlanId);
     };
 
     const authLogin = async (): Promise<ClickUpAuthRedirect> => {
@@ -257,8 +283,8 @@ const useClickUp: HookType = () => {
         return authLogoutClickUp.mutateAsync();
     };
 
-    const saveConfig = async (config: ClickUpConfig): Promise<void> => {
-        return saveClickUpConfig.mutateAsync(config);
+    const saveConfig = async (budgetPlanId: number, config: ClickUpConfig): Promise<void> => {
+        return saveClickUpConfig.mutateAsync({config, budgetPlanId});
     };
 
     return {
@@ -273,6 +299,7 @@ const useClickUp: HookType = () => {
         tags,
         isLoadingConfig,
         config,
+        deleteConfig,
         authLogin,
         authLogout,
         getSpaces,

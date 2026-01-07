@@ -19,17 +19,17 @@ export const paths = {
     path: "/planning/weekly",
     title: "Planning"
   },
-  statistics: {
-    path: "/statistics",
-    title: "Statistics"
+  history: {
+    path: "/history",
+    title: "History"
   },
   calendar: {
     path: "/calendar",
     title: "Calendar"
   },
-  budgets: {
-    path: "/budgets",
-    title: "Budgets"
+  budgetPlans: {
+    path: "/budget-plans",
+    title: "Budget Plans"
   },
   profile: {
     path: "/profile",

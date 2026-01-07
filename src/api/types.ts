@@ -1,50 +1,89 @@
-export interface Budget {
+export interface BudgetPlan {
     id?: number;
     name: string;
-    weeklyTime: number;
-    startDate?: string; // Using string for the ISO date representation
-    endDate?: string; // Using string for the ISO date representation
+    isCurrent: boolean;
+    items: BudgetPlanItem[];
+}
+
+export interface BudgetPlanItem {
+    id?: number;
+    name: string;
+    weeklyDuration: number;
     weeklyOccurrences: number;
     icon: string;
+    color: string;
 }
 
-export interface BudgetOverride {
+export interface WeeklyPlan {
+    budgetPlanId: number;
+    items: WeeklyPlanItem[];
+}
+
+export interface WeeklyPlanItem {
     id?: number;
-    budgetId: number;
-    startDate: string; // Using string for the ISO date representation
-    weeklyTime: number;
-    notes?: string;
+    budgetItemId: number;
+    name: string;
+    weeklyDuration: number; // Planned duration for the whole week in seconds
+    weeklyOccurrences: number;
+    icon: string;
+    color: string;
+    notes: string;
+    position: number;
 }
 
-export interface BudgetStats {
-    budget: Budget;
-    budgetOverride?: BudgetOverride;
-    duration: number;
-    remaining: number;
+export interface PlanItem {
+    budgetPlanId: number;
+    budgetItemId: number;
+    weeklyItemId: number;
+    name: string;
+    icon: string;
+    color: string;
+    position: number;
+    weeklyItemDuration: number;
+    budgetItemDuration: number;
+    weeklyOccurrences: number;
+    notes: string;
+}
+
+export interface PlanItemStats {
+    planItem: PlanItem;
+    duration: number; // Actual duration of this item in the given time period (week) in seconds
+    remaining: number; // Remaining duration of this item in the given time period (week) in seconds
+    startDate: string; // Using string for the ISO date representation
+    endDate: string; // Using string for the ISO date representation
 }
 
 export interface DailyStats {
     date: string; // Using string for the ISO date representation
-    budgets: BudgetStats[];
+    perPlanItem: PlanItemStats[];
     totalTime: number;
 }
 
 export interface StatsSummary {
     startDate: string; // Using string for the ISO date representation
     endDate: string; // Using string for the ISO date representation
-    days: DailyStats[];
-    budgets: BudgetStats[];
+    perDay: DailyStats[];
+    perPlanItem: PlanItemStats[];
     totalPlanned: number;
     totalTime: number;
     totalRemaining: number;
 }
 
-export interface Event {
-    uid: string;
-    budget: Budget;
+export interface PlanItemHistoryStats {
+    startDate: string;
+    endDate: string;
+    statsPerWeek: PlanItemStats[];
+}
+
+export interface CurrentEvent {
     startTime: string;
-    endTime?: string;
-    notes: string;
+    planItem: CurrentEventPlanItem;
+}
+
+export interface CurrentEventPlanItem {
+    budgetItemId: number;
+    name: string;
+    weeklyDuration: number;
 }
 
 export interface ProfileSettings {
@@ -97,9 +136,9 @@ export interface ClickUpTag {
 }
 
 export interface ClickUpTagMapping {
-    clickUpSpaceId: number;
+    clickUpSpaceId: string;
     clickUpTagName: string;
-    budgetId: number;
+    budgetItemId: number;
     position: number;
 }
 
@@ -110,9 +149,9 @@ export interface ClickUpTask {
 }
 
 export interface ClickUpConfig {
-    workspaceId: number;
-    spaceId: number;
-    folderId?: number;
+    workspaceId: string;
+    spaceId: string;
+    folderId?: string;
     mappings: ClickUpTagMapping[];
 }
 
@@ -121,5 +160,5 @@ export interface CalendarEvent {
     summary: string;
     start: string;
     end: string;
-    budgetId: number;
+    budgetItemId: number;
 }

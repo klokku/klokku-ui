@@ -7,10 +7,11 @@ import {CalendarEvent} from "@/api/types.ts";
 import interactionPlugin from '@fullcalendar/interaction';
 import {defaultSettings, userSettings} from "@/components/settings.ts";
 import {DateSelectArg, EventChangeArg, EventClickArg} from "@fullcalendar/core";
-import useEvents from "@/api/useEvents.ts";
+import useCurrentEvent from "@/api/useCurrentEvent.ts";
 import {EventDetails, EventDetailsPopover} from "@/pages/calendar/EventDetailsPopover.tsx";
 import {useIsMobile} from "@/hooks/use-mobile.tsx";
 import useProfile from "@/api/useProfile.ts";
+import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
 
 export function CalendarPage() {
 
@@ -25,7 +26,8 @@ export function CalendarPage() {
     const calendarRef = useRef<FullCalendar>(null);
 
     const {isLoading, events, modifyEvent, createEvent, deleteEvent} = useCalendar(calendarStart, calendarEnd);
-    const {currentEvent} = useEvents();
+    const {currentEvent} = useCurrentEvent();
+    const {weeklyPlan} = useWeeklyPlan(currentWeekFirstDay)
 
     const isMobile = useIsMobile();
 
@@ -60,7 +62,7 @@ export function CalendarPage() {
         if (currentEvent) {
             const currentUIEvent = {
                 id: "",
-                title: currentEvent.budget.name,
+                title: currentEvent.planItem.name,
                 start: new Date(currentEvent.startTime),
                 end: new Date(),
                 display: "background",
@@ -73,9 +75,12 @@ export function CalendarPage() {
     }
 
     const toUIEvent = (event: CalendarEvent): UiEvent => {
+
+        const weeklyPlanItem = weeklyPlan?.items.find(item => {return item.budgetItemId === event.budgetItemId})
+
         return {
             id: event.uid,
-            title: event.summary + " (" + formatEventDuration({startTime: event.start, endTime: event.end}) + ")" ,
+            title: event.summary + " (" + formatEventDuration(event) + ")" ,
             start: new Date(event.start),
             end: new Date(event.end),
             interactive: true,
@@ -83,7 +88,9 @@ export function CalendarPage() {
             durationEditable: true,
             extendedProps: {
                 sourceEvent: event,
-            }
+            },
+            backgroundColor: weeklyPlanItem?.color,
+            borderColor: weeklyPlanItem?.color,
         }
     }
 
@@ -129,7 +136,7 @@ export function CalendarPage() {
             startDate: new Date(source.start),
             endDate: new Date(source.end),
             uid: source.uid,
-            budgetId: source.budgetId,
+            budgetPlanItemId: source.budgetItemId,
         })
         // Position popover near the click position
         const mouse = info.jsEvent as MouseEvent;
@@ -144,13 +151,13 @@ export function CalendarPage() {
     };
 
     const handleSave = async (event: EventDetails) => {
-        if (event.uid && event.budgetId) {
+        if (event.uid && event.budgetPlanItemId) {
             const updated: CalendarEvent = {
                 uid: event.uid,
                 summary: event.summary!,
                 start: toServerFormat(event.startDate),
                 end: toServerFormat(event.endDate),
-                budgetId: event.budgetId,
+                budgetItemId: event.budgetPlanItemId,
             };
             await modifyEvent(updated);
         } else {
@@ -158,7 +165,7 @@ export function CalendarPage() {
                 summary: event.summary!,
                 start: toServerFormat(event.startDate),
                 end: toServerFormat(event.endDate),
-                budgetId: event.budgetId!,
+                budgetItemId: event.budgetPlanItemId!,
             };
             await createEvent(newEvent);
         }
