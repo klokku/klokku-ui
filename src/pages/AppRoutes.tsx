@@ -15,6 +15,7 @@ import {LogoutPage} from "@/pages/profile/LogoutPage.tsx";
 import MainLayout from "@/pages/MainLayout.tsx";
 import UserProfileLayout from "@/pages/UserProfileLayout.tsx";
 import WeeklyPlanningPage from "@/pages/planning/WeeklyPlanningPage.tsx";
+import {AppSettingsPage} from "@/pages/settings/AppSettingsPage.tsx";
 
 const AppRoutes = () => (
     <Routes>
@@ -30,6 +31,7 @@ const AppRoutes = () => (
             </Route>
             <Route element={<UserProfileLayout/>}>
                 <Route path={paths.profile.path} element={<ProfileEditPage/>}/>
+                <Route path={paths.appSettings.path} element={<AppSettingsPage/>}/>
                 <Route path={paths.integrations.path} element={<IntegrationsPage/>}/>
                 <Route path={paths.logout.path} element={<LogoutPage/>}/>
             </Route>

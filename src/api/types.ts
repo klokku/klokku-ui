@@ -93,6 +93,7 @@ export interface ProfileSettings {
     googleCalendar?: {
         calendarId: string;
     };
+    ignoreShortEvents: boolean;
 }
 
 export interface Profile {
