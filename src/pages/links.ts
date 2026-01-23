@@ -35,6 +35,10 @@ export const paths = {
     path: "/profile",
     title: "Profile"
   },
+  appSettings: {
+    path: "/settings",
+    title: "Settings"
+  },
   integrations: {
     path: "/integrations",
     title: "Integrations"

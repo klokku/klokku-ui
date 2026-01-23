@@ -36,6 +36,7 @@ export function ProfileForm({profile, onSave}: Props) {
                 timezone: formData.timezone,
                 weekStartDay: formData.weekStartDay,
                 eventCalendarType: "",
+                ignoreShortEvents: profile?.settings.ignoreShortEvents ?? false,
             }
         });
     }
@@ -46,8 +47,8 @@ export function ProfileForm({profile, onSave}: Props) {
             username: profile?.username,
             displayName: profile?.displayName,
             photoUrl: profile?.photoUrl || "",
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            weekStartDay: "monday",
+            timezone: profile?.settings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+            weekStartDay: profile?.settings.weekStartDay || "monday",
         }
     });
 
