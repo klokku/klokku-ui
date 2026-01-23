@@ -60,6 +60,7 @@ export function CreateProfilePage() {
                 timezone: formData.timezone,
                 weekStartDay: formData.weekStartDay,
                 eventCalendarType: "",
+                ignoreShortEvents: false,
             }
         });
         navigate(paths.root.path, {replace: true})
