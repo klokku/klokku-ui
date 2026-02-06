@@ -3,6 +3,7 @@ import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
 import {Button} from "@/components/ui/button.tsx";
 import {BudgetPlanItem} from "@/api/types.ts";
 import {BudgetPlanItemDetailsForm} from "@/components/budgetPlanItem/BudgetPlanItemDetailsForm.tsx";
+import {WebhookSection} from "@/components/budgetPlanItem/WebhookSection.tsx";
 
 interface AddBudgetDialogProps {
     budgetPlanItem: BudgetPlanItem | null;
@@ -43,6 +44,7 @@ export function AddBudgetPlanItemDialog({budgetPlanItem, open, onOpenChange, onS
                     </DialogDescription>
                 </DialogHeader>
                 <BudgetPlanItemDetailsForm formId="add-budget-form" item={budgetPlanItem} onSubmit={(formData) => onSaveButton(formData)}/>
+                {budgetPlanItem?.id && <WebhookSection budgetItemId={budgetPlanItem.id} />}
                 <DialogFooter>
                     <div className="flex justify-between w-full">
                         <div className="flex gap-2">
