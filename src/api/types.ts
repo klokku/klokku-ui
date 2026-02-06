@@ -163,3 +163,20 @@ export interface CalendarEvent {
     end: string;
     budgetItemId: number;
 }
+
+export interface Webhook {
+    id: number;
+    type: string;
+    token: string;
+    webhookUrl: string;
+    data: {
+        budgetItemId: number;
+    };
+}
+
+export interface WebhookCreateRequest {
+    type: string;
+    data: {
+        budgetItemId: number;
+    };
+}
