@@ -2,13 +2,13 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {createElement, useState} from "react";
 import {FolderKanbanIcon, HistoryIcon} from "lucide-react";
-import {Square2StackIcon} from "@heroicons/react/24/outline";
+import {SquareStack as Square2StackIcon} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {userSettings} from "@/components/settings.ts";
 import {formatEventDuration} from "@/lib/dateUtils.ts";
 import {PreviousEvent} from "@/components/dashboard/PreviousEvent.tsx";
 import {CurrentEvent, WeeklyPlanItem} from "@/api/types.ts";
-import * as Icons from "@heroicons/react/24/solid";
+import * as Icons from "lucide-react";
 import useCurrentEvent from "@/api/useCurrentEvent.ts";
 import {CurrentEventDetailsDialog} from "@/components/event/CurrentEventDetailsDialog.tsx";
 import useWeeklyPlan from "@/api/useWeeklyPlan.ts";

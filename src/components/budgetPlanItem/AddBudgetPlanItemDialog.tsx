@@ -36,7 +36,7 @@ export function AddBudgetPlanItemDialog({budgetPlanItem, open, onOpenChange, onS
 
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        {budgetPlanItem?.name ?? "Creating new budget"}
+                        {budgetPlanItem?.name ?? "Creating new item"}
                     </DialogTitle>
                     <DialogDescription className="flex gap-1">
                         Remaining weekly time:

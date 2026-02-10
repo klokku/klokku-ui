@@ -7,8 +7,8 @@ import {BudgetPlanItem} from "@/api/types.ts";
 import {createElement, useState} from "react";
 import {Badge} from "@/components/ui/badge.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import * as Icons from "@heroicons/react/24/solid";
-import {Square2StackIcon} from "@heroicons/react/24/outline";
+import * as Icons from "lucide-react";
+import {SquareStack as Square2StackIcon} from "lucide-react";
 import BudgetPlanWizardDialog from "@/pages/budgetPlan/wizard/BudgetPlanWizardDialog.tsx";
 import {EmptyBudgetPlan} from "@/pages/budgetPlan/EmptyBudgetPlan.tsx";
 import useBudgetPlanItem from "@/api/useBudgetPlanItem.ts";
@@ -196,7 +196,7 @@ export function BudgetPlansPage() {
                                     <TableCell className="text-center cursor-pointer hover:text-blue-500" onClick={addNewBudget}>
                                         <div className="flex items-center gap-2">
                                             <PlusIcon className="size-4"/>
-                                            <span>Add new budget</span>
+                                            <span>Add new item</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>

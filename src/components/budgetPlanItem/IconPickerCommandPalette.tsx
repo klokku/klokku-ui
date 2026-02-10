@@ -14,7 +14,7 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
-import { CheckIcon } from "@heroicons/react/20/solid";
+import { Check as CheckIcon } from "lucide-react";
 import {IconRenderer, useIconPicker} from "@/components/ui/icon-picker.tsx";
 
 interface IconPickerCommandPaletteProps {
@@ -24,7 +24,7 @@ interface IconPickerCommandPaletteProps {
 
 export const IconPickerCommandPalette = ({value, onChanged}: IconPickerCommandPaletteProps) => {
     const [open, setOpen] = useState(false);
-    const { icons } = useIconPicker();
+    const { icons, search, setSearch } = useIconPicker();
 
     return (
         <Popover open={open} onOpenChange={setOpen} modal={true}>
@@ -41,8 +41,12 @@ export const IconPickerCommandPalette = ({value, onChanged}: IconPickerCommandPa
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full max-w-sm p-0">
-                <Command className="w-full max-w-sm">
-                    <CommandInput placeholder="Search for icon..." />
+                <Command className="w-full max-w-sm" shouldFilter={false}>
+                    <CommandInput
+                        placeholder="Search icons (e.g., coffee, car, food)..."
+                        value={search}
+                        onValueChange={setSearch}
+                    />
                     <CommandList>
                         <CommandEmpty>No icons found.</CommandEmpty>
                         <CommandGroup>
@@ -56,11 +60,11 @@ export const IconPickerCommandPalette = ({value, onChanged}: IconPickerCommandPa
                                     }}
                                     className="flex items-center gap-x-2 truncate capitalize"
                                 >
-                                    <Component />
+                                    <Component className="size-4 flex-shrink-0" />
                                     {friendly_name}
                                     <CheckIcon
                                         data-selected={value === name}
-                                        className="ml-auto opacity-0 data-[selected=true]:opacity-100"
+                                        className="ml-auto size-4 opacity-0 data-[selected=true]:opacity-100"
                                     />
                                 </CommandItem>
                             ))}
