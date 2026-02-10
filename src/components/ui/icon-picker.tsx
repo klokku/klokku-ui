@@ -1,11 +1,22 @@
 import React, { useMemo, useState } from "react";
 import * as LucideIcons from "lucide-react";
+import iconTags from "lucide-static/tags.json";
+
 type Icons = {
     // the name of the component
     name: string;
     // a more human-friendly name
     friendly_name: string;
     Component: React.FC<React.ComponentPropsWithoutRef<"svg">>;
+    tags: string[];
+};
+
+// Convert PascalCase to kebab-case for tag lookup
+const toKebabCase = (str: string): string => {
+    return str
+        .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+        .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+        .toLowerCase();
 };
 
 // Popular icons for time tracking activities
@@ -52,12 +63,18 @@ export const useIconPicker = (): {
                     // Only include exports that start with uppercase (icon components)
                     return true;
                 })
-                .map(([iconName, IconComponent]) => ({
-                    name: iconName,
-                    // split the icon name at capital letters and join them with a space
-                    friendly_name: iconName.match(/[A-Z][a-z]+/g)?.join(" ") ?? iconName,
-                    Component: IconComponent as React.FC<React.ComponentPropsWithoutRef<"svg">>,
-                }));
+                .map(([iconName, IconComponent]) => {
+                    const kebabName = toKebabCase(iconName);
+                    const tags = (iconTags as Record<string, string[]>)[kebabName] || [];
+
+                    return {
+                        name: iconName,
+                        // split the icon name at capital letters and join them with a space
+                        friendly_name: iconName.match(/[A-Z][a-z]+/g)?.join(" ") ?? iconName,
+                        Component: IconComponent as React.FC<React.ComponentPropsWithoutRef<"svg">>,
+                        tags: tags,
+                    };
+                });
         },
         [],
     );
@@ -74,10 +91,15 @@ export const useIconPicker = (): {
         // When searching, show matching icons (limit to 100 for performance)
         const searchLower = search.toLowerCase();
         return allIcons
-            .filter((icon) =>
-                icon.name.toLowerCase().includes(searchLower) ||
-                icon.friendly_name.toLowerCase().includes(searchLower)
-            )
+            .filter((icon) => {
+                // Match by icon name
+                if (icon.name.toLowerCase().includes(searchLower)) return true;
+                // Match by friendly name
+                if (icon.friendly_name.toLowerCase().includes(searchLower)) return true;
+                // Match by tags (synonyms)
+                if (icon.tags.some(tag => tag.toLowerCase().includes(searchLower))) return true;
+                return false;
+            })
             .slice(0, 100);
     }, [allIcons, search]);
 
