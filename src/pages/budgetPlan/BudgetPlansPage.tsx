@@ -196,7 +196,7 @@ export function BudgetPlansPage() {
                                     <TableCell className="text-center cursor-pointer hover:text-blue-500" onClick={addNewBudget}>
                                         <div className="flex items-center gap-2">
                                             <PlusIcon className="size-4"/>
-                                            <span>Add new budget</span>
+                                            <span>Add new item</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
