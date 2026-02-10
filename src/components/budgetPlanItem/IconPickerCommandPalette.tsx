@@ -24,7 +24,7 @@ interface IconPickerCommandPaletteProps {
 
 export const IconPickerCommandPalette = ({value, onChanged}: IconPickerCommandPaletteProps) => {
     const [open, setOpen] = useState(false);
-    const { icons } = useIconPicker();
+    const { icons, search, setSearch } = useIconPicker();
 
     return (
         <Popover open={open} onOpenChange={setOpen} modal={true}>
@@ -41,8 +41,12 @@ export const IconPickerCommandPalette = ({value, onChanged}: IconPickerCommandPa
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full max-w-sm p-0">
-                <Command className="w-full max-w-sm">
-                    <CommandInput placeholder="Search icons (e.g., coffee, car, food)..." />
+                <Command className="w-full max-w-sm" shouldFilter={false}>
+                    <CommandInput
+                        placeholder="Search icons (e.g., coffee, car, food)..."
+                        value={search}
+                        onValueChange={setSearch}
+                    />
                     <CommandList>
                         <CommandEmpty>No icons found.</CommandEmpty>
                         <CommandGroup>
