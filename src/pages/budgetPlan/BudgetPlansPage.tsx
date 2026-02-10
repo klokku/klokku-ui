@@ -160,13 +160,21 @@ export function BudgetPlansPage() {
                             <TableBody>
                                 {budgetPlanDetails?.items?.map((item) => (
                                     <TableRow key={`budget-plan-item-${item.id}`}>
-                                        <TableCell className="cursor-pointer font-medium hover:text-blue-500 flex gap-2"
+                                        <TableCell className="cursor-pointer font-medium hover:text-blue-500"
                                                    onClick={() => {
                                                        editItem(item)
                                                    }}>
-                                            {item.icon && getIcon(item.icon, "size-5 text-gray-500")}
-                                            {!item.icon && <Square2StackIcon className="size-5 text-gray-500"/>}
-                                            {item.name}
+                                            <div className="flex gap-2 items-center">
+                                                {item.color && (
+                                                    <div
+                                                        className="w-1 h-5 rounded-full flex-shrink-0"
+                                                        style={{backgroundColor: item.color}}
+                                                    />
+                                                )}
+                                                {item.icon && getIcon(item.icon, "size-5 text-gray-500")}
+                                                {!item.icon && <Square2StackIcon className="size-5 text-gray-500"/>}
+                                                {item.name}
+                                            </div>
                                         </TableCell>
                                         <TableCell>{formatSecondsToDuration(item.weeklyDuration)}</TableCell>
                                         <TableCell>{formatSecondsToDuration(item.weeklyDuration / 7)}</TableCell>

@@ -174,6 +174,12 @@ export default function WeeklyPlanningPage() {
                                 <TableRow className="h-full" key={weeklyItem.budgetItemId}>
                                     <TableCell className="font-medium py-3">
                                         <div className="flex items-center gap-2">
+                                            {weeklyItem.color && (
+                                                <div
+                                                    className="w-1 h-5 rounded-full flex-shrink-0"
+                                                    style={{backgroundColor: weeklyItem.color}}
+                                                />
+                                            )}
                                             {weeklyItem.icon && getIcon(weeklyItem.icon, "size-5 text-gray-500 flex-shrink-0")}
                                             {!weeklyItem.icon && <Square2StackIcon className="size-5 text-gray-500 flex-shrink-0"/>}
                                             <span
