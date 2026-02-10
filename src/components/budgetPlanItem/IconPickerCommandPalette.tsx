@@ -14,7 +14,7 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
-import { CheckIcon } from "@heroicons/react/20/solid";
+import { Check as CheckIcon } from "lucide-react";
 import {IconRenderer, useIconPicker} from "@/components/ui/icon-picker.tsx";
 
 interface IconPickerCommandPaletteProps {
