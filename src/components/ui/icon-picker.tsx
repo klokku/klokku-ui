@@ -8,13 +8,27 @@ type Icons = {
     Component: React.FC<React.ComponentPropsWithoutRef<"svg">>;
 };
 
+// Popular icons for time tracking activities
+const POPULAR_ICONS = [
+    'Activity', 'Briefcase', 'Calendar', 'Clock', 'Coffee', 'Computer', 'Laptop',
+    'Car', 'Bus', 'Train', 'Bicycle', 'Plane', 'Home', 'Building',
+    'Pizza', 'UtensilsCrossed', 'Cake', 'Apple', 'Sandwich', 'Salad',
+    'Gamepad2', 'Tv', 'Music', 'Book', 'Dumbbell', 'ShoppingBag',
+    'Users', 'User', 'Heart', 'Star', 'Zap', 'Target', 'TrendingUp',
+    'Phone', 'MessageSquare', 'Mail', 'FileText', 'Folder', 'Package',
+    'ShoppingCart', 'CreditCard', 'DollarSign', 'Wallet',
+    'Sun', 'Moon', 'Cloud', 'Umbrella', 'Snowflake',
+    'Camera', 'Film', 'Headphones', 'Mic', 'Video',
+    'Palette', 'Paintbrush', 'Scissors', 'Wrench', 'Settings'
+];
+
 export const useIconPicker = (): {
     search: string;
     setSearch: React.Dispatch<React.SetStateAction<string>>;
     icons: Icons[];
 } => {
 
-    const icons: Icons[] = useMemo(
+    const allIcons: Icons[] = useMemo(
         () => {
             // Lucide exports icons as objects (React components) and some utilities
             // Icon names end without "Icon" suffix (e.g., "Activity")
@@ -48,20 +62,24 @@ export const useIconPicker = (): {
         [],
     );
 
-    // these lines can be removed entirely if you're not using the controlled component approach
     const [search, setSearch] = useState("");
-    //   memoize the search functionality
+
+    // Filter and limit icons based on search
     const filteredIcons = useMemo(() => {
-        return icons.filter((icon) => {
-            if (search === "") {
-                return true;
-            } else if (icon.name.toLowerCase().includes(search.toLowerCase())) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-    }, [icons, search]);
+        if (search === "") {
+            // Show only popular icons when no search term
+            return allIcons.filter(icon => POPULAR_ICONS.includes(icon.name));
+        }
+
+        // When searching, show matching icons (limit to 100 for performance)
+        const searchLower = search.toLowerCase();
+        return allIcons
+            .filter((icon) =>
+                icon.name.toLowerCase().includes(searchLower) ||
+                icon.friendly_name.toLowerCase().includes(searchLower)
+            )
+            .slice(0, 100);
+    }, [allIcons, search]);
 
     return { search, setSearch, icons: filteredIcons };
 };

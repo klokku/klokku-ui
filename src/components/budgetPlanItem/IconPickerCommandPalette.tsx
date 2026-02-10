@@ -42,7 +42,7 @@ export const IconPickerCommandPalette = ({value, onChanged}: IconPickerCommandPa
             </PopoverTrigger>
             <PopoverContent className="w-full max-w-sm p-0">
                 <Command className="w-full max-w-sm">
-                    <CommandInput placeholder="Search for icon..." />
+                    <CommandInput placeholder="Search icons (e.g., coffee, car, food)..." />
                     <CommandList>
                         <CommandEmpty>No icons found.</CommandEmpty>
                         <CommandGroup>
@@ -56,11 +56,11 @@ export const IconPickerCommandPalette = ({value, onChanged}: IconPickerCommandPa
                                     }}
                                     className="flex items-center gap-x-2 truncate capitalize"
                                 >
-                                    <Component />
+                                    <Component className="size-4 flex-shrink-0" />
                                     {friendly_name}
                                     <CheckIcon
                                         data-selected={value === name}
-                                        className="ml-auto opacity-0 data-[selected=true]:opacity-100"
+                                        className="ml-auto size-4 opacity-0 data-[selected=true]:opacity-100"
                                     />
                                 </CommandItem>
                             ))}
