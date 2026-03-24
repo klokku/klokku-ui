@@ -25,8 +25,18 @@ const items = [
     },
     {
         title: paths.history.title,
-        url: paths.history.path,
-        icon: HistoryIcon
+        url: paths.historyCurrentPlan.path,
+        icon: HistoryIcon,
+        items: [
+            {
+                title: "Current Plan",
+                url: paths.historyCurrentPlan.path,
+            },
+            {
+                title: "Budget Report",
+                url: paths.budgetPlanReport.path,
+            },
+        ]
     },
     {
         title: paths.calendar.title,

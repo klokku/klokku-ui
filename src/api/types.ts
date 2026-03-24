@@ -164,6 +164,45 @@ export interface CalendarEvent {
     budgetItemId: number;
 }
 
+// Budget Plan Report
+export interface ReportItem {
+    budgetItemId: number;
+    name: string;
+    icon: string;
+    color: string;
+    position: number;
+    budgetPlanTime: number;   // seconds
+    weeklyPlanTime: number;   // seconds
+    actualTime: number;       // seconds
+}
+
+export interface WeeklyReportEntry {
+    weekNumber: string;
+    startDate: string;
+    endDate: string;
+    items: ReportItem[];
+    totalBudgetPlanTime: number;
+    totalWeeklyPlanTime: number;
+    totalActualTime: number;
+}
+
+export interface ReportTotals {
+    items: ReportItem[];
+    totalBudgetPlanTime: number;
+    totalWeeklyPlanTime: number;
+    totalActualTime: number;
+}
+
+export interface BudgetPlanReport {
+    planId: number;
+    planName: string;
+    startDate: string;
+    endDate: string;
+    weekCount: number;
+    weeks: WeeklyReportEntry[];
+    totals: ReportTotals;
+}
+
 export interface Webhook {
     id: number;
     type: string;

@@ -23,6 +23,10 @@ export const paths = {
     path: "/history",
     title: "History"
   },
+  historyCurrentPlan: {
+    path: "/history/current-plan",
+    title: "Current Plan"
+  },
   calendar: {
     path: "/calendar",
     title: "Calendar"
@@ -30,6 +34,10 @@ export const paths = {
   budgetPlans: {
     path: "/budget-plans",
     title: "Budget Plans"
+  },
+  budgetPlanReport: {
+    path: "/history/budget-report",
+    title: "Budget Report"
   },
   profile: {
     path: "/profile",
