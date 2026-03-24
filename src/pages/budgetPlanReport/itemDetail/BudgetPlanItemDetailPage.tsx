@@ -157,8 +157,8 @@ export function BudgetPlanItemDetailPage() {
                     <WeeklyComparisonChart report={report}/>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <DayOfWeekChart report={report} weekFirstDay={weekFirstDay}/>
-                        <div/>
+                        <DayOfWeekChart report={report} weekFirstDay={weekFirstDay} mode="total"/>
+                        <DayOfWeekChart report={report} weekFirstDay={weekFirstDay} mode="average"/>
                     </div>
 
                     <ActivityHeatmap report={report} weekFirstDay={weekFirstDay}/>

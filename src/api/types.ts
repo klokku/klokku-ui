@@ -227,6 +227,7 @@ export interface ItemDayEntry {
 export interface DayOfWeekEntry {
     dayOfWeek: number;
     averageTime: number;
+    totalTime: number;
 }
 
 export interface BudgetPlanItemReport {
