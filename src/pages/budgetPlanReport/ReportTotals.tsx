@@ -28,12 +28,12 @@ export function ReportTotals({totals}: ReportTotalsProps) {
                                 <ReportItemName name={item.name} icon={item.icon} color={item.color}/>
                             </TableCell>
                             <TableCell className="h-full">
-                                <CompletionCell actual={item.actualTime} planned={item.budgetPlanTime}/>
+                                <CompletionCell actual={item.actualTime} planned={item.budgetPlanTime} averagePerWeek={item.averagePerWeek} averagePerDay={item.averagePerDay}/>
                             </TableCell>
                             <TableCell className="h-full">
                                 <div className="flex items-center">
-                                    <CompletionCell actual={item.actualTime} planned={item.weeklyPlanTime}/>
-                                    <PlannedDiffBadge budgetPlanTime={item.budgetPlanTime} weeklyPlanTime={item.weeklyPlanTime}/>
+                                    <CompletionCell actual={item.actualTime} planned={item.weeklyPlanTime} averagePerWeek={item.averagePerWeek} averagePerDay={item.averagePerDay}/>
+                                    <PlannedDiffBadge budgetPlanTime={item.budgetPlanTime} weeklyPlanTime={item.weeklyPlanTime} className="hidden md:block" />
                                 </div>
                             </TableCell>
                             <TableCell>{formatSecondsToDuration(item.actualTime)}</TableCell>
@@ -45,7 +45,7 @@ export function ReportTotals({totals}: ReportTotalsProps) {
                         <TableCell>
                             <div className="flex items-center">
                                 <span>{formatSecondsToDuration(totals.totalWeeklyPlanTime)}</span>
-                                <PlannedDiffBadge budgetPlanTime={totals.totalBudgetPlanTime} weeklyPlanTime={totals.totalWeeklyPlanTime}/>
+                                <PlannedDiffBadge budgetPlanTime={totals.totalBudgetPlanTime} weeklyPlanTime={totals.totalWeeklyPlanTime} className="hidden md:block" />
                             </div>
                         </TableCell>
                         <TableCell>{formatSecondsToDuration(totals.totalActualTime)}</TableCell>

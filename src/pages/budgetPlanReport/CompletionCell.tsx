@@ -2,8 +2,10 @@ import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 
 interface CompletionCellProps {
-    actual: number;      // seconds
-    planned: number;     // seconds
+    actual: number;           // seconds
+    planned: number;          // seconds
+    averagePerWeek?: number;  // seconds
+    averagePerDay?: number;   // seconds
 }
 
 function completionColor(percentage: number): string {
@@ -12,7 +14,7 @@ function completionColor(percentage: number): string {
     return "bg-green-100";
 }
 
-export function CompletionCell({actual, planned}: CompletionCellProps) {
+export function CompletionCell({actual, planned, averagePerWeek, averagePerDay}: CompletionCellProps) {
     if (planned === 0) {
         return <span>{formatSecondsToDuration(planned)}</span>;
     }
@@ -40,6 +42,8 @@ export function CompletionCell({actual, planned}: CompletionCellProps) {
                         <div>Actual: {formatSecondsToDuration(actual)}</div>
                         <div>Completion: {Math.round(percentage)}%</div>
                         <div>Remaining: {formatSecondsToDuration(planned - actual)}</div>
+                        {averagePerWeek !== undefined && <div>Avg / week: {formatSecondsToDuration(averagePerWeek)}</div>}
+                        {averagePerDay !== undefined && <div>Avg / day: {formatSecondsToDuration(averagePerDay)}</div>}
                     </div>
                 </TooltipContent>
             </Tooltip>

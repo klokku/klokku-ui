@@ -174,6 +174,8 @@ export interface ReportItem {
     budgetPlanTime: number;   // seconds
     weeklyPlanTime: number;   // seconds
     actualTime: number;       // seconds
+    averagePerWeek: number;   // seconds
+    averagePerDay: number;    // seconds
 }
 
 export interface WeeklyReportEntry {
