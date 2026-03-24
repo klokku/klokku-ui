@@ -16,6 +16,7 @@ export interface BudgetPlanItem {
 
 export interface WeeklyPlan {
     budgetPlanId: number;
+    isOffWeek: boolean;
     items: WeeklyPlanItem[];
 }
 
@@ -201,6 +202,7 @@ export interface BudgetPlanReport {
     startDate: string;
     endDate: string;
     weekCount: number;
+    excludedWeekCount: number;
     weeks: WeeklyReportEntry[];
     totals: ReportTotals;
 }

@@ -72,6 +72,9 @@ export function BudgetPlanReportPage() {
             {report && report.weekCount > 0 && (
                 <div className="text-sm text-muted-foreground">
                     {formatRange()} — {report.weekCount} weeks
+                    {report.excludedWeekCount > 0 && (
+                        <span> ({report.excludedWeekCount} week{report.excludedWeekCount > 1 ? "s" : ""} off excluded)</span>
+                    )}
                 </div>
             )}
 
