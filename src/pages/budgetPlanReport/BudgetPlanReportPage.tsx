@@ -1,17 +1,19 @@
 import {useState} from "react";
+import {useNavigate} from "react-router";
 import {BudgetPlanSelect} from "@/components/budgetPlan/BudgetPlanSelect.tsx";
 import {useBudgetPlanReport} from "@/api/useBudgetPlanReport.ts";
 import {ReportTotals} from "@/pages/budgetPlanReport/ReportTotals.tsx";
-import {WeeklyBreakdown} from "@/pages/budgetPlanReport/WeeklyBreakdown.tsx";
 import {PeriodSelector} from "@/pages/budgetPlanReport/PeriodSelector.tsx";
 import {Spinner} from "@/components/ui/spinner.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {formatDate} from "date-fns";
-import {getCurrentWeekFirstDay, weekEndDay} from "@/lib/dateUtils.ts";
+import {getCurrentWeekFirstDay, weekEndDay, toServerFormat} from "@/lib/dateUtils.ts";
 import useProfile from "@/api/useProfile.ts";
 import {defaultSettings} from "@/components/settings.ts";
+import {links} from "@/pages/links.ts";
 
 export function BudgetPlanReportPage() {
+    const navigate = useNavigate();
     const {currentProfile} = useProfile();
     const weekFirstDay = currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay;
 
@@ -29,6 +31,17 @@ export function BudgetPlanReportPage() {
     const to = mode === "custom" ? toDate : undefined;
 
     const {isLoading, report} = useBudgetPlanReport(selectedPlanId, from, to);
+
+    const handleItemClick = (itemId: number) => {
+        if (!selectedPlanId) return;
+        const params = new URLSearchParams();
+        params.set("mode", mode);
+        if (mode === "custom") {
+            params.set("from", toServerFormat(fromDate));
+            params.set("to", toServerFormat(toDate));
+        }
+        navigate(`${links.budgetPlanItemReport(selectedPlanId, itemId)}?${params.toString()}`);
+    };
 
     const formatRange = () => {
         if (!report || report.weekCount === 0) return null;
@@ -94,11 +107,7 @@ export function BudgetPlanReportPage() {
                 <div className="flex flex-col gap-6">
                     <div>
                         <h3 className="text-sm font-medium text-muted-foreground mb-2">Period Totals</h3>
-                        <ReportTotals totals={report.totals}/>
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-2">Weekly Breakdown</h3>
-                        <WeeklyBreakdown weeks={report.weeks}/>
+                        <ReportTotals totals={report.totals} onItemClick={handleItemClick}/>
                     </div>
                 </div>
             )}

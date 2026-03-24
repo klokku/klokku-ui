@@ -207,6 +207,58 @@ export interface BudgetPlanReport {
     totals: ReportTotals;
 }
 
+// Budget Plan Item Detail Report
+export interface ItemWeekEntry {
+    weekNumber: string;
+    startDate: string;
+    endDate: string;
+    budgetPlanTime: number;
+    weeklyPlanTime: number;
+    actualTime: number;
+    isOffWeek: boolean;
+}
+
+export interface ItemDayEntry {
+    date: string;
+    actualTime: number;
+    dayOfWeek: number;
+}
+
+export interface DayOfWeekEntry {
+    dayOfWeek: number;
+    averageTime: number;
+}
+
+export interface BudgetPlanItemReport {
+    planId: number;
+    planName: string;
+    itemId: number;
+    itemName: string;
+    itemIcon: string;
+    itemColor: string;
+    startDate: string;
+    endDate: string;
+    totalActualTime: number;
+    totalBudgetPlanTime: number;
+    totalWeeklyPlanTime: number;
+    completionPercent: number;
+    remainingTime: number;
+    overBudgetTime: number;
+    averagePerDay: number;
+    averagePerActiveDay: number;
+    averagePerWeek: number;
+    medianPerDay: number;
+    medianPerActiveDay: number;
+    medianPerWeek: number;
+    activeDaysCount: number;
+    totalDaysCount: number;
+    weekCount: number;
+    excludedWeekCount: number;
+    weeks: ItemWeekEntry[];
+    days: ItemDayEntry[];
+    dayOfWeekAvg: DayOfWeekEntry[];
+}
+
 export interface Webhook {
     id: number;
     type: string;

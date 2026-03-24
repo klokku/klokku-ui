@@ -7,9 +7,10 @@ import {PlannedDiffBadge} from "@/pages/budgetPlanReport/PlannedDiffBadge.tsx";
 
 interface ReportTotalsProps {
     totals: ReportTotalsType;
+    onItemClick?: (itemId: number) => void;
 }
 
-export function ReportTotals({totals}: ReportTotalsProps) {
+export function ReportTotals({totals, onItemClick}: ReportTotalsProps) {
     return (
         <div className="rounded-md border overflow-hidden shadow-xs">
             <Table className="w-full border-collapse">
@@ -23,7 +24,11 @@ export function ReportTotals({totals}: ReportTotalsProps) {
                 </TableHeader>
                 <TableBody>
                     {totals.items.map((item) => (
-                        <TableRow key={item.budgetItemId}>
+                        <TableRow
+                            key={item.budgetItemId}
+                            onClick={() => onItemClick?.(item.budgetItemId)}
+                            className={onItemClick ? "cursor-pointer hover:bg-muted/50" : ""}
+                        >
                             <TableCell className="font-medium">
                                 <ReportItemName name={item.name} icon={item.icon} color={item.color}/>
                             </TableCell>

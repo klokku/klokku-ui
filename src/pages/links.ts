@@ -39,6 +39,10 @@ export const paths = {
     path: "/history/budget-report",
     title: "Budget Report"
   },
+  budgetPlanItemReport: {
+    path: "/history/budget-report/:planId/item/:itemId",
+    title: "Budget Item Detail"
+  },
   profile: {
     path: "/profile",
     title: "Profile"
@@ -63,4 +67,6 @@ export const paths = {
 };
 
 export const links = {
+  budgetPlanItemReport: (planId: number, itemId: number) =>
+    `/history/budget-report/${planId}/item/${itemId}`,
 };
