@@ -38,7 +38,7 @@ export function PlanItemSelect() {
     }
 
     return ( weeklyPlan &&
-        <Select onValueChange={onChange}>
+        <Select onValueChange={onChange} value={currentEvent?.planItem.budgetItemId?.toString()}>
             <SelectTrigger
                 className="relative border-0 pl-8 *:data-[slot=select-value]:text-white/80 [&_svg:not([class*='text-'])]:text-white/80
                     bg-white/20  hover:bg-white/30 focus:outline-hidden focus:ring-0 max-w-36 w-36 !h-7">
