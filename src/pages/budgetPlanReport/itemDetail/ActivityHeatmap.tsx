@@ -63,9 +63,9 @@ export function ActivityHeatmap({report, weekFirstDay}: ActivityHeatmapProps) {
                             {orderedLabels.map((label, i) => (
                                 <div
                                     key={i}
-                                    className="h-3 w-6 text-[9px] text-muted-foreground flex items-center"
+                                    className="h-5 w-6 text-[9px] text-muted-foreground flex items-center"
                                 >
-                                    {i % 2 === 1 ? label : ""}
+                                    {label}
                                 </div>
                             ))}
                         </div>
@@ -87,7 +87,7 @@ export function ActivityHeatmap({report, weekFirstDay}: ActivityHeatmapProps) {
                                         <Tooltip key={dateKey}>
                                             <TooltipTrigger asChild>
                                                 <div
-                                                    className="h-3 w-3 rounded-[2px] border border-transparent"
+                                                    className="h-5 w-5 rounded-[2px] border border-transparent"
                                                     style={{
                                                         backgroundColor: intensity > 0
                                                             ? `rgba(${colorBase}, ${intensity})`

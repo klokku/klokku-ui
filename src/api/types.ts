@@ -230,6 +230,12 @@ export interface DayOfWeekEntry {
     totalTime: number;
 }
 
+export interface HourlyHeatmapEntry {
+    dayOfWeek: number;
+    hour: number;
+    count: number;
+}
+
 export interface BudgetPlanItemReport {
     planId: number;
     planName: string;
@@ -258,6 +264,7 @@ export interface BudgetPlanItemReport {
     weeks: ItemWeekEntry[];
     days: ItemDayEntry[];
     dayOfWeekAvg: DayOfWeekEntry[];
+    hourlyHeatmap: HourlyHeatmapEntry[];
 }
 
 export interface Webhook {

@@ -9,6 +9,7 @@ import {CumulativeChart} from "@/pages/budgetPlanReport/itemDetail/CumulativeCha
 import {WeeklyComparisonChart} from "@/pages/budgetPlanReport/itemDetail/WeeklyComparisonChart.tsx";
 import {DayOfWeekChart} from "@/pages/budgetPlanReport/itemDetail/DayOfWeekChart.tsx";
 import {ActivityHeatmap} from "@/pages/budgetPlanReport/itemDetail/ActivityHeatmap.tsx";
+import {HourOfDayHeatmap} from "@/pages/budgetPlanReport/itemDetail/HourOfDayHeatmap.tsx";
 import {Spinner} from "@/components/ui/spinner.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {ArrowLeftIcon} from "lucide-react";
@@ -161,7 +162,10 @@ export function BudgetPlanItemDetailPage() {
                         <DayOfWeekChart report={report} weekFirstDay={weekFirstDay} mode="average"/>
                     </div>
 
-                    <ActivityHeatmap report={report} weekFirstDay={weekFirstDay}/>
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                        <ActivityHeatmap report={report} weekFirstDay={weekFirstDay}/>
+                        <HourOfDayHeatmap report={report} weekFirstDay={weekFirstDay}/>
+                    </div>
                 </div>
             )}
         </div>
