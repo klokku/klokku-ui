@@ -68,7 +68,7 @@ export function CurrentEventCard() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2" title="Current event">
                     <div className="flex gap-2 w-full">
-                        <Select onValueChange={onBudgetChange}>
+                        <Select onValueChange={onBudgetChange} value={currentPlanItem?.budgetItemId?.toString()}>
                             <SelectTrigger
                                 className="relative w-full pl-9 *:data-[slot=select-value]:text-black/80 [&_svg:not([class*='text-'])]:text-black/80">
                                 {currentPlanItem?.icon && getIcon(currentPlanItem.icon, "pointer-events-none absolute left-2" +
