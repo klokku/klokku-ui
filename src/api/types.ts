@@ -16,6 +16,7 @@ export interface BudgetPlanItem {
 
 export interface WeeklyPlan {
     budgetPlanId: number;
+    isOffWeek: boolean;
     items: WeeklyPlanItem[];
 }
 
@@ -162,6 +163,108 @@ export interface CalendarEvent {
     start: string;
     end: string;
     budgetItemId: number;
+}
+
+// Budget Plan Report
+export interface ReportItem {
+    budgetItemId: number;
+    name: string;
+    icon: string;
+    color: string;
+    position: number;
+    budgetPlanTime: number;   // seconds
+    weeklyPlanTime: number;   // seconds
+    actualTime: number;       // seconds
+    averagePerWeek: number;   // seconds
+    averagePerDay: number;    // seconds
+}
+
+export interface WeeklyReportEntry {
+    weekNumber: string;
+    startDate: string;
+    endDate: string;
+    items: ReportItem[];
+    totalBudgetPlanTime: number;
+    totalWeeklyPlanTime: number;
+    totalActualTime: number;
+}
+
+export interface ReportTotals {
+    items: ReportItem[];
+    totalBudgetPlanTime: number;
+    totalWeeklyPlanTime: number;
+    totalActualTime: number;
+}
+
+export interface BudgetPlanReport {
+    planId: number;
+    planName: string;
+    startDate: string;
+    endDate: string;
+    weekCount: number;
+    excludedWeekCount: number;
+    weeks: WeeklyReportEntry[];
+    totals: ReportTotals;
+}
+
+// Budget Plan Item Detail Report
+export interface ItemWeekEntry {
+    weekNumber: string;
+    startDate: string;
+    endDate: string;
+    budgetPlanTime: number;
+    weeklyPlanTime: number;
+    actualTime: number;
+    isOffWeek: boolean;
+}
+
+export interface ItemDayEntry {
+    date: string;
+    actualTime: number;
+    dayOfWeek: number;
+}
+
+export interface DayOfWeekEntry {
+    dayOfWeek: number;
+    averageTime: number;
+    totalTime: number;
+}
+
+export interface HourlyHeatmapEntry {
+    dayOfWeek: number;
+    hour: number;
+    count: number;
+}
+
+export interface BudgetPlanItemReport {
+    planId: number;
+    planName: string;
+    itemId: number;
+    itemName: string;
+    itemIcon: string;
+    itemColor: string;
+    startDate: string;
+    endDate: string;
+    totalActualTime: number;
+    totalBudgetPlanTime: number;
+    totalWeeklyPlanTime: number;
+    completionPercent: number;
+    remainingTime: number;
+    overBudgetTime: number;
+    averagePerDay: number;
+    averagePerActiveDay: number;
+    averagePerWeek: number;
+    medianPerDay: number;
+    medianPerActiveDay: number;
+    medianPerWeek: number;
+    activeDaysCount: number;
+    totalDaysCount: number;
+    weekCount: number;
+    excludedWeekCount: number;
+    weeks: ItemWeekEntry[];
+    days: ItemDayEntry[];
+    dayOfWeekAvg: DayOfWeekEntry[];
+    hourlyHeatmap: HourlyHeatmapEntry[];
 }
 
 export interface Webhook {

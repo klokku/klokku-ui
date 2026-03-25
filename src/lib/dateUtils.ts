@@ -1,4 +1,4 @@
-import {formatDate, intervalToDuration} from "date-fns";
+import {formatDate} from "date-fns";
 import parseDuration from "parse-duration";
 
 export function getCurrentWeekFirstDay(firstDayOfAWeek: "monday" | "sunday"): Date {
@@ -45,11 +45,9 @@ export function formatSecondsToDuration(seconds?: number, absolute: boolean = fa
 
     const isNegative = seconds < 0;
     const absSeconds = Math.abs(seconds);
-    const duration = intervalToDuration({ start: 0, end: absSeconds * 1000 });
-    const days = duration.days ? duration.days : 0;
-    const hours = duration.hours ? duration.hours : 0;
-    const minutes = duration.minutes ? duration.minutes : 0;
-    const result = `${days * 24 + hours}h ${minutes}m`;
+    const totalHours = Math.floor(absSeconds / 3600);
+    const totalMinutes = Math.floor((absSeconds % 3600) / 60);
+    const result = `${totalHours}h ${totalMinutes}m`;
 
     return isNegative && !absolute ? `-${result}` : result;
 }

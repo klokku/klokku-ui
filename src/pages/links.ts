@@ -23,6 +23,10 @@ export const paths = {
     path: "/history",
     title: "History"
   },
+  historyCurrentPlan: {
+    path: "/history/current-plan",
+    title: "Current Plan"
+  },
   calendar: {
     path: "/calendar",
     title: "Calendar"
@@ -30,6 +34,14 @@ export const paths = {
   budgetPlans: {
     path: "/budget-plans",
     title: "Budget Plans"
+  },
+  budgetPlanReport: {
+    path: "/history/budget-report",
+    title: "Budget Report"
+  },
+  budgetPlanItemReport: {
+    path: "/history/budget-report/:planId/item/:itemId",
+    title: "Budget Item Detail"
   },
   profile: {
     path: "/profile",
@@ -55,4 +67,6 @@ export const paths = {
 };
 
 export const links = {
+  budgetPlanItemReport: (planId: number, itemId: number) =>
+    `/history/budget-report/${planId}/item/${itemId}`,
 };

@@ -9,6 +9,7 @@ type HookType = (inWeekDate: Date) => {
     resetWeeklyPlan: (inWeekDate: Date) => Promise<WeeklyPlan>;
     resetWeeklyPlanItem: (weeklyPlanItemId: number) => Promise<WeeklyPlanItem>;
     updateWeeklyPlanItem: (inWeekDate: Date, itemUpdate: {budgetItemId: number, weeklyDuration: number, notes: string}) => Promise<WeeklyPlanItem>;
+    setOffWeek: (inWeekDate: Date, isOffWeek: boolean) => Promise<WeeklyPlan>;
 };
 
 const useWeeklyPlan: HookType = (inWeekDate: Date) => {
@@ -96,6 +97,22 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
         },
     })
 
+    const setOffWeekMutation = useMutation({
+        mutationFn: async (params: {inWeekDate: Date, isOffWeek: boolean}) => {
+            const response = await fetchWithAuth(`/api/weeklyplan/off-week?date=${encodeURIComponent(toServerFormat(params.inWeekDate))}`, {
+                method: "PUT",
+                body: JSON.stringify({isOffWeek: params.isOffWeek}),
+            });
+            if (!response.ok) {
+                throw new Error("Failed to set off week");
+            }
+            return response.json() as WeeklyPlan;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["weeklyPlan"] });
+        },
+    });
+
     const resetWeeklyPlan = async (inWeekDate: Date) => {
         return resetPlan.mutateAsync(inWeekDate);
     };
@@ -108,12 +125,17 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
         return updatePlanItem.mutateAsync({inWeekDate, ...itemUpdate});
     };
 
+    const setOffWeek = async (inWeekDate: Date, isOffWeek: boolean) => {
+        return setOffWeekMutation.mutateAsync({inWeekDate, isOffWeek});
+    };
+
     return {
         weeklyPlan: data,
         isLoading,
-        resetWeeklyPlan: resetWeeklyPlan,
-        resetWeeklyPlanItem: resetWeeklyPlanItem,
-        updateWeeklyPlanItem: updateWeeklyPlanItem,
+        resetWeeklyPlan,
+        resetWeeklyPlanItem,
+        updateWeeklyPlanItem,
+        setOffWeek,
     };
 };
 

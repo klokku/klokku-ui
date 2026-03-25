@@ -16,6 +16,8 @@ import MainLayout from "@/pages/MainLayout.tsx";
 import UserProfileLayout from "@/pages/UserProfileLayout.tsx";
 import WeeklyPlanningPage from "@/pages/planning/WeeklyPlanningPage.tsx";
 import {AppSettingsPage} from "@/pages/settings/AppSettingsPage.tsx";
+import {BudgetPlanReportPage} from "@/pages/budgetPlanReport/BudgetPlanReportPage.tsx";
+import {BudgetPlanItemDetailPage} from "@/pages/budgetPlanReport/itemDetail/BudgetPlanItemDetailPage.tsx";
 
 const AppRoutes = () => (
     <Routes>
@@ -24,7 +26,9 @@ const AppRoutes = () => (
         <Route path={paths.root.path} element={<LoggedInUserRoot/>} errorElement={<ErrorPage/>}>
             <Route element={<MainLayout/>}>
                 <Route index element={<DashboardPage/>}/>
-                <Route path={paths.history.path} element={<HistoryPage/>}/>
+                <Route path={paths.historyCurrentPlan.path} element={<HistoryPage/>}/>
+                <Route path={paths.budgetPlanReport.path} element={<BudgetPlanReportPage/>}/>
+                <Route path={paths.budgetPlanItemReport.path} element={<BudgetPlanItemDetailPage/>}/>
                 <Route path={paths.budgetPlans.path} element={<BudgetPlansPage/>}/>
                 <Route path={paths.calendar.path} element={<CalendarPage/>}/>
                 <Route path={paths.weeklyPlanning.path} element={<WeeklyPlanningPage/>}/>

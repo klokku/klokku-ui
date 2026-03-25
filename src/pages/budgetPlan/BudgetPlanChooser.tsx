@@ -62,7 +62,7 @@ export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanI
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon">
+                            <Button variant="outline" size="icon" aria-label="Open plan settings">
                                 <Settings2Icon className="size-4"/>
                             </Button>
                         </DropdownMenuTrigger>

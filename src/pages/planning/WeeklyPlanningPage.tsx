@@ -1,7 +1,7 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
-import {CheckCircleIcon, FolderIcon, PencilIcon, TextAlignStartIcon, TriangleAlertIcon} from "lucide-react";
+import {BanIcon, CheckCircleIcon, ChevronDownIcon, FolderIcon, PalmtreeIcon, PencilIcon, TextAlignStartIcon, TriangleAlertIcon} from "lucide-react";
 import {formatSecondsToDuration, getCurrentWeekFirstDay, nextWeekStart, previousWeekStart, weekEndDay} from "@/lib/dateUtils.ts";
 import useProfile from "@/api/useProfile.ts";
 import {defaultSettings} from "@/components/settings.ts";
@@ -25,6 +25,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog.tsx";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu.tsx";
 import WeeklyPlanItemDetailsDialog from "@/components/weeklyPlanItem/WeeklyPlanItemDetailsDialog.tsx";
 import {Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty.tsx";
 import {paths} from "@/pages/links.ts";
@@ -42,7 +49,7 @@ export default function WeeklyPlanningPage() {
     const initialWeekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
     const [weekFirstDay, setWeekFirstDay] = useState(initialWeekFirstDay)
 
-    const {weeklyPlan, isLoading, updateWeeklyPlanItem, resetWeeklyPlanItem, resetWeeklyPlan} = useWeeklyPlan(weekFirstDay)
+    const {weeklyPlan, isLoading, updateWeeklyPlanItem, resetWeeklyPlanItem, resetWeeklyPlan, setOffWeek} = useWeeklyPlan(weekFirstDay)
     const {budgetPlanDetails, isLoadingBudgetPlanDetails} = useBudgetPlan(weeklyPlan?.budgetPlanId)
 
     const {weeklyPlan: previousWeek, isLoading: previousWeekIsLoading} = useWeeklyPlan(previousWeekStart(weekFirstDay))
@@ -123,6 +130,10 @@ export default function WeeklyPlanningPage() {
         setResetConfirmDialogOpen(false)
     }
 
+    async function toggleOffWeek() {
+        await setOffWeek(weekFirstDay, !weeklyPlan!.isOffWeek)
+    }
+
     function isWeeklyItemModified(weeklyItem: WeeklyPlanItem, budgetItem: BudgetPlanItem): boolean {
         return weeklyItem.weeklyDuration !== budgetItem.weeklyDuration || weeklyItem.notes !== ""
     }
@@ -143,15 +154,46 @@ export default function WeeklyPlanningPage() {
         return iconComponent ? createElement(iconComponent, {className}) : null
     };
 
+    const isOffWeek = weeklyPlan.isOffWeek
+
     return (
         <div className="grow flex flex-col gap-2">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                 <WeekChooser currentWeekStart={weekFirstDay} onNext={onNextWeek} onPrevious={onPreviousWeek} onDateChanged={onWeekChanged} isPreviousEnabled={isPreviousEnabled} />
-                <Button variant="outline" size="sm" onClick={() => setResetConfirmDialogOpen(true)} className="w-full md:w-auto">
-                    Reset to Budget Plan
-                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-full md:w-auto">
+                            Actions <ChevronDownIcon className="size-4 ml-1"/>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={toggleOffWeek}>
+                            {isOffWeek
+                                ? <><BanIcon className="size-4 mr-2"/> Unmark as off week</>
+                                : <><PalmtreeIcon className="size-4 mr-2"/> Mark as off week</>
+                            }
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator/>
+                        <DropdownMenuItem onClick={() => setResetConfirmDialogOpen(true)}>
+                            Reset to Budget Plan
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
-            <div className="rounded-sm border overflow-hidden shadow-xs">
+
+            {isOffWeek && (
+                <div className="flex items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <div className="flex items-center gap-2">
+                        <PalmtreeIcon className="size-4 shrink-0"/>
+                        <span>This week is marked as off and will be excluded from budget plan reports.</span>
+                    </div>
+                    <Button variant="outline" size="sm" className="shrink-0 border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100" onClick={toggleOffWeek}>
+                        Unmark
+                    </Button>
+                </div>
+            )}
+
+            <div className={`rounded-sm border overflow-hidden shadow-xs${isOffWeek ? " opacity-50 pointer-events-none" : ""}`}>
                 <Table className="w-full border-collapse">
                     <TableHeader>
                         <TableRow className="bg-gray-50">
@@ -159,7 +201,7 @@ export default function WeeklyPlanningPage() {
                             <TableHead className="font-medium w-[30%]">
                                 <div className="flex items-center gap-1.5">
                                     {/* Empty space to match note icon width */}
-                                    <div className="w-4 flex-shrink-0"></div>
+                                    <div className="w-4 shrink-0"></div>
                                     <span>Planned</span>
                                 </div>
                             </TableHead>
@@ -176,12 +218,12 @@ export default function WeeklyPlanningPage() {
                                         <div className="flex items-center gap-2">
                                             {weeklyItem.color && (
                                                 <div
-                                                    className="w-1 h-5 rounded-full flex-shrink-0"
+                                                    className="w-1 h-5 rounded-full shrink-0"
                                                     style={{backgroundColor: weeklyItem.color}}
                                                 />
                                             )}
                                             {weeklyItem.icon && getIcon(weeklyItem.icon, "size-5 text-gray-500 flex-shrink-0")}
-                                            {!weeklyItem.icon && <Square2StackIcon className="size-5 text-gray-500 flex-shrink-0"/>}
+                                            {!weeklyItem.icon && <Square2StackIcon className="size-5 text-gray-500 shrink-0"/>}
                                             <span
                                                 className="cursor-pointer hover:text-blue-600 transition-colors"
                                                 onClick={() => openItemDetailsDialog(weeklyItem, budgetItem)}
@@ -196,7 +238,7 @@ export default function WeeklyPlanningPage() {
                                     >
                                         <div className="flex items-center gap-1.5">
                                             {/* Note icon - fixed width to maintain alignment */}
-                                            <div className="w-4 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                            <div className="w-4 shrink-0" onClick={(e) => e.stopPropagation()}>
                                                 {weeklyItem.notes && (
                                                     <Popover>
                                                         <PopoverTrigger asChild>
@@ -225,9 +267,9 @@ export default function WeeklyPlanningPage() {
                                                 </div>
                                             )}
                                             {/* Desktop: Show on hover */}
-                                            <PencilIcon className="hidden md:block size-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1"/>
+                                            <PencilIcon className="hidden md:block size-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-1"/>
                                             {/* Mobile: Always visible */}
-                                            <PencilIcon className="md:hidden size-3.5 text-muted-foreground flex-shrink-0 ml-1"/>
+                                            <PencilIcon className="md:hidden size-3.5 text-muted-foreground shrink-0 ml-1"/>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -238,7 +280,7 @@ export default function WeeklyPlanningPage() {
                             <TableCell>
                                 <div className="flex items-center gap-1.5">
                                     {/* Empty space to match note icon width */}
-                                    <div className="w-4 flex-shrink-0"></div>
+                                    <div className="w-4 shrink-0"></div>
                                     <span className="font-bold">{formatSecondsToDuration(totalPlannedTime)}</span>
                                     {totalPlannedTime === 7 * 24 * 60 * 60 &&
                                         <CheckCircleIcon className="size-4 text-green-500"/>
