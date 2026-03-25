@@ -8,8 +8,8 @@ interface BurndownChartProps {
 }
 
 export function BurndownChart({report}: BurndownChartProps) {
-    const totalWeeks = report.weeks.length;
-    if (totalWeeks === 0) return null;
+    const activeWeeks = report.weeks.filter((w) => !w.isOffWeek);
+    if (activeWeeks.length === 0) return null;
 
     let cumulativeActual = 0;
     const data = [
@@ -18,12 +18,10 @@ export function BurndownChart({report}: BurndownChartProps) {
             remaining: report.totalBudgetPlanTime,
             ideal: report.totalBudgetPlanTime,
         },
-        ...report.weeks.map((w, i) => {
-            if (!w.isOffWeek) {
-                cumulativeActual += w.actualTime;
-            }
+        ...activeWeeks.map((w, i) => {
+            cumulativeActual += w.actualTime;
             const remaining = Math.max(0, report.totalBudgetPlanTime - cumulativeActual);
-            const ideal = Math.max(0, report.totalBudgetPlanTime * (1 - (i + 1) / totalWeeks));
+            const ideal = Math.max(0, report.totalBudgetPlanTime * (1 - (i + 1) / activeWeeks.length));
             return {
                 label: w.weekNumber.replace(/^\d{4}-/, ""),
                 remaining,

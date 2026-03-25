@@ -10,12 +10,11 @@ interface WeeklyComparisonChartProps {
 export function WeeklyComparisonChart({report}: WeeklyComparisonChartProps) {
     if (report.weeks.length === 0) return null;
 
-    const data = report.weeks.map((w) => ({
+    const data = report.weeks.filter((w) => !w.isOffWeek).map((w) => ({
         label: w.weekNumber.replace(/^\d{4}-/, ""),
         budgetPlan: w.budgetPlanTime,
         weeklyPlan: w.weeklyPlanTime,
         actual: w.actualTime,
-        isOffWeek: w.isOffWeek,
     }));
 
     return (

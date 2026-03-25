@@ -8,15 +8,14 @@ interface CumulativeChartProps {
 }
 
 export function CumulativeChart({report}: CumulativeChartProps) {
-    if (report.weeks.length === 0) return null;
+    const activeWeeks = report.weeks.filter((w) => !w.isOffWeek);
+    if (activeWeeks.length === 0) return null;
 
     let cumulative = 0;
     const data = [
         {label: "Start", cumulative: 0},
-        ...report.weeks.map((w) => {
-            if (!w.isOffWeek) {
-                cumulative += w.actualTime;
-            }
+        ...activeWeeks.map((w) => {
+            cumulative += w.actualTime;
             return {
                 label: w.weekNumber.replace(/^\d{4}-/, ""),
                 cumulative,

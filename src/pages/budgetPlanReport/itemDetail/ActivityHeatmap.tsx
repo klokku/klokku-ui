@@ -40,12 +40,13 @@ export function ActivityHeatmap({report, weekFirstDay}: ActivityHeatmapProps) {
 
     const orderedLabels = orderedDayIndices.map((i) => DAY_LABELS[i]);
 
-    // Build week columns from the report weeks
-    const weekColumns: {weekNumber: string; startDate: Date; isOffWeek: boolean}[] = report.weeks.map((w) => ({
-        weekNumber: w.weekNumber,
-        startDate: new Date(w.startDate),
-        isOffWeek: w.isOffWeek,
-    }));
+    // Build week columns from the report weeks (excluding off-weeks)
+    const weekColumns: {weekNumber: string; startDate: Date}[] = report.weeks
+        .filter((w) => !w.isOffWeek)
+        .map((w) => ({
+            weekNumber: w.weekNumber,
+            startDate: new Date(w.startDate),
+        }));
 
     const rgb = hexToRgb(report.itemColor);
     const colorBase = rgb ? `${rgb.r}, ${rgb.g}, ${rgb.b}` : "34, 197, 94";
@@ -80,7 +81,7 @@ export function ActivityHeatmap({report, weekFirstDay}: ActivityHeatmapProps) {
                                     cellDate.setDate(cellDate.getDate() + dayOffset);
                                     const dateKey = formatDate(cellDate, "yyyy-MM-dd");
 
-                                    const actualTime = week.isOffWeek ? 0 : (dayMap.get(dateKey) || 0);
+                                    const actualTime = dayMap.get(dateKey) || 0;
                                     const intensity = actualTime > 0 ? Math.max(0.15, actualTime / maxTime) : 0;
 
                                     return (
