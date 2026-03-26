@@ -62,6 +62,10 @@ export const paths = {
   apiKeys: {
     path: "/api-keys",
     title: "API Keys",
+  },
+  help: {
+    path: "/help",
+    title: "Help & Feedback",
   }
 
 };

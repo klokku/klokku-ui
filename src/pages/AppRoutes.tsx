@@ -18,6 +18,7 @@ import WeeklyPlanningPage from "@/pages/planning/WeeklyPlanningPage.tsx";
 import {AppSettingsPage} from "@/pages/settings/AppSettingsPage.tsx";
 import {BudgetPlanReportPage} from "@/pages/budgetPlanReport/BudgetPlanReportPage.tsx";
 import {BudgetPlanItemDetailPage} from "@/pages/budgetPlanReport/itemDetail/BudgetPlanItemDetailPage.tsx";
+import {HelpPage} from "@/pages/help/HelpPage.tsx";
 
 const AppRoutes = () => (
     <Routes>
@@ -38,6 +39,7 @@ const AppRoutes = () => (
                 <Route path={paths.appSettings.path} element={<AppSettingsPage/>}/>
                 <Route path={paths.integrations.path} element={<IntegrationsPage/>}/>
                 <Route path={paths.logout.path} element={<LogoutPage/>}/>
+                <Route path={paths.help.path} element={<HelpPage/>}/>
             </Route>
         </Route>
         <Route path="*" element={<ErrorPage404/>} />
