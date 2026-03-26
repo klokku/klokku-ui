@@ -10,7 +10,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
-import {ArrowLeftIcon, BlocksIcon, CodeIcon, LockIcon, SettingsIcon, UserIcon} from "lucide-react";
+import {ArrowLeftIcon, BlocksIcon, CodeIcon, HelpCircleIcon, LockIcon, SettingsIcon, UserIcon} from "lucide-react";
 import {paths} from "@/pages/links.ts";
 import {NavLink} from "react-router";
 import {useLocation, useNavigate} from "react-router-dom";
@@ -51,6 +51,13 @@ const items = [
         url: paths.apiKeys.path,
         icon: CodeIcon,
         onSecurityEnabledOnly: true,
+        redirect: true,
+    },
+    {
+        title: paths.help.title,
+        url: paths.help.path,
+        icon: HelpCircleIcon,
+        onSecurityEnabledOnly: false,
         redirect: true,
     },
 ]

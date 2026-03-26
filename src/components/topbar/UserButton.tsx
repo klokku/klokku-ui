@@ -1,5 +1,5 @@
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar.tsx";
-import {BlocksIcon, ChevronDownIcon, ChevronUpIcon, LogOutIcon, UserIcon} from "lucide-react";
+import {BlocksIcon, ChevronDownIcon, ChevronUpIcon, HelpCircleIcon, LogOutIcon, UserIcon} from "lucide-react";
 import {useState} from "react";
 import {
     DropdownMenu,
@@ -37,6 +37,10 @@ export function UserButton({profile}: UserButtonProps) {
 
     function navigateToIntegrations() {
         navigate(paths.integrations.path);
+    }
+
+    function navigateToHelp() {
+        window.location.href = paths.help.path;
     }
 
     function getInitials(username: string) {
@@ -83,6 +87,11 @@ export function UserButton({profile}: UserButtonProps) {
                     <BlocksIcon className="opacity-50" />
                     Integrations
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {navigateToHelp()}}>
+                    <HelpCircleIcon className="opacity-50" />
+                    Help & Feedback
+                </DropdownMenuItem>
+                <DropdownMenuSeparator/>
                 <DropdownMenuItem onClick={() => {logout()}}>
                     <LogOutIcon className="opacity-50" />
                     Log out
