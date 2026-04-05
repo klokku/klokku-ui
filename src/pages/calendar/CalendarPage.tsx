@@ -18,20 +18,19 @@ import {PlusIcon} from "lucide-react";
 export function CalendarPage() {
 
     const {currentProfile} = useProfile()
+    const isMobile = useIsMobile();
     const currentWeekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay);
 
     const lastWeekDay = weekEndDay(currentWeekFirstDay)
     const [calendarStart, setCalendarStart] = useState<Date>(currentWeekFirstDay);
     const [calendarEnd, setCalendarEnd] = useState<Date>(lastWeekDay);
-    const [currentViewDate, setCurrentViewDate] = useState<Date>(currentWeekFirstDay); // Track current view date
+    const [currentViewDate, setCurrentViewDate] = useState<Date>(isMobile ? new Date() : currentWeekFirstDay);
 
     const calendarRef = useRef<FullCalendar>(null);
 
     const {isLoading, events, modifyEvent, createEvent, deleteEvent} = useCalendar(calendarStart, calendarEnd);
     const {currentEvent} = useCurrentEvent();
     const {weeklyPlan} = useWeeklyPlan(currentWeekFirstDay)
-
-    const isMobile = useIsMobile();
 
     // Popover editor state
     const [popoverOpen, setPopoverOpen] = useState(false);
@@ -243,11 +242,7 @@ export function CalendarPage() {
                         function (datesSet) {
                             setCalendarStart(datesSet.start)
                             setCalendarEnd(datesSet.end)
-                            if (isMobile) {
-                                setCurrentViewDate(new Date())
-                            } else {
-                                setCurrentViewDate(datesSet.start)
-                            }
+                            setCurrentViewDate(datesSet.start)
                         }
                     }
                     unselectCancel={'.calendar-unselect-cancel'}
