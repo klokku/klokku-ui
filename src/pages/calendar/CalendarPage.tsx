@@ -12,6 +12,8 @@ import {EventDetails, EventDetailsPopover} from "@/pages/calendar/EventDetailsPo
 import {useIsMobile} from "@/hooks/use-mobile.tsx";
 import useProfile from "@/api/useProfile.ts";
 import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
+import {Button} from "@/components/ui/button.tsx";
+import {PlusIcon} from "lucide-react";
 
 export function CalendarPage() {
 
@@ -150,6 +152,21 @@ export function CalendarPage() {
         calendarRef.current?.getApi().unselect();
     };
 
+    const onAddEvent = () => {
+        const now = new Date();
+        // Round to previous 30-minute slot
+        const minutes = Math.floor(now.getMinutes() / 30) * 30;
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), minutes);
+        const start = new Date(end.getTime() - 60 * 60 * 1000); // 1 hour duration
+
+        setEventDetailsInput({
+            startDate: start,
+            endDate: end,
+        });
+        setAnchorPos({x: window.innerWidth / 2, y: window.innerHeight / 2});
+        setPopoverOpen(true);
+    };
+
     const handleSave = async (event: EventDetails) => {
         if (event.uid && event.budgetPlanItemId) {
             const updated: CalendarEvent = {
@@ -250,6 +267,13 @@ export function CalendarPage() {
                                      onDelete={handleDelete}
                 />
             )}
+            <Button
+                size="icon-lg"
+                className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg calendar-unselect-cancel"
+                onClick={onAddEvent}
+            >
+                <PlusIcon/>
+            </Button>
         </>
     )
 }
