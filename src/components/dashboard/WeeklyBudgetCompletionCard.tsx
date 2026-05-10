@@ -130,7 +130,7 @@ export function WeeklyBudgetCompletionCard() {
             </CardContent>
             <CardFooter className="flex-col items-end gap-2 text-sm">
                 <div className="leading-none text-muted-foreground">
-                    <NavLink to={paths.history.path}>See more</NavLink>
+                    <NavLink to={paths.historyCurrentPlan.path}>See more</NavLink>
                 </div>
             </CardFooter>
         </Card>
