@@ -20,7 +20,7 @@ export const paths = {
     title: "Planning"
   },
   history: {
-    path: "/history",
+    path: "/history/current-plan",
     title: "History"
   },
   historyCurrentPlan: {
