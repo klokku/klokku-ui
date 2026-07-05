@@ -51,8 +51,8 @@ export function BurndownChart({report}: BurndownChartProps) {
                             width={60}
                         />
                         <Tooltip
-                            formatter={(value: number, name: string) => [
-                                formatSecondsToDuration(value),
+                            formatter={(value, name) => [
+                                formatSecondsToDuration(value as number),
                                 name === "remaining" ? "Remaining" : "Ideal",
                             ]}
                         />
