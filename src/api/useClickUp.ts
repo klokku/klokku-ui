@@ -153,7 +153,8 @@ const useClickUp: HookType = (budgetPlanId?: number) => {
             if (!response.ok) {
                 throw new Error("ClickUp integration authentication failed");
             }
-            return (response.json()) as unknown as ClickUpAuthRedirect;
+            const data = await response.json();
+            return data as ClickUpAuthRedirect;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["currentProfile"]});

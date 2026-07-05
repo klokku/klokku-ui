@@ -45,7 +45,8 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
                 throw new Error("Failed to reset weekly plan");
             }
 
-            return response.json() as unknown as WeeklyPlan;
+            const data = await response.json();
+            return data as WeeklyPlan;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["weeklyPlan"] });
@@ -66,7 +67,8 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
                 throw new Error("Failed to update weekly plan item");
             }
 
-            return response.json() as unknown as WeeklyPlanItem;
+            const data = await response.json();
+            return data as WeeklyPlanItem;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["weeklyPlan"] });
@@ -87,7 +89,8 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
                 throw new Error("Failed to reset weekly plan item");
             }
 
-            return response.json() as unknown as WeeklyPlanItem;
+            const data = await response.json();
+            return data as WeeklyPlanItem;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["weeklyPlan"] });
@@ -106,7 +109,8 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
             if (!response.ok) {
                 throw new Error("Failed to set off week");
             }
-            return response.json() as unknown as WeeklyPlan;
+            const data = await response.json();
+            return data as WeeklyPlan;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["weeklyPlan"] });
