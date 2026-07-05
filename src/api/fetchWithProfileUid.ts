@@ -20,7 +20,7 @@ export const fetchWithProfileUid = async (
 };
 
 const addHeaders = async (
-    fetchFn: (url: string, options?: RequestInit) => Promise<any>,
+    fetchFn: (url: string, options?: RequestInit) => Promise<Response>,
     url: string,
     currentProfileUid: string | null,
     options: RequestInit = {}

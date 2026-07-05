@@ -71,7 +71,7 @@ export function CalendarIntegrationForm({settings, onCalendarTypeChange, onGoogl
                             <SelectValue placeholder="Choose calendar to store events"/>
                         </SelectTrigger>
                         <SelectContent>
-                            {calendars!!.map((calendar) => (
+                            {calendars!.map((calendar) => (
                                 <SelectItem value={calendar.id} key={calendar.id}>
                                     {calendar.summary}
                                 </SelectItem>

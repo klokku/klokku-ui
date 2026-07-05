@@ -25,10 +25,12 @@ export function BudgetsStatsPieChart({chartData}: BudgetsStatsPieChartProps) {
             className="mx-auto max-h-[250px] pb-0 [&_.recharts-pie-label-text]:fill-foreground"
         >
             <PieChart>
-                <ChartTooltip content={<ChartTooltipContent hideLabel formatter={(_value, _name, _item, _index, payload: any) => {
+                <ChartTooltip content={<ChartTooltipContent hideLabel formatter={(_value, _name, item) => {
+                    const data = (item?.payload as { payload?: BudgetsPieChartData } | undefined)?.payload;
+                    if (!data) return null;
                     return <div>
-                        {payload.payload.budget}<br/>
-                        {payload.payload.timeFormated}
+                        {data.budget}<br/>
+                        {data.timeFormated}
                     </div>
                 }}/>}/>
                 <Pie data={chartData} dataKey="time" label={entry => entry.name} nameKey="budget"/>

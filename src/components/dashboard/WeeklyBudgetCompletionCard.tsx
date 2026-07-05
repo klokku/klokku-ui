@@ -2,6 +2,7 @@ import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} f
 import {getCurrentWeekFirstDay, weekEndDay} from "@/lib/dateUtils.ts";
 import useWeeklyStats from "@/api/useStats.ts";
 import {Bar, BarChart, LabelList, XAxis, YAxis} from "recharts"
+import type {LabelProps} from "recharts"
 import {ChartConfig, ChartContainer} from "@/components/ui/chart"
 import {PlanItemStats} from "@/api/types.ts";
 import useCurrentEvent from "@/api/useCurrentEvent.ts";
@@ -98,14 +99,13 @@ export function WeeklyBudgetCompletionCard() {
                         <Bar dataKey="completion" layout="vertical" radius={5} unit="%" name="Completion (%)">
                         <LabelList
                             dataKey="completion"
-                            formatter={(value: number) => `${value}%`}
-                            position="insideRight"
-                            offset={8}
-                            className="fill-gray-700"
-                            fontSize={12}
-                            content={(props: any) => {
-                                const { x, y, width, height, value, index } = props;
-                                const item = chartData?.[index];
+                            content={(props: LabelProps) => {
+                                const { value, index } = props;
+                                const x = Number(props.x ?? 0);
+                                const y = Number(props.y ?? 0);
+                                const width = Number(props.width ?? 0);
+                                const height = Number(props.height ?? 0);
+                                const item = index != null ? chartData[index] : undefined;
                                 const position = item?.labelPosition || 'insideRight';
                                 const xPos = position === 'right' ? x + width + 8 : x + width - 8;
                                 const textAnchor = position === 'right' ? 'start' : 'end';

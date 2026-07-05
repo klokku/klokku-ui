@@ -13,7 +13,7 @@ export default function UserProfileLayout() {
     const {isLoading} = useExternalSecurity()
 
     function findTitle(path: string) {
-        for (const [_, value] of Object.entries(paths)) {
+        for (const [, value] of Object.entries(paths)) {
             if (value.path === path) return value.title;
         }
         return "Unknown";

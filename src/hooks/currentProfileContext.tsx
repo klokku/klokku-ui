@@ -7,7 +7,7 @@ type CurrentProfileContextType = {
 
 const CurrentProfileContext = createContext<CurrentProfileContextType | undefined>(undefined)
 
-export const CurrentProfileProvider = ({children}: PropsWithChildren<{}>) => {
+export const CurrentProfileProvider = ({children}: PropsWithChildren) => {
     const [currentProfileUid, setCurrentProfileUid] = useState<string | null>(null);
 
     return (

@@ -5,9 +5,7 @@ import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 import {Navigate} from "react-router-dom";
 import {Spinner} from "@/components/ui/spinner.tsx";
 
-type Props = {};
-
-const ProtectedRoute = ({children}: PropsWithChildren<Props>) => {
+const ProtectedRoute = ({children}: PropsWithChildren) => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [isProfileSet, setIsProfileSet] = useState(false);

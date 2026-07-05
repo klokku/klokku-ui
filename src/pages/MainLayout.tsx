@@ -10,7 +10,7 @@ export default function MainLayout() {
     const location = useLocation();
 
     function findTitle(pathname: string) {
-        for (const [_, value] of Object.entries(paths)) {
+        for (const [, value] of Object.entries(paths)) {
             if (value.path === pathname) return value.title;
             // Match parameterized paths like /history/budget-report/:planId/item/:itemId
             const regex = new RegExp("^" + value.path.replace(/:[^/]+/g, "[^/]+") + "$");
