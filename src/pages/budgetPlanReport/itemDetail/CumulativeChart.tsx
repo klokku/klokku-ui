@@ -44,8 +44,8 @@ export function CumulativeChart({report}: CumulativeChartProps) {
                             width={60}
                         />
                         <Tooltip
-                            formatter={(value: number) => [
-                                formatSecondsToDuration(value),
+                            formatter={(value) => [
+                                formatSecondsToDuration(value as number),
                                 "Tracked",
                             ]}
                         />

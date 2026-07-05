@@ -46,8 +46,8 @@ export function DayOfWeekChart({report, mode}: DayOfWeekChartProps) {
                             width={60}
                         />
                         <Tooltip
-                            formatter={(value: number) => [
-                                formatSecondsToDuration(value),
+                            formatter={(value) => [
+                                formatSecondsToDuration(value as number),
                                 tooltipLabel,
                             ]}
                         />

@@ -96,7 +96,7 @@ export function WeeklyBudgetCompletionCard() {
                             axisLine={false}
                             width={100}
                         />
-                        <Bar dataKey="completion" layout="vertical" radius={5} unit="%" name="Completion (%)">
+                        <Bar dataKey="completion" radius={5} unit="%" name="Completion (%)">
                         <LabelList
                             dataKey="completion"
                             content={(props: LabelProps) => {

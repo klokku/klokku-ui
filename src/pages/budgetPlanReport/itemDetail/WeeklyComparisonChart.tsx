@@ -38,13 +38,13 @@ export function WeeklyComparisonChart({report}: WeeklyComparisonChartProps) {
                             width={60}
                         />
                         <Tooltip
-                            formatter={(value: number, name: string) => {
+                            formatter={(value, name) => {
                                 const labels: Record<string, string> = {
                                     budgetPlan: "Budget Plan",
                                     weeklyPlan: "Weekly Plan",
                                     actual: "Actual",
                                 };
-                                return [formatSecondsToDuration(value), labels[name] || name];
+                                return [formatSecondsToDuration(value as number), labels[String(name)] || String(name)];
                             }}
                         />
                         <Legend
