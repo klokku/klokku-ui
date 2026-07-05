@@ -45,8 +45,13 @@ export function DateTimePicker({value, onChange}: Props) {
                         <Calendar
                             mode="single"
                             selected={date}
-                            onSelect={(date) => {
-                                onChangeDate(date!)
+                            onSelect={(selectedDate) => {
+                                if (!selectedDate) return
+                                const newDate = new Date(date)
+                                newDate.setFullYear(selectedDate.getFullYear())
+                                newDate.setMonth(selectedDate.getMonth())
+                                newDate.setDate(selectedDate.getDate())
+                                onChangeDate(newDate)
                                 setOpen(false)
                             }}
                         />
