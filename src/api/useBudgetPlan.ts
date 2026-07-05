@@ -52,7 +52,8 @@ const useBudgetPlan: HookType = (planId?: number) => {
                 throw new Error("Failed to create budget plan");
             }
 
-            return response.json() as unknown as BudgetPlan;
+            const data = await response.json();
+            return data as BudgetPlan;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["budgetPlans"]});
@@ -77,7 +78,8 @@ const useBudgetPlan: HookType = (planId?: number) => {
                 throw new Error("Failed to update budget plan");
             }
 
-            return response.json() as unknown as BudgetPlan;
+            const data = await response.json();
+            return data as BudgetPlan;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["budgetPlans"]});
