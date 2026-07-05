@@ -36,7 +36,7 @@ const useGoogle: HookType = () => {
             if (!response.ok) {
                 throw new Error("Google integration authentication failed");
             }
-            return (response.json()) as GoogleAuthRedirect;
+            return (response.json()) as unknown as GoogleAuthRedirect;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["currentProfile"]});
