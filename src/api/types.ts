@@ -90,7 +90,7 @@ export interface CurrentEventPlanItem {
 export interface ProfileSettings {
     timezone: string;
     weekStartDay: "monday" | "sunday";
-    eventCalendarType: "google" | "klokku" | "";
+    eventCalendarType: "google" | "klokku";
     googleCalendar?: {
         calendarId: string;
     };
