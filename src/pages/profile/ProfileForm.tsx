@@ -33,10 +33,9 @@ export function ProfileForm({profile, onSave}: Props) {
             displayName: formData.displayName,
             photoUrl: formData.photoUrl || "",
             settings: {
+                ...profile.settings,
                 timezone: formData.timezone,
                 weekStartDay: formData.weekStartDay,
-                eventCalendarType: "",
-                ignoreShortEvents: profile?.settings.ignoreShortEvents ?? false,
             }
         });
     }

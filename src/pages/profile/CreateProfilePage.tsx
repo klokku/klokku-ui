@@ -59,7 +59,7 @@ export function CreateProfilePage() {
             settings: {
                 timezone: formData.timezone,
                 weekStartDay: formData.weekStartDay,
-                eventCalendarType: "",
+                eventCalendarType: "klokku",
                 ignoreShortEvents: false,
             }
         });
