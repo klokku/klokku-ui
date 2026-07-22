@@ -1,11 +1,13 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {differenceInSeconds} from "date-fns";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
-import {ReplaceIcon, TimerIcon, TriangleAlertIcon} from "lucide-react";
+import {TextAlignStartIcon, TimerIcon, TriangleAlertIcon} from "lucide-react";
 import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
 import {CurrentEvent, StatsSummary} from "@/api/types.ts";
 import {Spinner} from "@/components/ui/spinner.tsx";
 import {ProgressCell} from "@/pages/history/ProgressCell.tsx";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
+import {Badge} from "@/components/ui/badge.tsx";
 
 interface WeeklyStatisticsProps {
     weekData?: StatsSummary
@@ -46,7 +48,10 @@ export function WeeklyHistory({weekData, currentEvent}: WeeklyStatisticsProps) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {weekData!.perPlanItem.map((stat) => (
+                    {weekData!.perPlanItem.map((stat) => {
+                        const diff = stat.planItem.weeklyItemDuration - stat.planItem.budgetItemDuration;
+                        const isModified = stat.planItem.weeklyItemDuration !== stat.planItem.budgetItemDuration;
+                        return (
                         <TableRow className="h-full p-0" key={stat.planItem.budgetItemId}>
                             <TableCell className="font-medium bg-gray-50 flex items-center space-x-2">
                                 <span>{stat.planItem.name}</span>
@@ -64,21 +69,33 @@ export function WeeklyHistory({weekData, currentEvent}: WeeklyStatisticsProps) {
                                 )}
                             </TableCell>
                             <TableCell>
-                                <div className="flex items-center space-x-2">
-                                    <div>
-                                        {formatSecondsToDuration(stat.planItem.weeklyItemDuration)}
-                                    </div>
-                                    {stat.planItem.weeklyItemDuration !== stat.planItem.budgetItemDuration && (
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <ReplaceIcon className="size-4"/>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    Original time: {formatSecondsToDuration(stat.planItem.budgetItemDuration)}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                <div className="flex items-center gap-1.5">
+                                    {/* Duration value */}
+                                    {!isModified && (
+                                        <span>{formatSecondsToDuration(stat.planItem.weeklyItemDuration)}</span>
+                                    )}
+                                    {isModified && (
+                                        <span className="font-medium">{formatSecondsToDuration(stat.planItem.weeklyItemDuration)}</span>
+                                    )}
+                                    {isModified && !stat.planItem.notes && (
+                                        <Badge variant="secondary" className="text-xs font-normal">
+                                            {diff > 0 ? '+' : '-'}{formatSecondsToDuration(diff, true)}
+                                        </Badge>
+                                    )}
+                                    {stat.planItem.notes && (
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Badge variant="secondary" className="text-xs font-normal cursor-pointer">
+                                                    {isModified && (
+                                                        <span>{diff > 0 ? '+' : '-'}{formatSecondsToDuration(diff, true)}</span>
+                                                    )}
+                                                    <TextAlignStartIcon className="size-3.5 text-gray-400 ml-1"/>
+                                                </Badge>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="max-w-xs">
+                                                <p className="text-sm whitespace-pre-wrap">{stat.planItem.notes}</p>
+                                            </PopoverContent>
+                                        </Popover>
                                     )}
                                 </div>
                             </TableCell>
@@ -88,7 +105,8 @@ export function WeeklyHistory({weekData, currentEvent}: WeeklyStatisticsProps) {
                             </TableCell>
                             <TableCell>{formatSecondsToDuration(stat.remaining)}</TableCell>
                         </TableRow>
-                    ))}
+                        );
+                    })}
                     <TableRow className="h-full p-0 bg-gray-100">
                         <TableCell className="font-bold">SUM</TableCell>
                         <TableCell className="flex items-center space-x-2">
