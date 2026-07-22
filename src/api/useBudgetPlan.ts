@@ -8,6 +8,7 @@ type HookType = (planId?: number) => {
     budgetPlanDetails?: BudgetPlan
     isLoadingBudgetPlanDetails: boolean
     createBudgetPlan: (createPlanData: { name: string }) => Promise<BudgetPlan>;
+    duplicateBudgetPlan: (planId: number, newName: string) => Promise<BudgetPlan>;
     updateBudgetPlan: (planId: number, updatePlanData: { name: string, isCurrent: boolean }) => Promise<BudgetPlan>;
     deleteBudgetPlan: (planId: number) => Promise<void>;
 };
@@ -89,6 +90,28 @@ const useBudgetPlan: HookType = (planId?: number) => {
         },
     });
 
+    const duplicate = useMutation({
+        mutationFn: async (duplicateData: { planId: number, newName: string }) => {
+            const response = await fetchWithAuth(`/api/budgetplan/${duplicateData.planId}/duplicate`, {
+                method: "POST",
+                body: JSON.stringify({name: duplicateData.newName}),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to duplicate budget plan");
+            }
+
+            const data = await response.json();
+            return data as BudgetPlan;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["budgetPlans"]});
+        },
+        onError: (error) => {
+            console.log(">>>error", error);
+        },
+    });
+
     const deleteMutation = useMutation({
         mutationFn: async (planId: number) => {
             const response = await fetchWithAuth(`/api/budgetplan/${planId}`, {
@@ -111,6 +134,10 @@ const useBudgetPlan: HookType = (planId?: number) => {
         return create.mutateAsync(createPlanData);
     };
 
+    const duplicateBudgetPlan = async (planId: number, newName: string) => {
+        return duplicate.mutateAsync({planId, newName});
+    };
+
     const updateBudgetPlan = async (planId: number, updatePlanData: {name: string, isCurrent: boolean}) => {
         return update.mutateAsync({planId: planId, name: updatePlanData.name, isCurrent: updatePlanData.isCurrent});
     };
@@ -125,6 +152,7 @@ const useBudgetPlan: HookType = (planId?: number) => {
         budgetPlanDetails,
         isLoadingBudgetPlanDetails,
         createBudgetPlan,
+        duplicateBudgetPlan,
         updateBudgetPlan,
         deleteBudgetPlan,
     };
