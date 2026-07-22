@@ -1,6 +1,6 @@
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger} from "@/components/ui/dropdown-menu.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {CheckIcon, PencilIcon, PlusIcon, Settings2Icon, Trash2Icon} from "lucide-react";
+import {CheckIcon, CopyIcon, PencilIcon, PlusIcon, Settings2Icon, Trash2Icon} from "lucide-react";
 import {BudgetPlan} from "@/api/types.ts";
 import {useState} from "react";
 import useBudgetPlan from "@/api/useBudgetPlan.ts";
@@ -25,12 +25,12 @@ interface BudgetPlanChooserProps {
 
 export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanId}: BudgetPlanChooserProps) {
 
-    const {updateBudgetPlan, createBudgetPlan, deleteBudgetPlan} = useBudgetPlan();
+    const {updateBudgetPlan, createBudgetPlan, deleteBudgetPlan, duplicateBudgetPlan} = useBudgetPlan();
 
     const currentPlanId = budgetPlans.find(p => p.isCurrent)?.id;
     const selectedPlan = budgetPlans.find(p => p.id === selectedPlanId);
 
-    const [planAction, setPlanAction] = useState<"rename" | "create" | undefined>(undefined);
+    const [planAction, setPlanAction] = useState<"rename" | "create" | "duplicate" | undefined>(undefined);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleRename = async (newName: string) => {
@@ -50,6 +50,13 @@ export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanI
     const handleCreate = async (planName: string) => {
         if (planName.trim()) {
             const newPlan = await createBudgetPlan({name: planName});
+            setSelectedPlanId(newPlan.id);
+        }
+    };
+
+    const handleDuplicate = async (newName: string) => {
+        if (selectedPlanId && newName.trim()) {
+            const newPlan = await duplicateBudgetPlan(selectedPlanId, newName);
             setSelectedPlanId(newPlan.id);
         }
     };
@@ -82,6 +89,14 @@ export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanI
                                 </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator/>
+                            {selectedPlanId && (
+                                <DropdownMenuItem onClick={() => {
+                                    setPlanAction("duplicate");
+                                }}>
+                                    <CopyIcon className="mr-2 size-4"/>
+                                    Duplicate Plan
+                                </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem onClick={() => {
                                 setPlanAction("create");
                             }}>
@@ -113,6 +128,8 @@ export function BudgetPlanChooser({budgetPlans, selectedPlanId, setSelectedPlanI
                     onSave={async (name) => {
                         if (planAction === "create") {
                             await handleCreate(name);
+                        } else if (planAction === "duplicate") {
+                            await handleDuplicate(name);
                         } else if (planAction === "rename") {
                             await handleRename(name);
                         }

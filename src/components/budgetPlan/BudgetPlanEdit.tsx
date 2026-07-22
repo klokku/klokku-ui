@@ -5,7 +5,7 @@ import {Button} from "@/components/ui/button.tsx";
 import {useState} from "react";
 
 interface Props {
-    action: "rename" | "create";
+    action: "rename" | "create" | "duplicate";
     planName?: string;
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -14,7 +14,11 @@ interface Props {
 
 export function BudgetPlanEdit({action, planName, open, onOpenChange, onSave}: Props) {
 
-    const [planNameState, setPlanName] = useState(action === "rename" ? planName || "" : "");
+    const [planNameState, setPlanName] = useState(
+        action === "rename" ? planName || "" :
+        action === "duplicate" ? `${planName || ""} (copy)` :
+        ""
+    );
 
     const save = () => {
         onSave(planNameState);
@@ -24,11 +28,19 @@ export function BudgetPlanEdit({action, planName, open, onOpenChange, onSave}: P
         onOpenChange(false);
     }
 
+    const title = action === "create" ? "Create New Budget Plan" :
+                  action === "duplicate" ? "Duplicate Plan" :
+                  "Rename Budget Plan";
+
+    const buttonLabel = action === "create" ? "Create Plan" :
+                        action === "duplicate" ? "Duplicate Plan" :
+                        "Save changes";
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{action === "create" ? "Create New Budget Plan" : "Rename Budget Plan"}</DialogTitle>
+                    <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -45,7 +57,7 @@ export function BudgetPlanEdit({action, planName, open, onOpenChange, onSave}: P
                 <DialogFooter>
                     <Button variant="outline" onClick={cancel}>Cancel</Button>
                     <Button onClick={save}>
-                        {action === "create" ? "Create Plan" : "Save changes"}
+                        {buttonLabel}
                     </Button>
                 </DialogFooter>
             </DialogContent>
