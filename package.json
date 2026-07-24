@@ -47,11 +47,14 @@
     "react-hook-form": "^7.68.0",
     "react-router-dom": "^7.18.1",
     "recharts": "^3.9.2",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^2.5.5",
     "uuid": "^13.0.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@emnapi/core": "^1.11.1",
+    "@emnapi/runtime": "^1.11.1",
     "@eslint/js": "^10.0.0",
     "@tailwindcss/postcss": "^4.1.17",
     "@testing-library/jest-dom": "^6.8.0",
