@@ -1,10 +1,15 @@
 import {CalendarEvent, WeeklyPlanItem} from "@/api/types.ts";
 import {ClockIcon, EllipsisIcon} from "lucide-react";
-import {formatEventDuration, toServerFormat} from "@/lib/dateUtils.ts";
+import {formatEventDuration} from "@/lib/dateUtils.ts";
 import {isToday} from "date-fns";
 import {Badge} from "@/components/ui/badge.tsx";
 import {userSettings} from "@/components/settings.ts";
-import {EventDetails, EventDetailsPopover} from "@/pages/calendar/EventDetailsPopover.tsx";
+import {EventDetailsPopover} from "@/pages/calendar/EventDetailsPopover.tsx";
+import {
+    calendarEventFromEventDetails,
+    EventDetails,
+    eventDetailsFromCalendarEvent,
+} from "@/pages/calendar/eventDetails.ts";
 import {useState} from "react";
 import useCalendar from "@/api/useCalendar.ts";
 
@@ -26,13 +31,7 @@ export function PreviousEvent({event, planItem, className}: PreviousEventProps) 
     const [eventDetailsPopoverPosition, setEventDetailsPopoverPosition] = useState<{ x: number, y: number } | null>(null);
 
     const onEventClick = (clickPosition: { x: number, y: number }, event: CalendarEvent) => {
-        setEventDetailsInput({
-            uid: event.uid,
-            budgetPlanItemId: event.budgetItemId,
-            startDate: new Date(event.start),
-            endDate: new Date(event.end),
-            summary: event.summary,
-        })
+        setEventDetailsInput(eventDetailsFromCalendarEvent(event))
         setEventDetailsPopoverPosition({
             x: clickPosition.x,
             y: clickPosition.y,
@@ -41,30 +40,20 @@ export function PreviousEvent({event, planItem, className}: PreviousEventProps) 
     }
 
     const handleSave = async (event: EventDetails) => {
-        if (event.uid && event.budgetPlanItemId) {
-            const updated: CalendarEvent = {
-                uid: event.uid,
-                summary: event.summary!,
-                start: toServerFormat(event.startDate),
-                end: toServerFormat(event.endDate),
-                budgetItemId: event.budgetPlanItemId,
-            };
-            await modifyEvent(updated);
+        const mapped = calendarEventFromEventDetails(event);
+        if (mapped.mode === "update") {
+            await modifyEvent(mapped.event);
         } else {
-            const newEvent = {
-                summary: event.summary!,
-                start: toServerFormat(event.startDate),
-                end: toServerFormat(event.endDate),
-                budgetItemId: event.budgetPlanItemId!,
-            };
-            await createEvent(newEvent);
+            await createEvent(mapped.event);
         }
         setPopoverOpen(false);
+        setEventDetailsInput(null);
     };
 
     const handleDelete = async (eventUid: string) => {
         await deleteEvent(eventUid);
         setPopoverOpen(false);
+        setEventDetailsInput(null);
     };
 
     return (
@@ -108,6 +97,9 @@ export function PreviousEvent({event, planItem, className}: PreviousEventProps) 
                                      input={eventDetailsInput}
                                      onOpenChange={(open) => {
                                          setPopoverOpen(open);
+                                         if (!open) {
+                                             setEventDetailsInput(null);
+                                         }
                                      }}
                                      onSave={handleSave}
                                      onDelete={handleDelete}

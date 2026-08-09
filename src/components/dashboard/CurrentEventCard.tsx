@@ -18,7 +18,7 @@ import {Skeleton} from "@/components/ui/skeleton.tsx";
 export function CurrentEventCard() {
 
     const {weeklyPlan, isLoading} = useWeeklyPlan(new Date());
-    const {currentEvent, startEvent, updateEventStartTime} = useCurrentEvent();
+    const {currentEvent, startEvent, updateEventStartTime, updateEventNotes} = useCurrentEvent();
 
     const {recentEvents, isLoadingRecentEvents} = useCalendar();
 
@@ -51,8 +51,22 @@ export function CurrentEventCard() {
         setEditCurrentEventOpen(true)
     }
 
-    async function changeCurrentEventStartTime(updatedEvent: CurrentEvent) {
-        await updateEventStartTime(new Date(updatedEvent.startTime))
+    function setCurrentEventEditorOpen(open: boolean) {
+        setEditCurrentEventOpen(open)
+        if (!open) {
+            setCurrentEventToEdit(undefined)
+        }
+    }
+
+    async function saveCurrentEventChanges(updatedEvent: CurrentEvent) {
+        if (!currentEvent) return;
+        const startTimeChanged = new Date(updatedEvent.startTime).getTime() !== new Date(currentEvent.startTime).getTime();
+        if (startTimeChanged) {
+            await updateEventStartTime(new Date(updatedEvent.startTime))
+        }
+        if (updatedEvent.notes !== currentEvent.notes) {
+            await updateEventNotes(updatedEvent.notes)
+        }
     }
 
     if (isLoading) {
@@ -119,9 +133,9 @@ export function CurrentEventCard() {
                 {currentEventToEdit &&
                     <CurrentEventDetailsDialog
                         open={editCurrentEventOpen}
-                        onOpenChange={setEditCurrentEventOpen}
+                        onOpenChange={setCurrentEventEditorOpen}
                         event={currentEventToEdit}
-                        onSave={(updatedEvent) => changeCurrentEventStartTime(updatedEvent)}
+                        onSave={saveCurrentEventChanges}
                     />
                 }
 

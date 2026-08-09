@@ -8,12 +8,17 @@ import interactionPlugin from '@fullcalendar/interaction';
 import {defaultSettings, userSettings} from "@/components/settings.ts";
 import {DateSelectArg, EventChangeArg, EventClickArg} from "@fullcalendar/core";
 import useCurrentEvent from "@/api/useCurrentEvent.ts";
-import {EventDetails, EventDetailsPopover} from "@/pages/calendar/EventDetailsPopover.tsx";
+import {EventDetailsPopover} from "@/pages/calendar/EventDetailsPopover.tsx";
+import {
+    calendarEventFromEventDetails,
+    EventDetails,
+    eventDetailsFromCalendarEvent,
+} from "@/pages/calendar/eventDetails.ts";
 import {useIsMobile} from "@/hooks/use-mobile.tsx";
 import useProfile from "@/api/useProfile.ts";
 import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
 import {Button} from "@/components/ui/button.tsx";
-import {PlusIcon} from "lucide-react";
+import {NotebookPenIcon, PlusIcon} from "lucide-react";
 
 export function CalendarPage() {
 
@@ -132,13 +137,7 @@ export function CalendarPage() {
         // Extract original event from extended props
         const source: CalendarEvent = (info.event.extendedProps)?.sourceEvent;
         if (!source) return;
-        setEventDetailsInput({
-            summary: source.summary,
-            startDate: new Date(source.start),
-            endDate: new Date(source.end),
-            uid: source.uid,
-            budgetPlanItemId: source.budgetItemId,
-        })
+        setEventDetailsInput(eventDetailsFromCalendarEvent(source))
         // Position popover near the click position
         const mouse = info.jsEvent as MouseEvent;
         setAnchorPos({x: mouse.clientX, y: mouse.clientY});
@@ -167,23 +166,11 @@ export function CalendarPage() {
     };
 
     const handleSave = async (event: EventDetails) => {
-        if (event.uid && event.budgetPlanItemId) {
-            const updated: CalendarEvent = {
-                uid: event.uid,
-                summary: event.summary!,
-                start: toServerFormat(event.startDate),
-                end: toServerFormat(event.endDate),
-                budgetItemId: event.budgetPlanItemId,
-            };
-            await modifyEvent(updated);
+        const mapped = calendarEventFromEventDetails(event);
+        if (mapped.mode === "update") {
+            await modifyEvent(mapped.event);
         } else {
-            const newEvent = {
-                summary: event.summary!,
-                start: toServerFormat(event.startDate),
-                end: toServerFormat(event.endDate),
-                budgetItemId: event.budgetPlanItemId!,
-            };
-            await createEvent(newEvent);
+            await createEvent(mapped.event);
         }
         closeEditor();
     };
@@ -207,6 +194,16 @@ export function CalendarPage() {
                     eventClick={onEventClick}
 
                     events={prepareEvents(events)}
+                    eventContent={(arg) => (
+                        <>
+                            {arg.timeText && <div className="fc-event-time">{arg.timeText}</div>}
+                            <div className="fc-event-title fc-sticky flex items-center gap-1">
+                                <span>{arg.event.title}</span>
+                                {(arg.event.extendedProps?.sourceEvent as CalendarEvent | undefined)?.notes &&
+                                    <NotebookPenIcon className="size-3 shrink-0 opacity-80"/>}
+                            </div>
+                        </>
+                    )}
                     editable={true}
                     eventResizableFromStart={true}
                     slotDuration={'00:15:00'}

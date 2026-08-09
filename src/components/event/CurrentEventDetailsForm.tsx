@@ -6,9 +6,11 @@ import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {TimePicker} from "@/components/datetime/TimePicker.tsx";
 import {ClockIcon} from "lucide-react";
+import {OptionalNotesField} from "@/components/event/OptionalNotesField.tsx";
 
 const formSchema = z.object({
     startTime: z.date(),
+    notes: z.string(),
 })
 
 interface EventDetailsFormProps {
@@ -18,11 +20,11 @@ interface EventDetailsFormProps {
 }
 
 export function CurrentEventDetailsForm({formId, event, onSubmit}: EventDetailsFormProps) {
-
     const onFormSubmit = (formData: z.infer<typeof formSchema>) => {
         const eventToSave: CurrentEvent = {
             startTime: toServerFormat(formData.startTime),
             planItem: event.planItem,
+            notes: formData.notes,
         }
         onSubmit(eventToSave)
     }
@@ -31,12 +33,13 @@ export function CurrentEventDetailsForm({formId, event, onSubmit}: EventDetailsF
         resolver: zodResolver(formSchema),
         defaultValues: {
             startTime: new Date(event.startTime),
+            notes: event.notes ?? "",
         }
     });
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onFormSubmit)} id={formId}>
+            <form onSubmit={form.handleSubmit(onFormSubmit)} id={formId} className="space-y-4">
                 <FormField control={form.control} name="startTime" render={({field}) => (
                     <FormItem className="flex items-center">
                         <FormLabel className="w-44">Start time</FormLabel>
@@ -57,6 +60,9 @@ export function CurrentEventDetailsForm({formId, event, onSubmit}: EventDetailsF
                         </FormControl>
                         <FormMessage/>
                     </FormItem>
+                )}/>
+                <FormField control={form.control} name="notes" render={({field}) => (
+                    <OptionalNotesField layout="inline" value={field.value} onChange={field.onChange}/>
                 )}/>
             </form>
         </Form>
