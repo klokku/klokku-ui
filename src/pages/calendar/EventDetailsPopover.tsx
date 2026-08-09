@@ -7,11 +7,14 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormField, FormItem, FormLabel} from "@/components/ui/form.tsx";
 import {DateTimePicker} from "@/components/datetime/DateTimePicker.tsx";
 import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
+import {EventDetails} from "@/pages/calendar/eventDetails.ts";
+import {OptionalNotesField} from "@/components/event/OptionalNotesField.tsx";
 
 const eventDetailsSchema = z.object({
     startDate: z.date(),
     endDate: z.date(),
     budgetPlanItemId: z.number(),
+    notes: z.string(),
 }).refine((data) =>
         data.startDate.getTime() < data.endDate.getTime(),
     {
@@ -28,14 +31,6 @@ const eventDetailsSchema = z.object({
 
 type EventDetailsForm = z.infer<typeof eventDetailsSchema>;
 
-export type EventDetails = {
-    uid?: string;
-    summary?: string;
-    startDate: Date;
-    endDate: Date;
-    budgetPlanItemId?: number;
-}
-
 type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -50,7 +45,6 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
     // Budgets for re-linking
     const {weeklyPlan} = useWeeklyPlan(input.startDate);
     const planItems = weeklyPlan?.items
-
     const form = useForm<EventDetailsForm>({
         resolver: zodResolver(eventDetailsSchema),
         mode: "onChange",
@@ -58,6 +52,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
             startDate: input.startDate,
             endDate: input.endDate,
             budgetPlanItemId: input.budgetPlanItemId || 0,
+            notes: input.notes ?? "",
         }
     })
 
@@ -73,6 +68,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
             budgetPlanItemId: formData.budgetPlanItemId,
             uid: input.uid,
             summary: itemName,
+            notes: formData.notes,
         })
     }
 
@@ -161,6 +157,9 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                     </FormItem>
                                 )
                             }}/>
+                            <FormField control={form.control} name="notes" render={({field}) => (
+                                <OptionalNotesField value={field.value} onChange={field.onChange}/>
+                            )}/>
                             <div className="flex justify-between pt-2">
                                 {!isCreateMode() ? (
                                     <Button type="button" variant="destructive" onClick={() => onDelete(input.uid!)}>

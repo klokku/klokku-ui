@@ -8,6 +8,7 @@ type HookType = () => {
     currentEvent?: CurrentEvent | null,
     startEvent: (budgetItemId: number, itemName: string, weeklyDuration: number) => Promise<void>,
     updateEventStartTime: (startTime: Date) => Promise<void>,
+    updateEventNotes: (notes: string) => Promise<void>,
 }
 
 const useCurrentEvent: HookType = () => {
@@ -78,6 +79,26 @@ const useCurrentEvent: HookType = () => {
         },
     })
 
+    const updateNotes = useMutation({
+        mutationFn: async (notes: string) => {
+            const response = await fetchWithAuth("/api/event/current/notes", {
+                method: "PATCH",
+                body: JSON.stringify({notes}),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update current event notes");
+            }
+            return;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["currentEvent"]});
+        },
+        onError: (error) => {
+            console.log(">>>error", error);
+        },
+    })
+
     const startEvent = async (budgetItemId: number, itemName: string, weeklyDuration: number) => {
         return start.mutateAsync({budgetItemId: budgetItemId, itemName, weeklyDuration});
     };
@@ -86,11 +107,16 @@ const useCurrentEvent: HookType = () => {
         return updateStartTime.mutateAsync(startTime)
     }
 
+    const updateEventNotes = async (notes: string) => {
+        return updateNotes.mutateAsync(notes)
+    }
+
     return {
         loadingCurrentEvent,
         currentEvent: data,
         startEvent,
         updateEventStartTime,
+        updateEventNotes,
     }
 }
 

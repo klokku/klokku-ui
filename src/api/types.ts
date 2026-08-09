@@ -79,6 +79,7 @@ export interface PlanItemHistoryStats {
 export interface CurrentEvent {
     startTime: string;
     planItem: CurrentEventPlanItem;
+    notes: string;
 }
 
 export interface CurrentEventPlanItem {
@@ -162,6 +163,7 @@ export interface CalendarEvent {
     summary: string;
     start: string;
     end: string;
+    notes: string;
     budgetItemId: number;
 }
 
