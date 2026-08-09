@@ -10,6 +10,8 @@ type OptionalNotesFieldProps = {
     layout?: "stacked" | "inline";
 }
 
+export const MAX_EVENT_NOTES_LENGTH = 10_000;
+
 export function OptionalNotesField({value, onChange, layout = "stacked"}: OptionalNotesFieldProps) {
     const [expanded, setExpanded] = useState(Boolean(value));
     const textareaId = useId();
@@ -43,6 +45,7 @@ export function OptionalNotesField({value, onChange, layout = "stacked"}: Option
                         className="h-24"
                         placeholder="Add a note..."
                         value={value}
+                        maxLength={MAX_EVENT_NOTES_LENGTH}
                         onChange={(event) => onChange(event.target.value)}
                         autoFocus={!value}
                     />
@@ -67,6 +70,7 @@ export function OptionalNotesField({value, onChange, layout = "stacked"}: Option
                 className="h-20"
                 placeholder="Add a note..."
                 value={value}
+                maxLength={MAX_EVENT_NOTES_LENGTH}
                 onChange={(event) => onChange(event.target.value)}
                 autoFocus={!value}
             />
