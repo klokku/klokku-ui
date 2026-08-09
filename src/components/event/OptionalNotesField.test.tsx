@@ -1,7 +1,10 @@
 import {useState} from "react";
 import {fireEvent, render, screen} from "@testing-library/react";
 import {describe, expect, it} from "vitest";
-import {OptionalNotesField} from "@/components/event/OptionalNotesField.tsx";
+import {
+    MAX_EVENT_NOTES_LENGTH,
+    OptionalNotesField,
+} from "@/components/event/OptionalNotesField.tsx";
 
 function ControlledNotesField({initialValue = "", layout}: {initialValue?: string; layout?: "stacked" | "inline"}) {
     const [value, setValue] = useState(initialValue);
@@ -21,6 +24,7 @@ describe("OptionalNotesField", () => {
 
         expect(screen.getByRole("textbox", {name: "Notes"})).toHaveValue("Existing context");
         expect(screen.queryByRole("button", {name: "Add note"})).not.toBeInTheDocument();
+        expect(screen.getByRole("textbox", {name: "Notes"})).toHaveAttribute("maxLength", String(MAX_EVENT_NOTES_LENGTH));
     });
 
     it("expands and focuses the textarea", () => {
