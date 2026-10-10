@@ -1,5 +1,6 @@
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
-import {formatSecondsToDuration, getCurrentWeekFirstDay} from "@/lib/dateUtils.ts";
+import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
+import {getDashboardPeriod} from "@/lib/dashboardDates.ts";
 import useWeeklyStats from "@/api/useStats.ts";
 import {BudgetsStatsPieChart} from "@/components/dashboard/BudgetsStatsPieChart.tsx";
 import {defaultSettings} from "@/components/settings.ts";
@@ -8,9 +9,10 @@ import useProfile from "@/api/useProfile.ts";
 export function WeeklyBudgetsSplitCard() {
 
     const {currentProfile} = useProfile();
-    const weekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
+    const timezone = currentProfile?.settings.timezone ?? "UTC";
+    const {weekStart} = getDashboardPeriod(new Date(), timezone, currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay);
 
-    const {isLoading, weeklyStatsSummary} = useWeeklyStats(weekFirstDay)
+    const {isLoading, weeklyStatsSummary} = useWeeklyStats(weekStart, {timezone, enabled: !!currentProfile});
 
     const chartData = weeklyStatsSummary?.perPlanItem
         .filter((budgetStats) => budgetStats.duration > 0)

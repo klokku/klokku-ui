@@ -2,6 +2,7 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {CurrentEvent} from "@/api/types.ts";
 import {formatDate} from "date-fns";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
+import {invalidateTimeInsights} from "@/api/invalidateTimeInsights.ts";
 
 type HookType = () => {
     loadingCurrentEvent: boolean,
@@ -50,6 +51,7 @@ const useCurrentEvent: HookType = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["currentEvent"]});
             queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -73,6 +75,7 @@ const useCurrentEvent: HookType = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["currentEvent"]});
             queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -93,6 +96,7 @@ const useCurrentEvent: HookType = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["currentEvent"]});
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);

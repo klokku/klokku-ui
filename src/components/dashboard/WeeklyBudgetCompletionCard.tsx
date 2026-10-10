@@ -1,5 +1,5 @@
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card.tsx";
-import {getCurrentWeekFirstDay, weekEndDay} from "@/lib/dateUtils.ts";
+import {getDashboardPeriod} from "@/lib/dashboardDates.ts";
 import useWeeklyStats from "@/api/useStats.ts";
 import {Bar, BarChart, LabelList, XAxis, YAxis} from "recharts"
 import type {LabelProps} from "recharts"
@@ -19,10 +19,11 @@ const chartConfig = {
 export function WeeklyBudgetCompletionCard() {
 
     const {currentProfile} = useProfile();
-    const weekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
-    const {isLoading, weeklyStatsSummary} = useWeeklyStats(weekFirstDay)
+    const timezone = currentProfile?.settings.timezone ?? "UTC";
+    const {weekStart, weekEnd} = getDashboardPeriod(new Date(), timezone, currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay);
+    const {isLoading, weeklyStatsSummary} = useWeeklyStats(weekStart, {timezone, enabled: !!currentProfile});
     const {loadingCurrentEvent, currentEvent} = useCurrentEvent()
-    const {recentEvents, isLoadingRecentEvents} = useCalendar(weekFirstDay, weekEndDay(weekFirstDay))
+    const {recentEvents, isLoadingRecentEvents} = useCalendar(weekStart, weekEnd)
 
     const lastEventsBudgetItemIds = recentEvents?.map(event => event.budgetItemId)
     const sortedPlanItems = [...(weeklyStatsSummary?.perPlanItem || [])].sort((a, b) => {

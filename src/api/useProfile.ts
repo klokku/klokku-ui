@@ -7,6 +7,8 @@ import {useState} from "react";
 
 type HookType = () => {
     isLoadingCurrent: boolean,
+    error: Error | null,
+    refetch: () => Promise<unknown>,
     currentProfile?: Profile,
     updateProfile: (user: Profile) => Promise<Profile>,
     isUploadingAvatar: boolean,
@@ -22,8 +24,8 @@ const useProfile: HookType = () => {
     const fetchWithAuth = useFetchWithProfileUid()
     const queryClient = useQueryClient();
 
-    const {isLoading: isLoadingCurrent, data: current} = useQuery({
-        queryKey: ["currentProfile"],
+    const {isLoading: isLoadingCurrent, data: current, error, refetch} = useQuery({
+        queryKey: ["currentProfile", currentProfileUid],
         queryFn: async () => {
             const response = await fetchWithAuth("/api/user/current", {
                 method: "GET",
@@ -121,6 +123,8 @@ const useProfile: HookType = () => {
 
     return {
         isLoadingCurrent,
+        error,
+        refetch,
         currentProfile: current,
         updateProfile,
         isUploadingAvatar,

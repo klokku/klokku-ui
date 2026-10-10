@@ -2,14 +2,16 @@ import {useQuery} from "@tanstack/react-query";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 import {BudgetPlanReport} from "@/api/types.ts";
 import {toServerFormat} from "@/lib/dateUtils.ts";
+import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 
 export const useBudgetPlanReport = (planId?: number, from?: Date, to?: Date) => {
     const fetchWithAuth = useFetchWithProfileUid();
+    const {currentProfileUid} = useCurrentProfile();
     const fromStr = from ? toServerFormat(from) : undefined;
     const toStr = to ? toServerFormat(to) : undefined;
 
-    const {isLoading, data} = useQuery({
-        queryKey: ["budgetPlanReport", planId, fromStr, toStr],
+    const {isLoading, data, error, refetch} = useQuery({
+        queryKey: ["budgetPlanReport", currentProfileUid, planId, fromStr, toStr],
         queryFn: async () => {
             let url = `/api/budgetplan/${planId}/report`;
             if (fromStr && toStr) {
@@ -19,7 +21,7 @@ export const useBudgetPlanReport = (planId?: number, from?: Date, to?: Date) => 
             if (!response.ok) throw new Error("Failed to fetch report");
             return (await response.json()) as BudgetPlanReport;
         },
-        enabled: !!planId,
+        enabled: !!currentProfileUid && !!planId,
     });
-    return {isLoading, report: data};
+    return {isLoading, report: data, error, refetch};
 };

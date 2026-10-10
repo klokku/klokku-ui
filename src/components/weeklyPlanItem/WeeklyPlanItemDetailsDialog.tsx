@@ -12,6 +12,8 @@ import useWeeklyStats, {useItemHistoryStats} from "@/api/useStats.ts";
 import {Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {ChevronLeft, ChevronRight} from "lucide-react";
+import {formatDate} from "date-fns";
+import {getDashboardPeriod, zonedMidnight} from "@/lib/dashboardDates.ts";
 
 type Props = {
     budgetPlanItemId: number
@@ -30,7 +32,9 @@ export default function WeeklyPlanItemDetailsDialog({budgetPlanItemId, inWeekDat
     statsStartDate.setDate(statsStartDate.getDate() - (7 * 5))
 
     const {weeklyPlan: previousWeek, isLoading: previousWeekIsLoading} = useWeeklyPlan(previousWeekStart(currentWeekDate))
-    const {weeklyStatsSummary, isLoading: isLoadingStats} = useWeeklyStats(currentWeekDate)
+    const timezone = currentProfile?.settings.timezone ?? "UTC";
+    const profileWeek = getDashboardPeriod(zonedMidnight(formatDate(currentWeekDate, "yyyy-MM-dd"), timezone), timezone, currentProfile?.settings.weekStartDay ?? "monday");
+    const {weeklyStatsSummary, isLoading: isLoadingStats} = useWeeklyStats(profileWeek.weekStart, {timezone, enabled: !!currentProfile});
     const {itemHistoryStats, isLoading} = useItemHistoryStats(statsStartDate, weekEndDay(currentWeekDate), budgetPlanItemId)
 
     if (isLoadingCurrent || isLoadingStats) {

@@ -1,7 +1,7 @@
 import {WeekChooser} from "@/components/statistics/weekChooser.tsx";
 import {defaultSettings} from "@/components/settings.ts";
 import useWeeklyStats from "@/api/useStats.ts";
-import {getCurrentWeekFirstDay, nextWeekStart, previousWeekStart} from "@/lib/dateUtils.ts";
+import {dateKeyInTimezone, getDashboardPeriod, shiftDateKey, zonedMidnight} from "@/lib/dashboardDates.ts";
 import {useState} from "react";
 import useCurrentEvent from "@/api/useCurrentEvent.ts";
 import useProfile from "@/api/useProfile.ts";
@@ -17,27 +17,30 @@ import {paths} from "@/pages/links.ts";
 export function HistoryPage() {
 
     const {currentProfile} = useProfile();
-    const initialWeekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay)
-    const [weekFirstDay, setWeekFirstDay] = useState(initialWeekFirstDay)
+    const timezone = currentProfile?.settings.timezone ?? "UTC";
+    const currentPeriod = getDashboardPeriod(new Date(), timezone, currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay);
+    const [selectedWeek, setSelectedWeek] = useState<{profileUid?: string, dateKey: string}>();
+    const weekKey = selectedWeek && selectedWeek.profileUid === currentProfile?.uid ? selectedWeek.dateKey : currentPeriod.weekStartKey;
+    const weekFirstDay = zonedMidnight(weekKey, timezone);
     const [activeTab, setActiveTab] = useState("weekly")
 
-    const nextWeekFirstDay = nextWeekStart(weekFirstDay)
+    const nextWeekFirstDay = zonedMidnight(shiftDateKey(weekKey, 7), timezone);
 
 
     function onNextWeek() {
-        setWeekFirstDay(nextWeekStart(weekFirstDay))
+        setSelectedWeek({profileUid: currentProfile?.uid, dateKey: shiftDateKey(weekKey, 7)});
     }
 
     function onPreviousWeek() {
-        setWeekFirstDay(previousWeekStart(weekFirstDay))
+        setSelectedWeek({profileUid: currentProfile?.uid, dateKey: shiftDateKey(weekKey, -7)});
     }
 
     function onWeekChanged(date: Date) {
-        setWeekFirstDay(date)
+        setSelectedWeek({profileUid: currentProfile?.uid, dateKey: dateKeyInTimezone(date, timezone)});
     }
 
 
-    const {isLoading, weeklyStatsSummary} = useWeeklyStats(weekFirstDay)
+    const {isLoading, weeklyStatsSummary} = useWeeklyStats(weekFirstDay, {timezone, enabled: !!currentProfile});
     const {currentEvent} = useCurrentEvent()
 
 
@@ -76,12 +79,12 @@ export function HistoryPage() {
                     <TabsTrigger value="daily">Daily</TabsTrigger>
                 </TabsList>
                 <TabsContent value="weekly" className="grow flex flex-col gap-2">
-                    <WeekChooser currentWeekStart={weekFirstDay} onNext={onNextWeek} onPrevious={onPreviousWeek} onDateChanged={onWeekChanged}
+                    <WeekChooser currentWeekStart={weekFirstDay} timezone={timezone} onNext={onNextWeek} onPrevious={onPreviousWeek} onDateChanged={onWeekChanged}
                                  isNextEnabled={() => nextWeekFirstDay < new Date()}/>
                     <WeeklyHistory weekData={weekData} currentEvent={currentEvent}/>
                 </TabsContent>
                 <TabsContent value="daily" className="grow flex flex-col gap-2">
-                    <WeekChooser currentWeekStart={weekFirstDay} onNext={onNextWeek} onPrevious={onPreviousWeek} onDateChanged={onWeekChanged}
+                    <WeekChooser currentWeekStart={weekFirstDay} timezone={timezone} onNext={onNextWeek} onPrevious={onPreviousWeek} onDateChanged={onWeekChanged}
                                  isNextEnabled={() => nextWeekFirstDay < new Date()}/>
                     <DailyHistory weekData={weekData} currentEvent={currentEvent}/>
                 </TabsContent>
@@ -89,5 +92,4 @@ export function HistoryPage() {
         </div>
     )
 }
-
 

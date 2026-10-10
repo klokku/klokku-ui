@@ -2,6 +2,7 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {CalendarEvent} from "@/api/types.ts";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 import {toServerFormat} from "@/lib/dateUtils.ts";
+import {invalidateTimeInsights} from "@/api/invalidateTimeInsights.ts";
 
 type HookType = (fromDate?: Date, toDate?: Date) => {
     isLoading: boolean,
@@ -50,6 +51,7 @@ const useCalendar: HookType = (fromDate?: Date, toDate?: Date) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -69,6 +71,7 @@ const useCalendar: HookType = (fromDate?: Date, toDate?: Date) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -87,6 +90,7 @@ const useCalendar: HookType = (fromDate?: Date, toDate?: Date) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
