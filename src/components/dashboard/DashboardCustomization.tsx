@@ -34,9 +34,10 @@ function SortableCard({card, index, count, disabled, onMove, onToggle}: {
     </li>;
 }
 
-export function DashboardCustomization({configuration, onSave}: {
+export function DashboardCustomization({configuration, onSave, compact = false}: {
     configuration: DashboardConfiguration | null;
     onSave: (configuration: DashboardConfiguration | null) => Promise<unknown>;
+    compact?: boolean;
 }) {
     const [open, setOpen] = useState(false);
     const [draft, setDraft] = useState<DashboardConfiguration | null>(configuration);
@@ -86,7 +87,10 @@ export function DashboardCustomization({configuration, onSave}: {
     };
 
     return <Dialog open={open} onOpenChange={changeOpen}>
-        <DialogTrigger asChild><Button variant="outline" size="sm"><Settings2 className="size-4" aria-hidden="true"/>Customize dashboard</Button></DialogTrigger>
+        <DialogTrigger asChild><Button variant={compact ? "ghost" : "outline"} size={compact ? "icon" : "sm"}
+            className={compact ? "size-8" : undefined} aria-label="Customize dashboard" title={compact ? "Customize dashboard" : undefined}>
+            <Settings2 className="size-4" aria-hidden="true"/>{!compact && "Customize dashboard"}
+        </Button></DialogTrigger>
         <DialogContent className="max-h-[calc(100dvh-2rem)] flex flex-col p-4 sm:p-6" showCloseButton={!saving}
                        onEscapeKeyDown={event => { if (dragging || saving) event.preventDefault(); }}>
             <DialogHeader>

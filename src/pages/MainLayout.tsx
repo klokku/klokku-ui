@@ -5,6 +5,7 @@ import {AppSidebar} from "@/components/sidebar/AppSidebar.tsx";
 import {Separator} from "@/components/ui/separator.tsx";
 import {useLocation} from "react-router-dom";
 import {paths} from "@/pages/links.ts";
+import {DashboardHeaderActions} from "@/components/dashboard/DashboardHeaderActions";
 
 export default function MainLayout() {
     const location = useLocation();
@@ -29,6 +30,7 @@ export default function MainLayout() {
                         <SidebarTrigger className="-ml-1"/>
                         <Separator orientation="vertical" className="mr-1 h-4"/>
                         <span>{findTitle(location.pathname)}</span>
+                        {location.pathname === paths.root.path && <div className="ml-auto"><DashboardHeaderActions/></div>}
                     </header>
                     <div className="p-4">
                         <Outlet/>

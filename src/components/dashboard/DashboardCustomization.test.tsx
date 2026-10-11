@@ -46,8 +46,8 @@ describe("dashboard customization", () => {
         expect(within(dialog).getByRole("switch", {name: "Show Time today"})).toHaveAttribute("aria-checked", "false");
         fireEvent.click(within(dialog).getByRole("button", {name: "Retry save"}));
         await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-        expect(save.mock.calls[1][0].cards.slice(3, 5)).toEqual([
-            {id: "time-today", visible: false}, {id: "weekly-allocation", visible: true},
+        expect(save.mock.calls[1][0].cards.slice(0, 2)).toEqual([
+            {id: "time-today", visible: false}, {id: "weekly-completion", visible: true},
         ]);
     });
 });

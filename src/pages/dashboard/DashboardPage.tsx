@@ -14,7 +14,6 @@ import {Button} from "@/components/ui/button.tsx";
 import {paths} from "@/pages/links.ts";
 import {NavLink} from "react-router";
 import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty.tsx";
-import {DashboardCustomization} from "@/components/dashboard/DashboardCustomization";
 import {DashboardCardId} from "@/components/dashboard/dashboardConfiguration";
 
 export function DashboardPage() {
@@ -22,13 +21,9 @@ export function DashboardPage() {
     const {weeklyPlan, isLoadingPlan: isLoading} = insights;
     const [wizardOpen, setWizardOpen] = useState(false);
     const configuration = insights.dashboardConfiguration;
-    const configurationControls = <div className="flex flex-col items-end gap-2">
-        {configuration.isReady && <DashboardCustomization key={configuration.profileUid} configuration={configuration.configuration!} onSave={configuration.saveConfiguration}/>}
-        {configuration.isLoading && <p role="status" className="text-sm text-muted-foreground">Loading dashboard configuration...</p>}
-        {configuration.error && <div role="alert" className="flex flex-wrap items-center gap-3 text-sm">
+    const configurationError = configuration.error && <div role="alert" className="flex flex-wrap items-center gap-3 text-sm">
             <p>Could not load your dashboard configuration.</p><Button variant="outline" size="sm" onClick={configuration.retry}>Retry configuration</Button>
-        </div>}
-    </div>;
+        </div>;
     const trackingCard = <CurrentEventCard key={`tracking:${insights.profileUid}`} weeklyPlan={weeklyPlan} activity={insights.activity}
         activityState={insights.activityState} planState={insights.planState} recentEvents={insights.recentEvents}
         recentState={insights.recentState} calendarActions={insights.calendarActions} timezone={insights.timezone}/>;
@@ -43,7 +38,7 @@ export function DashboardPage() {
     if (!weeklyPlan && !isLoading && !insights.planError) {
         return (
             <div className="flex flex-col gap-4 p-4">
-            {configurationControls}
+            {configurationError}
             {trackingCard}
             <Empty className="mb-4 border rounded text-center">
                 <EmptyHeader>
@@ -78,7 +73,7 @@ export function DashboardPage() {
 
     return (
         <div className="flex flex-1 flex-col gap-4 p-4">
-            {configurationControls}
+            {configurationError}
             {weeklyPlan?.isOffWeek && <div role="status" className="rounded-md border bg-muted px-4 py-3 text-sm">
                 This is an off week. Current activity is shown, but this week is excluded from historical comparisons.
                 {" "}<NavLink to={paths.weeklyPlanning.path} className="underline underline-offset-4">View weekly plan</NavLink>

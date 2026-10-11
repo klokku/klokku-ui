@@ -21,7 +21,7 @@ You can find installation instruction in [the backend repository](https://github
 
 ## Dashboard customization
 
-Use **Customize dashboard** to show, hide, and reorder dashboard cards for the current profile.
+Use the **Customize dashboard** icon in the Dashboard header to show, hide, and reorder dashboard cards for the current profile.
 Tracking now always remains visible and first.
 Changes sync across devices after **Save**; **Cancel** discards edits, and **Restore defaults** resets visibility and ordering when saved.
 

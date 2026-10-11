@@ -6,11 +6,12 @@ import {afterEach, beforeEach, expect, it, vi} from "vitest";
 import {CurrentProfileProvider, useCurrentProfile} from "@/hooks/currentProfileContext";
 import {DashboardConfiguration} from "@/components/dashboard/dashboardConfiguration";
 import {DashboardPage} from "./DashboardPage";
+import {DashboardHeaderActions} from "@/components/dashboard/DashboardHeaderActions";
 
 function Dashboard() {
     const {setCurrentProfileUid} = useCurrentProfile();
     useEffect(() => setCurrentProfileUid("dashboard-profile"), [setCurrentProfileUid]);
-    return <DashboardPage/>;
+    return <><header><DashboardHeaderActions/></header><DashboardPage/></>;
 }
 
 function renderDashboard() {
@@ -41,6 +42,7 @@ it("renders saved card order, allows tracking-only, and restores that choice aft
     }));
     const view = renderDashboard();
     await screen.findByRole("region", {name: "Time today"});
+    expect(within(screen.getByRole("banner")).getByRole("button", {name: "Customize dashboard"})).toBeInTheDocument();
     expect(screen.getAllByRole("region").map(region => region.getAttribute("aria-labelledby"))).toEqual(
         ["Tracking now", "Time today", "Budget balance"].map(title => screen.getByRole("heading", {name: title}).id),
     );

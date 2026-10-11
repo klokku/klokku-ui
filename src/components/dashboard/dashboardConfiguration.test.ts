@@ -2,11 +2,11 @@ import {describe, expect, it} from "vitest";
 import {getDashboardCards, resolveDashboardConfiguration} from "./dashboardConfiguration";
 
 describe("dashboard configuration", () => {
-    it("uses the original dashboard order when no customization is saved", () => {
+    it("uses the default dashboard order when no customization is saved", () => {
         expect(resolveDashboardConfiguration(null).cards).toEqual([
-            {id: "weekly-completion", visible: true}, {id: "budget-balance", visible: true},
-            {id: "plan-realism", visible: true}, {id: "weekly-allocation", visible: true},
-            {id: "time-today", visible: true}, {id: "weekly-rhythm", visible: true},
+            {id: "weekly-completion", visible: true}, {id: "time-today", visible: true},
+            {id: "weekly-rhythm", visible: true}, {id: "weekly-allocation", visible: true},
+            {id: "budget-balance", visible: true}, {id: "plan-realism", visible: true},
             {id: "recent-trends", visible: true},
         ]);
     });

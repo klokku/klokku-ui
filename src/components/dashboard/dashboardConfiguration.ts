@@ -4,11 +4,11 @@ type DataRequirement = "weekly-stats" | "calendar-week" | "history";
 
 export const dashboardCardDefinitions = [
     {id: "weekly-completion", title: "Weekly completion", wide: false, defaultVisible: true, requirements: ["weekly-stats", "calendar-week"]},
-    {id: "budget-balance", title: "Budget balance", wide: false, defaultVisible: true, requirements: ["weekly-stats"]},
-    {id: "plan-realism", title: "Plan realism", wide: false, defaultVisible: true, requirements: ["history"]},
-    {id: "weekly-allocation", title: "Weekly allocation", wide: true, defaultVisible: true, requirements: ["weekly-stats"]},
     {id: "time-today", title: "Time today", wide: false, defaultVisible: true, requirements: ["weekly-stats"]},
     {id: "weekly-rhythm", title: "This week's rhythm", wide: false, defaultVisible: true, requirements: ["weekly-stats"]},
+    {id: "weekly-allocation", title: "Weekly allocation", wide: true, defaultVisible: true, requirements: ["weekly-stats"]},
+    {id: "budget-balance", title: "Budget balance", wide: false, defaultVisible: true, requirements: ["weekly-stats"]},
+    {id: "plan-realism", title: "Plan realism", wide: false, defaultVisible: true, requirements: ["history"]},
     {id: "recent-trends", title: "Recent trends", wide: true, defaultVisible: true, requirements: ["history"]},
 ] as const satisfies readonly {id: string; title: string; wide: boolean; defaultVisible: boolean; requirements: readonly DataRequirement[]}[];
 
