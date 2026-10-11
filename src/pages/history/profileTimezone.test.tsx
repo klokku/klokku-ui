@@ -30,6 +30,7 @@ function setup() {
     };
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
         const url = new URL(String(input), "http://localhost");
+        if (url.pathname === "/api/user/current/dashboard") return Response.json(null);
         if (url.pathname === "/api/user/current") {
             return Response.json({uid: "timezone-profile", settings: {timezone: "America/New_York", weekStartDay: "monday"}});
         }

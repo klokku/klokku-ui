@@ -2,7 +2,7 @@ import {CurrentEventCard} from "@/components/dashboard/CurrentEventCard.tsx";
 import {WeeklyBudgetCompletionCard} from "@/components/dashboard/WeeklyBudgetCompletionCard.tsx";
 import {WeeklyAllocationCard} from "@/components/dashboard/WeeklyAllocationCard.tsx";
 import {TimeTodayCard} from "@/components/dashboard/TimeTodayCard.tsx";
-import {useState} from "react";
+import {ReactNode, useState} from "react";
 import {BudgetPlanWizardDialog} from "@/pages/budgetPlan/wizard/BudgetPlanWizardDialog.tsx";
 import {EmptyBudgetPlan} from "@/pages/budgetPlan/EmptyBudgetPlan.tsx";
 import useDashboardInsights from "@/pages/dashboard/useDashboardInsights.ts";
@@ -14,11 +14,16 @@ import {Button} from "@/components/ui/button.tsx";
 import {paths} from "@/pages/links.ts";
 import {NavLink} from "react-router";
 import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from "@/components/ui/empty.tsx";
+import {DashboardCardId} from "@/components/dashboard/dashboardConfiguration";
 
 export function DashboardPage() {
     const insights = useDashboardInsights();
     const {weeklyPlan, isLoadingPlan: isLoading} = insights;
     const [wizardOpen, setWizardOpen] = useState(false);
+    const configuration = insights.dashboardConfiguration;
+    const configurationError = configuration.error && <div role="alert" className="flex flex-wrap items-center gap-3 text-sm">
+            <p>Could not load your dashboard configuration.</p><Button variant="outline" size="sm" onClick={configuration.retry}>Retry configuration</Button>
+        </div>;
     const trackingCard = <CurrentEventCard key={`tracking:${insights.profileUid}`} weeklyPlan={weeklyPlan} activity={insights.activity}
         activityState={insights.activityState} planState={insights.planState} recentEvents={insights.recentEvents}
         recentState={insights.recentState} calendarActions={insights.calendarActions} timezone={insights.timezone}/>;
@@ -33,7 +38,8 @@ export function DashboardPage() {
     if (!weeklyPlan && !isLoading && !insights.planError) {
         return (
             <div className="flex flex-col gap-4 p-4">
-            {(insights.activity.currentEvent || insights.activityState.isLoading || insights.activityState.error) && trackingCard}
+            {configurationError}
+            {trackingCard}
             <Empty className="mb-4 border rounded text-center">
                 <EmptyHeader>
                     <EmptyMedia variant="default" className="text-primary-foreground text-6xl">
@@ -52,8 +58,22 @@ export function DashboardPage() {
         )
     }
 
+    const cardContent: Record<DashboardCardId, ReactNode> = {
+        "weekly-completion": <WeeklyBudgetCompletionCard rows={insights.completion} state={insights.completionState}/>,
+        "budget-balance": <BudgetBalanceCard balances={insights.balances} planId={weeklyPlan?.budgetPlanId} period={insights.period} state={insights.currentState}/>,
+        "plan-realism": <PlanRealismCard rows={insights.realism} description={insights.historyDescription} state={insights.historyState}/>,
+        "weekly-allocation": <WeeklyAllocationCard items={weeklyPlan?.items ?? []} stats={insights.weeklyStats} planId={weeklyPlan?.budgetPlanId}
+            period={insights.period} timezone={insights.timezone} planState={insights.planState} spentState={insights.currentState}/>,
+        "time-today": <TimeTodayCard today={insights.today} planId={weeklyPlan?.budgetPlanId} period={insights.period} state={insights.currentState}/>,
+        "weekly-rhythm": <WeeklyRhythmCard days={insights.rhythm} budgets={insights.balances} state={insights.currentState}/>,
+        "recent-trends": <RecentTrendsCard items={weeklyPlan?.items ?? []} weeks={insights.historyWeeks} planId={weeklyPlan?.budgetPlanId}
+            period={insights.period} timezone={insights.timezone} description={insights.historyDescription}
+            excludedWeekCount={insights.excludedWeekCount} state={insights.historyState}/>,
+    };
+
     return (
         <div className="flex flex-1 flex-col gap-4 p-4">
+            {configurationError}
             {weeklyPlan?.isOffWeek && <div role="status" className="rounded-md border bg-muted px-4 py-3 text-sm">
                 This is an off week. Current activity is shown, but this week is excluded from historical comparisons.
                 {" "}<NavLink to={paths.weeklyPlanning.path} className="underline underline-offset-4">View weekly plan</NavLink>
@@ -64,26 +84,13 @@ export function DashboardPage() {
                 />
             )}
             <div className="grid auto-rows-min gap-4 lg:grid-cols-2">
-                {trackingCard}
-                <WeeklyBudgetCompletionCard rows={insights.completion} state={insights.completionState}/>
+                <div className="min-w-0">{trackingCard}</div>
+                {configuration.cards.filter(card => card.visible).map(card => <div
+                    key={`${card.id}:${insights.profileUid}:${weeklyPlan?.budgetPlanId}`}
+                    className={card.wide ? "min-w-0 lg:col-span-2" : "min-w-0"}>
+                    {cardContent[card.id]}
+                </div>)}
             </div>
-            <div className="grid auto-rows-min gap-4 lg:grid-cols-2">
-                <BudgetBalanceCard key={`balance:${insights.profileUid}:${weeklyPlan?.budgetPlanId}`} balances={insights.balances}
-                                   planId={weeklyPlan?.budgetPlanId} period={insights.period} state={insights.currentState}/>
-                <PlanRealismCard key={`realism:${insights.profileUid}:${weeklyPlan?.budgetPlanId}`} rows={insights.realism}
-                                 description={insights.historyDescription} state={insights.historyState}/>
-            </div>
-            <WeeklyAllocationCard key={`allocation:${insights.profileUid}:${weeklyPlan?.budgetPlanId}`} items={weeklyPlan?.items ?? []}
-                                  stats={insights.weeklyStats} planId={weeklyPlan?.budgetPlanId} period={insights.period} timezone={insights.timezone}
-                                  planState={insights.planState} spentState={insights.currentState}/>
-            <div className="grid auto-rows-min gap-4 lg:grid-cols-2">
-                <TimeTodayCard today={insights.today} planId={weeklyPlan?.budgetPlanId} period={insights.period} state={insights.currentState}/>
-                <WeeklyRhythmCard days={insights.rhythm} budgets={insights.balances} state={insights.currentState}/>
-            </div>
-            <RecentTrendsCard key={`${insights.profileUid}:${weeklyPlan?.budgetPlanId}`} items={weeklyPlan?.items ?? []}
-                              weeks={insights.historyWeeks} planId={weeklyPlan?.budgetPlanId} period={insights.period}
-                              timezone={insights.timezone} description={insights.historyDescription}
-                              excludedWeekCount={insights.excludedWeekCount} state={insights.historyState}/>
 
             <BudgetPlanWizardDialog open={wizardOpen} onOpenChange={setWizardOpen} budgetPlanId={weeklyPlan?.budgetPlanId}/>
         </div>

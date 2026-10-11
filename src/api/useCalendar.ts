@@ -7,6 +7,7 @@ import useCalendarMutations from "@/api/useCalendarMutations.ts";
 
 interface CalendarOptions {
     enabled?: boolean;
+    rangeEnabled?: boolean;
     refetchInterval?: number;
 }
 
@@ -24,7 +25,7 @@ export default function useCalendar(fromDate?: Date, toDate?: Date, options: Cal
             if (!response.ok) throw new Error("Failed to fetch calendar events");
             return (await response.json()) as CalendarEvent[] | null;
         },
-        enabled: enabled && !!from && !!to,
+        enabled: enabled && (options.rangeEnabled ?? true) && !!from && !!to,
         refetchInterval: options.refetchInterval,
     });
     const recentQuery = useQuery({

@@ -8,6 +8,8 @@ import useCalendar from "@/api/useCalendar.ts";
 import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 import {getDashboardPeriod, formatDashboardDate} from "@/lib/dashboardDates.ts";
 import {getBudgetBalances, getEligibleHistory, getPlanRealism, getTodayBreakdown, getWeeklyCompletion, getWeeklyRhythm} from "@/components/dashboard/dashboardInsights.ts";
+import useDashboardConfiguration from "@/api/useDashboardConfiguration";
+import {needsDashboardData} from "@/components/dashboard/dashboardConfiguration";
 
 export default function useDashboardInsights() {
     const [now, setNow] = useState(() => new Date());
@@ -21,18 +23,24 @@ export default function useDashboardInsights() {
 
     const {currentProfileUid} = useCurrentProfile();
     const profileQuery = useProfile();
+    const dashboardConfiguration = useDashboardConfiguration();
     const timezone = profileQuery.currentProfile?.settings.timezone ?? "UTC";
     const period = getDashboardPeriod(now, timezone, profileQuery.currentProfile?.settings.weekStartDay ?? "monday");
     const planQuery = useWeeklyPlan(period.weekStart, {timezone, enabled: !!profileQuery.currentProfile});
     const statsQuery = useWeeklyStats(period.weekStart, {
         timezone,
-        enabled: !!profileQuery.currentProfile && !!planQuery.weeklyPlan,
+        enabled: !!profileQuery.currentProfile && !!planQuery.weeklyPlan && needsDashboardData(dashboardConfiguration.resolved, "weekly-stats"),
         refetchInterval: 60_000,
         planId: planQuery.weeklyPlan?.budgetPlanId,
     });
     const activity = useCurrentEvent({enabled: !!currentProfileUid, refetchInterval: 60_000});
-    const calendar = useCalendar(period.weekStart, period.weekEnd, {enabled: !!profileQuery.currentProfile, refetchInterval: 60_000});
-    const reportQuery = useBudgetPlanReport(planQuery.weeklyPlan?.budgetPlanId, period.historyFrom, period.historyTo);
+    const calendar = useCalendar(period.weekStart, period.weekEnd, {
+        enabled: !!profileQuery.currentProfile,
+        rangeEnabled: needsDashboardData(dashboardConfiguration.resolved, "calendar-week"),
+        refetchInterval: 60_000,
+    });
+    const reportQuery = useBudgetPlanReport(planQuery.weeklyPlan?.budgetPlanId, period.historyFrom, period.historyTo,
+        {enabled: needsDashboardData(dashboardConfiguration.resolved, "history")});
     const historyWeeks = getEligibleHistory(reportQuery.report?.weeks, period, timezone, reportQuery.report?.firstTrackedAt);
     const items = planQuery.weeklyPlan?.items ?? [];
     const planError = profileQuery.error ?? planQuery.error;
@@ -42,6 +50,7 @@ export default function useDashboardInsights() {
     };
 
     return {
+        dashboardConfiguration,
         profileUid: currentProfileUid,
         timezone,
         period,

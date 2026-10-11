@@ -4,7 +4,7 @@ import {BudgetPlanReport} from "@/api/types.ts";
 import {toServerFormat} from "@/lib/dateUtils.ts";
 import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 
-export const useBudgetPlanReport = (planId?: number, from?: Date, to?: Date) => {
+export const useBudgetPlanReport = (planId?: number, from?: Date, to?: Date, options: {enabled?: boolean} = {}) => {
     const fetchWithAuth = useFetchWithProfileUid();
     const {currentProfileUid} = useCurrentProfile();
     const fromStr = from ? toServerFormat(from) : undefined;
@@ -21,7 +21,7 @@ export const useBudgetPlanReport = (planId?: number, from?: Date, to?: Date) => 
             if (!response.ok) throw new Error("Failed to fetch report");
             return (await response.json()) as BudgetPlanReport;
         },
-        enabled: !!currentProfileUid && !!planId,
+        enabled: !!currentProfileUid && !!planId && (options.enabled ?? true),
     });
     return {isLoading, report: data, error, refetch};
 };
