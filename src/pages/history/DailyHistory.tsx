@@ -1,5 +1,5 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
-import {differenceInSeconds, isToday} from "date-fns";
+import {differenceInSeconds} from "date-fns";
 import {userSettings} from "@/components/settings.ts";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {TimerIcon} from "lucide-react";
@@ -8,6 +8,8 @@ import {StatsSummary} from "@/api/types.ts";
 import {Spinner} from "@/components/ui/spinner.tsx";
 import {CurrentEvent} from "@/api/types.ts";
 import {ProgressCell} from "@/pages/history/ProgressCell.tsx";
+import useProfile from "@/api/useProfile.ts";
+import {dateKeyInTimezone} from "@/lib/dashboardDates.ts";
 
 interface DailyStatisticsProps {
     weekData?: StatsSummary
@@ -15,6 +17,9 @@ interface DailyStatisticsProps {
 }
 
 export function DailyHistory({weekData, currentEvent}: DailyStatisticsProps) {
+    const {currentProfile} = useProfile();
+    const timezone = currentProfile?.settings.timezone ?? "UTC";
+    const todayKey = dateKeyInTimezone(new Date(), timezone);
 
     const isCurrent = (budgetItemId: number) => {
         return currentEvent?.planItem.budgetItemId == budgetItemId;
@@ -45,8 +50,8 @@ export function DailyHistory({weekData, currentEvent}: DailyStatisticsProps) {
                         {weekData!.perDay.map((day) => (
                             <TableHead
                                 key={day.date}
-                                className={isToday(new Date(day.date)) ? "bg-blue-100" : ""}>
-                                {new Date(day.date).toLocaleDateString(userSettings.locale)}
+                                className={dateKeyInTimezone(day.date, timezone) === todayKey ? "bg-blue-100" : ""}>
+                                 {new Date(day.date).toLocaleDateString(userSettings.locale, {timeZone: timezone})}
                             </TableHead>
                         ))}
                         <TableHead className="font-medium">TOTAL</TableHead>
@@ -73,7 +78,7 @@ export function DailyHistory({weekData, currentEvent}: DailyStatisticsProps) {
                             {weekData!.perDay.map((day) => (
                                 <TableCell
                                     key={day.date}
-                                    className={isToday(new Date(day.date)) ? "bg-blue-50" : ""}
+                                    className={dateKeyInTimezone(day.date, timezone) === todayKey ? "bg-blue-50" : ""}
                                 >
                                     {formatSecondsToDuration(day.perPlanItem.find(it => it.planItem.budgetItemId == stat.planItem.budgetItemId)?.duration ?? 0)}
                                 </TableCell>

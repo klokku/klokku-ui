@@ -151,3 +151,16 @@
         @apply cursor-pointer;
     }
 }
+
+@keyframes tracking-halo {
+    0%, 100% { transform: scale(1); opacity: 0.08; }
+    50% { transform: scale(1.7); opacity: 0.2; }
+}
+
+.tracking-halo {
+    animation: tracking-halo 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tracking-halo { animation: none; opacity: 0; }
+}

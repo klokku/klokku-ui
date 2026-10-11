@@ -2,17 +2,25 @@ import {PlanItemHistoryStats, StatsSummary} from "@/api/types.ts";
 import {useQuery} from "@tanstack/react-query";
 import {toServerFormat} from "@/lib/dateUtils.ts";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
+import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
+import {formatInTimeZone} from "date-fns-tz";
 
-type HookType = (inWeekDate: Date) => {
-    isLoading: boolean,
-    weeklyStatsSummary?: StatsSummary | null,
+interface StatsOptions {
+    enabled?: boolean;
+    timezone?: string;
+    refetchInterval?: number;
+    planId?: number;
 }
 
-const useWeeklyStats: HookType = (inWeekDate: Date) => {
+const useWeeklyStats = (inWeekDate: Date, options: StatsOptions = {}) => {
     const fetchWithAuth = useFetchWithProfileUid();
-    const inWeekDateString = encodeURIComponent(toServerFormat(inWeekDate))
-    const {isLoading, data} = useQuery({
-        queryKey: ["stats", inWeekDate],
+    const {currentProfileUid} = useCurrentProfile();
+    const dateString = options.timezone
+        ? formatInTimeZone(inWeekDate, options.timezone, "yyyy-MM-dd'T'HH:mm:ssXXX")
+        : toServerFormat(inWeekDate);
+    const inWeekDateString = encodeURIComponent(dateString);
+    const {isLoading, data, error, refetch} = useQuery({
+        queryKey: ["stats", currentProfileUid, dateString, options.planId],
         queryFn: async () => {
             const response = await fetchWithAuth(`/api/stats/weekly?date=${inWeekDateString}`)
             if (response.status === 404) {
@@ -22,12 +30,16 @@ const useWeeklyStats: HookType = (inWeekDate: Date) => {
                 throw new Error("Failed to fetch weekly stats summary");
             }
             return (await response.json()) as StatsSummary
-        }
+        },
+        enabled: !!currentProfileUid && (options.enabled ?? true),
+        refetchInterval: options.refetchInterval,
     })
 
     return {
         isLoading,
-        weeklyStatsSummary: data
+        weeklyStatsSummary: data,
+        error,
+        refetch,
     }
 }
 

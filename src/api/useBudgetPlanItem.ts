@@ -1,6 +1,7 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {BudgetPlanItem} from "@/api/types.ts";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
+import {invalidateTimeInsights} from "@/api/invalidateTimeInsights.ts";
 
 type HookType = () => {
     addBudgetPlanItem: (planId: number, item: BudgetPlanItem) => Promise<BudgetPlanItem>;
@@ -29,6 +30,8 @@ const useBudgetPlanItem: HookType = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["budgetPlanDetails"]});
+            queryClient.invalidateQueries({queryKey: ["weeklyPlan"]});
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -51,6 +54,8 @@ const useBudgetPlanItem: HookType = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["budgetPlanDetails"]});
+            queryClient.invalidateQueries({queryKey: ["weeklyPlan"]});
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -69,6 +74,8 @@ const useBudgetPlanItem: HookType = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["budgetPlanDetails"]});
+            queryClient.invalidateQueries({queryKey: ["weeklyPlan"]});
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -90,6 +97,8 @@ const useBudgetPlanItem: HookType = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ["budgetPlanDetails"]});
+            queryClient.invalidateQueries({queryKey: ["weeklyPlan"]});
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);

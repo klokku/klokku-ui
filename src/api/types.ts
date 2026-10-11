@@ -201,6 +201,7 @@ export interface ReportTotals {
 export interface BudgetPlanReport {
     planId: number;
     planName: string;
+    firstTrackedAt?: string;
     startDate: string;
     endDate: string;
     weekCount: number;

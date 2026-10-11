@@ -22,7 +22,7 @@ export default function MainLayout() {
     return (
         <div className="flex flex-col w-screen">
             <Topbar/>
-            <SidebarProvider className="min-h-[calc(100svh-48px)]">
+            <SidebarProvider className="min-h-[calc(100svh-48px)] [&>[data-slot=sidebar]]:bg-sidebar">
                 <AppSidebar/>
                 <SidebarInset className="w-full">
                     <header className="flex h-11 shrink-0 items-center gap-2 border-b px-4 text-sm">

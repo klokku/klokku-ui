@@ -2,28 +2,31 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {WeeklyPlan, WeeklyPlanItem} from "@/api/types.ts";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 import {toServerFormat} from "@/lib/dateUtils.ts";
+import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
+import {formatInTimeZone} from "date-fns-tz";
+import {invalidateTimeInsights} from "@/api/invalidateTimeInsights.ts";
 
-type HookType = (inWeekDate: Date) => {
-    weeklyPlan?: WeeklyPlan | null;
-    isLoading: boolean;
-    resetWeeklyPlan: (inWeekDate: Date) => Promise<WeeklyPlan>;
-    resetWeeklyPlanItem: (weeklyPlanItemId: number) => Promise<WeeklyPlanItem>;
-    updateWeeklyPlanItem: (inWeekDate: Date, itemUpdate: {budgetItemId: number, weeklyDuration: number, notes: string}) => Promise<WeeklyPlanItem>;
-    setOffWeek: (inWeekDate: Date, isOffWeek: boolean) => Promise<WeeklyPlan>;
-};
+interface WeeklyPlanOptions {
+    enabled?: boolean;
+    timezone?: string;
+}
 
-const useWeeklyPlan: HookType = (inWeekDate: Date) => {
+const useWeeklyPlan = (inWeekDate: Date, options: WeeklyPlanOptions = {}) => {
     const fetchWithAuth = useFetchWithProfileUid();
+    const {currentProfileUid} = useCurrentProfile();
     const queryClient = useQueryClient();
 
     // Normalize the date to a string (e.g., "2023-10-27") to ensure
     // the cache key is stable for the same calendar day.
-    const dateKey = toServerFormat(inWeekDate).split('T')[0];
+    const dateString = options.timezone
+        ? formatInTimeZone(inWeekDate, options.timezone, "yyyy-MM-dd'T'HH:mm:ssXXX")
+        : toServerFormat(inWeekDate);
+    const dateKey = dateString.split('T')[0];
 
-    const {data, isLoading} = useQuery({
-        queryKey: ["weeklyPlan", dateKey],
+    const {data, isLoading, error, refetch} = useQuery({
+        queryKey: ["weeklyPlan", currentProfileUid, dateKey, options.timezone],
         queryFn: async () => {
-            const response = await fetchWithAuth(`/api/weeklyplan?date=${encodeURIComponent(toServerFormat(inWeekDate))}`);
+            const response = await fetchWithAuth(`/api/weeklyplan?date=${encodeURIComponent(dateString)}`);
             if (response.status === 404) {
                 return null;
             }
@@ -32,6 +35,7 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
             }
             return (await response.json()) as WeeklyPlan
         },
+        enabled: !!currentProfileUid && (options.enabled ?? true),
     });
 
     const resetPlan = useMutation({
@@ -50,6 +54,7 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["weeklyPlan"] });
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -72,6 +77,7 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["weeklyPlan"] });
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -94,6 +100,7 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["weeklyPlan"] });
+            invalidateTimeInsights(queryClient);
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -114,6 +121,7 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["weeklyPlan"] });
+            invalidateTimeInsights(queryClient);
         },
     });
 
@@ -136,6 +144,8 @@ const useWeeklyPlan: HookType = (inWeekDate: Date) => {
     return {
         weeklyPlan: data,
         isLoading,
+        error,
+        refetch,
         resetWeeklyPlan,
         resetWeeklyPlanItem,
         updateWeeklyPlanItem,

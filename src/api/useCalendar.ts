@@ -1,119 +1,52 @@
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useQuery} from "@tanstack/react-query";
 import {CalendarEvent} from "@/api/types.ts";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
+import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 import {toServerFormat} from "@/lib/dateUtils.ts";
+import useCalendarMutations from "@/api/useCalendarMutations.ts";
 
-type HookType = (fromDate?: Date, toDate?: Date) => {
-    isLoading: boolean,
-    events: CalendarEvent[] | undefined,
-    recentEvents: CalendarEvent[] | undefined,
-    isLoadingRecentEvents: boolean,
-    modifyEvent: (event: CalendarEvent) => Promise<void>,
-    createEvent: (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => Promise<void>,
-    deleteEvent: (eventUid: string) => Promise<void>,
+interface CalendarOptions {
+    enabled?: boolean;
+    refetchInterval?: number;
 }
 
-const useCalendar: HookType = (fromDate?: Date, toDate?: Date) => {
-    const fetchWithAuth = useFetchWithProfileUid()
-    const queryClient = useQueryClient();
-
-    const from = fromDate ? encodeURIComponent(toServerFormat(fromDate)) : undefined
-    const to = toDate ? encodeURIComponent(toServerFormat(toDate)) : undefined
-    const { isLoading, data } = useQuery({
-        queryKey: ["calendarEvents", from, to],
+export default function useCalendar(fromDate?: Date, toDate?: Date, options: CalendarOptions = {}) {
+    const fetchWithAuth = useFetchWithProfileUid();
+    const {currentProfileUid} = useCurrentProfile();
+    const mutations = useCalendarMutations();
+    const from = fromDate ? toServerFormat(fromDate) : undefined;
+    const to = toDate ? toServerFormat(toDate) : undefined;
+    const enabled = !!currentProfileUid && (options.enabled ?? true);
+    const eventsQuery = useQuery({
+        queryKey: ["calendarEvents", currentProfileUid, "range", from, to],
         queryFn: async () => {
-            const response = await fetchWithAuth(`/api/calendar/event?from=${from}&to=${to}`)
-            return (await response.json()) as CalendarEvent[]
+            const response = await fetchWithAuth(`/api/calendar/event?from=${encodeURIComponent(from!)}&to=${encodeURIComponent(to!)}`);
+            if (!response.ok) throw new Error("Failed to fetch calendar events");
+            return (await response.json()) as CalendarEvent[] | null;
         },
-        enabled: !!from && !!to
-    })
-
-    const { data: recentEvents, isLoading: isLoadingRecentEvents } = useQuery({
-        queryKey: ["calendarEvents"],
+        enabled: enabled && !!from && !!to,
+        refetchInterval: options.refetchInterval,
+    });
+    const recentQuery = useQuery({
+        queryKey: ["calendarEvents", currentProfileUid, "recent"],
         queryFn: async () => {
-            const response = await fetchWithAuth(`/api/calendar/event/recent?last=5`)
-            return (await response.json()) as CalendarEvent[]
+            const response = await fetchWithAuth("/api/calendar/event/recent?last=5");
+            if (!response.ok) throw new Error("Failed to fetch recent events");
+            return (await response.json()) as CalendarEvent[] | null;
         },
-    })
-
-    const modify = useMutation({
-        mutationFn: async (event: CalendarEvent) => {
-            const response = await fetchWithAuth(`/api/calendar/event/${event.uid}`, {
-                method: "PUT",
-                body: JSON.stringify(event),
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to update current event start time");
-            }
-            return;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
-        },
-        onError: (error) => {
-            console.log(">>>error", error);
-        },
-    })
-
-    const create = useMutation({
-        mutationFn: async (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => {
-            const response = await fetchWithAuth("/api/calendar/event", {
-                method: "POST",
-                body: JSON.stringify(event),
-            });
-            if (!response.ok) {
-                throw new Error("Failed to create calendar event");
-            }
-            return response.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
-        },
-        onError: (error) => {
-            console.log(">>>error", error);
-        },
-    })
-
-    const deleteEv = useMutation({
-        mutationFn: async (eventUid: string) => {
-            const response = await fetchWithAuth(`/api/calendar/event/${eventUid}`, {
-                method: "DELETE",
-            });
-            if (!response.ok) {
-                throw new Error("Failed to delete calendar event");
-            }
-            return;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
-        },
-        onError: (error) => {
-            console.log(">>>error", error);
-        },
-    })
-
-    const modifyEvent = async (event: CalendarEvent) => {
-        return modify.mutateAsync(event)
-    }
-
-    const createEvent = async (event: Omit<CalendarEvent, 'uid'> & Partial<Pick<CalendarEvent, 'uid'>>) => {
-        return create.mutateAsync(event)
-    }
-
-    const deleteEvent = async (eventUid: string) => {
-        return deleteEv.mutateAsync(eventUid)
-    }
+        enabled,
+        refetchInterval: options.refetchInterval,
+    });
 
     return {
-        isLoading,
-        events: data,
-        recentEvents,
-        isLoadingRecentEvents,
-        modifyEvent,
-        createEvent,
-        deleteEvent,
-    }
+        ...mutations,
+        events: eventsQuery.data ?? [],
+        isLoading: eventsQuery.isLoading,
+        error: eventsQuery.error,
+        refetch: eventsQuery.refetch,
+        recentEvents: recentQuery.data ?? [],
+        isLoadingRecentEvents: recentQuery.isLoading,
+        recentError: recentQuery.error,
+        refetchRecent: recentQuery.refetch,
+    };
 }
-
-export default useCalendar;

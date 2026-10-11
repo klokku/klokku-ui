@@ -32,6 +32,13 @@ function renderCalendar(weekStartDay: "monday" | "sunday" = "monday") {
     );
 }
 
+async function expectEditorDates(expected: Date) {
+    const start = await screen.findByRole("button", {name: "Change start date"});
+    const end = await screen.findByRole("button", {name: "Change end date"});
+    expect(start).toHaveTextContent(expected.toLocaleDateString());
+    expect(end).toHaveTextContent(expected.toLocaleDateString());
+}
+
 describe("calendar event creation", () => {
     beforeEach(() => {
         vi.useFakeTimers({toFake: ["Date"]});
@@ -53,7 +60,7 @@ describe("calendar event creation", () => {
         await waitFor(() => expect(container.querySelector(".fc-col-header-cell")).toHaveAttribute("data-date", "2026-10-09"));
         fireEvent.click(screen.getByRole("button", {name: "Add event"}));
 
-        expect(await screen.findAllByRole("button", {name: new Date(2026, 9, 9).toLocaleDateString()})).toHaveLength(2);
+        await expectEditorDates(new Date(2026, 9, 9));
         const times = document.querySelectorAll<HTMLInputElement>('input[type="time"]');
         expect(Array.from(times, input => input.value)).toEqual(["13:30", "14:30"]);
     });
@@ -64,7 +71,7 @@ describe("calendar event creation", () => {
         await screen.findByRole("button", {name: "Previous week"});
         fireEvent.click(screen.getByRole("button", {name: "Add event"}));
 
-        expect(await screen.findAllByRole("button", {name: new Date(2026, 9, 10).toLocaleDateString()})).toHaveLength(2);
+        await expectEditorDates(new Date(2026, 9, 10));
     });
 
     it.each([
@@ -78,7 +85,7 @@ describe("calendar event creation", () => {
         await waitFor(() => expect(container.querySelector(".fc-col-header-cell")).toHaveAttribute("data-date", previousDate));
         fireEvent.click(screen.getByRole("button", {name: "Add event"}));
 
-        expect(await screen.findAllByRole("button", {name: expected.toLocaleDateString()})).toHaveLength(2);
+        await expectEditorDates(expected);
     });
 
     it("disables creation until the calendar is mounted", async () => {
@@ -94,6 +101,6 @@ describe("calendar event creation", () => {
 
         await waitFor(() => expect(container.querySelector(".fc-col-header-cell")).toHaveAttribute("data-date", "2026-10-11"));
         fireEvent.click(screen.getByRole("button", {name: "Add event"}));
-        expect(await screen.findAllByRole("button", {name: new Date(2026, 9, 11).toLocaleDateString()})).toHaveLength(2);
+        await expectEditorDates(new Date(2026, 9, 11));
     });
 });
