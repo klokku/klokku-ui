@@ -9,6 +9,7 @@ import {DateTimePicker} from "@/components/datetime/DateTimePicker.tsx";
 import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
 import {EventDetails} from "@/pages/calendar/eventDetails.ts";
 import {OptionalNotesField} from "@/components/event/OptionalNotesField.tsx";
+import {useState} from "react";
 
 const eventDetailsSchema = z.object({
     startDate: z.date(),
@@ -36,14 +37,18 @@ type Props = {
     onOpenChange: (open: boolean) => void;
     position: { x: number, y: number } | null;
     input: EventDetails;
-    onSave: (event: EventDetails) => void;
-    onDelete: (eventUid: string) => void;
+    onSave: (event: EventDetails) => void | Promise<void>;
+    onDelete: (eventUid: string) => void | Promise<void>;
+    returnFocus?: () => void;
+    timezone?: string;
 }
 
-export function EventDetailsPopover({open, onOpenChange, position, input, onSave, onDelete}: Props) {
+export function EventDetailsPopover({open, onOpenChange, position, input, onSave, onDelete, returnFocus, timezone}: Props) {
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string>();
 
     // Budgets for re-linking
-    const {weeklyPlan} = useWeeklyPlan(input.startDate);
+    const {weeklyPlan} = useWeeklyPlan(input.startDate, {timezone});
     const planItems = weeklyPlan?.items
     const form = useForm<EventDetailsForm>({
         resolver: zodResolver(eventDetailsSchema),
@@ -61,16 +66,31 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
     }
 
     const handleSave = async (formData: z.infer<typeof eventDetailsSchema>) => {
-        const itemName = planItems?.find((b) => b.budgetItemId === formData.budgetPlanItemId)?.name ?? 'Event';
-        onSave({
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            budgetPlanItemId: formData.budgetPlanItemId,
-            uid: input.uid,
-            summary: itemName,
-            notes: formData.notes,
-        })
+        const itemName = input.uid && formData.budgetPlanItemId === input.budgetPlanItemId
+            ? input.summary ?? "Event"
+            : planItems?.find((b) => b.budgetItemId === formData.budgetPlanItemId)?.name ?? "Event";
+        setSaving(true);
+        setError(undefined);
+        try {
+            await onSave({
+                startDate: formData.startDate,
+                endDate: formData.endDate,
+                budgetPlanItemId: formData.budgetPlanItemId,
+                uid: input.uid,
+                summary: itemName,
+                notes: formData.notes,
+            });
+        } catch { setError("Could not save this event. Please try again."); }
+        finally { setSaving(false); }
     }
+
+    const handleDelete = async () => {
+        setSaving(true);
+        setError(undefined);
+        try { await onDelete(input.uid!); }
+        catch { setError("Could not delete this event. Please try again."); }
+        finally { setSaving(false); }
+    };
 
     // Extract formState properties to ensure proper subscription
     const { isDirty, isValid } = form.formState;
@@ -96,10 +116,11 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                     }}
                 />
             </PopoverTrigger>
-            <PopoverContent className="w-[360px] p-4" align="start">
+            <PopoverContent className="w-[360px] max-w-[calc(100vw-2rem)] p-4" align="start" aria-label={isCreateMode() ? "Create calendar event" : `Edit ${input.summary} event`}
+                            onCloseAutoFocus={event => { if (returnFocus) { event.preventDefault(); returnFocus(); } }}>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6 calendar-unselect-cancel">
-                        <div className="space-y-3 calendar-unselect-cancel">
+                        <fieldset disabled={saving} className="space-y-3 calendar-unselect-cancel">
                             <div className="text-sm font-medium">{isCreateMode() ? 'Create event' : input.summary}</div>
                             <FormField control={form.control} name="startDate" render={({field}) => {
                                 return (
@@ -108,6 +129,8 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                         <DateTimePicker
                                             value={field.value}
                                             onChange={field.onChange}
+                                            timezone={timezone}
+                                            label="Start"
                                         />
                                     </FormItem>
                                 )
@@ -119,6 +142,8 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                         <DateTimePicker
                                             value={field.value}
                                             onChange={field.onChange}
+                                            timezone={timezone}
+                                            label="End"
                                         />
                                         {form.formState.errors.endDate && (
                                             <div className="text-xs text-red-500">
@@ -160,9 +185,10 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                             <FormField control={form.control} name="notes" render={({field}) => (
                                 <OptionalNotesField value={field.value} onChange={field.onChange}/>
                             )}/>
+                            {error && <p role="alert" className="text-sm">{error}</p>}
                             <div className="flex justify-between pt-2">
                                 {!isCreateMode() ? (
-                                    <Button type="button" variant="destructive" onClick={() => onDelete(input.uid!)}>
+                                    <Button type="button" variant="destructive" onClick={handleDelete} disabled={saving}>
                                         Delete
                                     </Button>
                                 ) : (
@@ -172,12 +198,12 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                                     <Button type="reset" variant="outline" onClick={() => onOpenChange(false)}>
                                         Cancel
                                     </Button>
-                                    <Button type="submit" disabled={isCreateMode() ? !isValid : (!isDirty || !isValid)}>
-                                        Save
+                                    <Button type="submit" disabled={saving || (isCreateMode() ? !isValid : (!isDirty || !isValid))}>
+                                        {saving ? "Saving..." : "Save"}
                                     </Button>
                                 </div>
                             </div>
-                        </div>
+                        </fieldset>
                     </form>
                 </Form>
             </PopoverContent>

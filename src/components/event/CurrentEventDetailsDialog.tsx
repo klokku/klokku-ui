@@ -11,10 +11,12 @@ interface EventDetailsDialogProps {
     onOpenChange: (open: boolean) => void;
     onSave: (event: CurrentEvent) => Promise<void>;
     event: CurrentEvent;
+    timezone?: string;
 }
 
-export function CurrentEventDetailsDialog({open, onOpenChange, event, onSave}: EventDetailsDialogProps) {
+export function CurrentEventDetailsDialog({open, onOpenChange, event, onSave, timezone}: EventDetailsDialogProps) {
     const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string>();
 
     const onDialogOpenClose = (open: boolean) => {
         onOpenChange(open)
@@ -22,12 +24,15 @@ export function CurrentEventDetailsDialog({open, onOpenChange, event, onSave}: E
 
     const onFormSubmit = async (formData: CurrentEvent) => {
         setSaving(true)
+        setError(undefined);
         try {
             await onSave(formData)
+            onDialogOpenClose(false)
+        } catch (error) {
+            setError(`Could not update this activity. ${error instanceof Error ? error.message : "Please try again."}`);
         } finally {
             setSaving(false)
         }
-        onDialogOpenClose(false)
     }
 
     return (
@@ -35,11 +40,14 @@ export function CurrentEventDetailsDialog({open, onOpenChange, event, onSave}: E
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{event.planItem.name}</DialogTitle>
-                    <DialogDescription></DialogDescription>
+                    <DialogDescription>Update the start time and notes for your running activity.</DialogDescription>
                 </DialogHeader>
-                <CurrentEventDetailsForm formId="edit-event-form" event={event} onSubmit={onFormSubmit}/>
+                <fieldset disabled={saving}>
+                    <CurrentEventDetailsForm formId="edit-event-form" event={event} onSubmit={onFormSubmit} timezone={timezone}/>
+                </fieldset>
+                {error && <p role="alert" className="text-sm">{error}</p>}
                 <DialogFooter>
-                    <Button form="edit-event-form" type="submit" disabled={saving}>Update</Button>
+                    <Button form="edit-event-form" type="submit" disabled={saving}>{saving ? "Updating..." : "Update"}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

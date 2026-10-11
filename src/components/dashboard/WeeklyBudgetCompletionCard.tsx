@@ -1,141 +1,36 @@
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card.tsx";
-import {getDashboardPeriod} from "@/lib/dashboardDates.ts";
-import useWeeklyStats from "@/api/useStats.ts";
-import {Bar, BarChart, LabelList, XAxis, YAxis} from "recharts"
-import type {LabelProps} from "recharts"
-import {ChartConfig, ChartContainer} from "@/components/ui/chart"
-import {PlanItemStats} from "@/api/types.ts";
-import useCurrentEvent from "@/api/useCurrentEvent.ts";
 import {NavLink} from "react-router";
+import {InsightCard, InsightState} from "@/components/dashboard/InsightCard.tsx";
+import {getWeeklyCompletion} from "@/components/dashboard/dashboardInsights.ts";
+import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
 import {paths} from "@/pages/links.ts";
-import useProfile from "@/api/useProfile.ts";
-import {defaultSettings} from "@/components/settings.ts";
-import useCalendar from "@/api/useCalendar.ts";
 
-const chartConfig = {
-
-} satisfies ChartConfig
-
-export function WeeklyBudgetCompletionCard() {
-
-    const {currentProfile} = useProfile();
-    const timezone = currentProfile?.settings.timezone ?? "UTC";
-    const {weekStart, weekEnd} = getDashboardPeriod(new Date(), timezone, currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay);
-    const {isLoading, weeklyStatsSummary} = useWeeklyStats(weekStart, {timezone, enabled: !!currentProfile});
-    const {loadingCurrentEvent, currentEvent} = useCurrentEvent()
-    const {recentEvents, isLoadingRecentEvents} = useCalendar(weekStart, weekEnd)
-
-    const lastEventsBudgetItemIds = recentEvents?.map(event => event.budgetItemId)
-    const sortedPlanItems = [...(weeklyStatsSummary?.perPlanItem || [])].sort((a, b) => {
-        if (currentEvent && a.planItem.budgetItemId === currentEvent.planItem.budgetItemId) return -1;
-        else if (currentEvent && b.planItem.budgetItemId === currentEvent.planItem.budgetItemId) return 1;
-        if (!lastEventsBudgetItemIds) return 0;
-        let indexOfA = lastEventsBudgetItemIds.indexOf(a.planItem.budgetItemId);
-        let indexOfB = lastEventsBudgetItemIds.indexOf(b.planItem.budgetItemId);
-        indexOfA = indexOfA != -1 ? indexOfA : 10
-        indexOfB = indexOfB != -1 ? indexOfB : 10
-        return indexOfA - indexOfB
-    })
-
-    function completionPercent(budgetStats: PlanItemStats): number {
-        const weeklyTime = budgetStats.planItem.weeklyItemDuration
-        return Math.round(budgetStats.duration / weeklyTime * 100)
-    }
-
-    function calculateColor(completionPercent: number): string {
-        const max = 200
-        const min = 30
-        if (completionPercent > max) completionPercent = max;
-        const value = (completionPercent - min) / (max - min);
-        const hue = (1 - value) * 120;
-        return `hsl(${hue}, 100%, 50%)`;
-    }
-
-    const completions = sortedPlanItems.slice(0, 5).map(budgetStats => completionPercent(budgetStats))
-    const maxCompletion = Math.max(...completions, 1)
-
-    const chartData = sortedPlanItems.slice(0, 5).map((budgetStats, index) => {
-        const completion = completions[index]
-        const relativeSize = completion / maxCompletion
-        return {
-            budget: budgetStats.planItem.name,
-            completionCut: Math.min(completion, 100),
-            completion: completion,
-            fill: calculateColor(completion),
-            labelPosition: relativeSize < 0.15 ? 'right' : 'insideRight',
-        }
-
-    })
-
+export function WeeklyBudgetCompletionCard({rows, state}: {
+    rows: ReturnType<typeof getWeeklyCompletion>;
+    state: InsightState;
+}) {
     return (
-        <Card className="shadow-lg gap-2">
-            <CardHeader>
-                <CardTitle>Weekly completion</CardTitle>
-                <CardDescription>Last 5 active items</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {(isLoading || isLoadingRecentEvents || loadingCurrentEvent) && (
-                    <div className="flex justify-center items-center h-full">
-                        Loading...
-                    </div>
-                )}
-                <ChartContainer config={chartConfig}>
-                    <BarChart
-                        accessibilityLayer
-                        data={chartData}
-                        layout="vertical"
-                        margin={{
-                            left: 0,
-                        }}
-                    >
-                        <XAxis type="number" dataKey="completion" hide />
-                        <YAxis
-                            dataKey="budget"
-                            type="category"
-                            tickLine={false}
-                            tickMargin={5}
-                            axisLine={false}
-                            width={100}
-                        />
-                        <Bar dataKey="completion" radius={5} unit="%" name="Completion (%)">
-                        <LabelList
-                            dataKey="completion"
-                            content={(props: LabelProps) => {
-                                const { value, index } = props;
-                                const x = Number(props.x ?? 0);
-                                const y = Number(props.y ?? 0);
-                                const width = Number(props.width ?? 0);
-                                const height = Number(props.height ?? 0);
-                                const item = index != null ? chartData[index] : undefined;
-                                const position = item?.labelPosition || 'insideRight';
-                                const xPos = position === 'right' ? x + width + 8 : x + width - 8;
-                                const textAnchor = position === 'right' ? 'start' : 'end';
-
-                                return (
-                                    <text
-                                        x={xPos}
-                                        y={y + height / 2}
-                                        fill="currentColor"
-                                        textAnchor={textAnchor}
-                                        dominantBaseline="middle"
-                                        fontSize={12}
-                                    >
-                                        {value}%
-                                    </text>
-                                );
-                            }}
-                        />
-                        </Bar>
-                    </BarChart>
-                </ChartContainer>
-            </CardContent>
-            <CardFooter className="flex-col items-end gap-2 text-sm">
-                <div className="leading-none text-muted-foreground">
-                    <NavLink to={paths.historyCurrentPlan.path}>See more</NavLink>
-                </div>
-            </CardFooter>
-        </Card>
-
-
-    )
+        <InsightCard title="Weekly completion" description="Up to 5 recently active budgets · 100% = weekly allocation" state={state}
+                     footer={<NavLink to={paths.historyCurrentPlan.path} className="ml-auto underline underline-offset-4">View weekly history</NavLink>}>
+            {rows.length === 0 ? <p className="text-sm text-muted-foreground">Track time this week to see usage against your allocations.</p> : <>
+                <ul className="space-y-4">
+                    {rows.map(row => <li key={row.id} className="space-y-1.5">
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm">
+                            <span className="font-medium break-words min-w-0">{row.name}{row.isCurrent && <span className="ml-2 text-xs font-normal text-muted-foreground">Tracking now</span>}</span>
+                            <span className="font-semibold tabular-nums">{row.percent === null ? row.actual > 0 ? `Unplanned time: ${formatSecondsToDuration(row.actual)}` : "No allocation" : `${row.percent}%`}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{formatSecondsToDuration(row.actual)} spent / {formatSecondsToDuration(row.planned)} allocated</p>
+                        {row.outsidePlan && <p className="text-xs text-muted-foreground">Outside this week's plan</p>}
+                        {row.percent !== null && <div role="progressbar" aria-label={`${row.name} weekly allocation`} aria-valuemin={0} aria-valuemax={200}
+                            aria-valuenow={Math.min(row.percent, 200)} aria-valuetext={`${row.percent}% · ${formatSecondsToDuration(row.actual)} spent of ${formatSecondsToDuration(row.planned)} allocated`}
+                            className="relative h-2.5 rounded-full bg-muted overflow-hidden">
+                            <div className="absolute inset-y-0 left-0 rounded-l-full" style={{width: `${Math.min(row.percent, 100) / 2}%`, backgroundColor: row.color}}/>
+                            <div className="absolute inset-y-0 left-1/2 opacity-50" style={{width: `${Math.max(0, Math.min(row.percent, 200) - 100) / 2}%`, backgroundColor: row.color}}/>
+                            <div className="absolute inset-y-0 left-1/2 border-l-2 border-foreground/60" aria-hidden="true"/>
+                        </div>}
+                    </li>)}
+                </ul>
+                <p className="text-xs text-muted-foreground mt-4">Marker: 100% allocation · Lighter segment: overflow · Bars display up to 200%; labels show full usage.</p>
+            </>}
+        </InsightCard>
+    );
 }

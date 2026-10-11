@@ -1,6 +1,6 @@
 import {describe, expect, it} from "vitest";
 import {PlanItemStats, ReportItem, StatsSummary, WeeklyPlanItem, WeeklyReportEntry} from "@/api/types.ts";
-import {balanceLabel, getBudgetBalances, getEligibleHistory, getPlanRealism, getRecentTrend, getWeeklyRhythm} from "@/components/dashboard/dashboardInsights.ts";
+import {balanceLabel, getAllocationModel, getBudgetBalances, getBudgetColor, getEligibleHistory, getPlanRealism, getRecentTrend, getTodayBreakdown, getWeeklyCompletion, getWeeklyRhythm} from "@/components/dashboard/dashboardInsights.ts";
 import {getDashboardPeriod} from "@/lib/dashboardDates.ts";
 
 const period = getDashboardPeriod(new Date("2026-10-10T12:00:00Z"), "Europe/Warsaw", "monday");
@@ -41,6 +41,91 @@ describe("budget balance", () => {
         expect(balanceLabel(rows[0].difference)).toBe("3h 0m remaining");
         expect(balanceLabel(rows[1].difference)).toBe("1h 0m over allocation");
         expect(balanceLabel(rows[2].difference)).toBe("At allocation");
+    });
+});
+
+describe("weekly allocation comparison", () => {
+    it("uses one grouping for both donuts and reconciles tracked time outside the plan", () => {
+        const items = Array.from({length: 7}, (_, index) => ({...currentItem, budgetItemId: index + 1, position: index}));
+        const stats = summary([itemStats(1, 3600, 7200), itemStats(3, 3600, 1800), itemStats(99, 0, 600)]);
+        stats.totalTime = 9900;
+        const grouped = getAllocationModel(items, stats, false);
+        const expanded = getAllocationModel(items, stats, true);
+        expect(grouped.rows).toHaveLength(8);
+        expect(grouped.rows.find(row => row.kind === "remaining")).toMatchObject({name: "Remaining budgets (1)", planned: 3600, actual: 0});
+        expect(grouped.rows[grouped.rows.length - 1]).toMatchObject({kind: "outside", name: "Outside this plan", planned: 0, actual: 900});
+        expect(grouped).toMatchObject({plannedTotal: 25200, actualTotal: 9900});
+        expect(grouped.rows.reduce((sum, row) => sum + row.planned, 0)).toBe(25200);
+        expect(grouped.rows.reduce((sum, row) => sum + row.actual, 0)).toBe(9900);
+        expect(expanded.rows.find(row => row.kind === "outside")).toMatchObject({name: "Outside this plan", planned: 0, actual: 900});
+        expect(expanded.rows).toHaveLength(8);
+    });
+
+    it("preserves budget colors when inputs are reordered or activity is missing", () => {
+        const items = [{...currentItem, color: "#ff0000"}, {...currentItem, budgetItemId: 2, color: ""}];
+        const normal = getAllocationModel(items, summary([itemStats(2, 3600, 1800)]), true);
+        const reversed = getAllocationModel([...items].reverse(), summary([]), true);
+        expect(normal.rows.find(row => row.budgetItemId === 1)?.color).toBe("#ff0000");
+        expect(normal.rows.find(row => row.budgetItemId === 2)?.color).toBe(reversed.rows.find(row => row.budgetItemId === 2)?.color);
+        expect(getBudgetColor(2, "")).not.toBe(getBudgetColor(3, ""));
+    });
+
+    it("has valid zero totals without an invented outside-plan slice", () => {
+        expect(getAllocationModel([{...currentItem, weeklyDuration: 0}], summary([]), false)).toMatchObject({plannedTotal: 0, actualTotal: 0});
+    });
+
+    it("does not mistake separately truncated seconds for outside-plan activity", () => {
+        const stats = summary([itemStats(1, 3600, 3599), itemStats(2, 3600, 1799)]);
+        stats.totalTime = 5399;
+        const model = getAllocationModel([currentItem, {...currentItem, budgetItemId: 2}], stats, false);
+        expect(model.rows.some(row => row.kind === "outside")).toBe(false);
+        expect(model.actualTotal).toBe(5398);
+    });
+});
+
+describe("recently active weekly completion", () => {
+    it("represents a running budget outside the plan using its own weekly events and current session", () => {
+        const event = {uid: "outside", budgetItemId: 99, summary: "Outside", start: "2026-10-05T10:00:00Z", end: "2026-10-05T11:00:00Z", notes: ""};
+        const current = {startTime: "2026-10-05T12:00:00Z", planItem: {budgetItemId: 99, name: "Outside", weeklyDuration: 99999}, notes: ""};
+        const rows = getWeeklyCompletion(summary([itemStats(1, 3600, 1800)]), [event], current, period, new Date("2026-10-05T12:30:00Z"));
+        expect(rows[0]).toMatchObject({id: 99, name: "Outside", planned: 0, actual: 5400, percent: null, isCurrent: true, outsidePlan: true});
+        expect(rows[1]).toMatchObject({id: 1, actual: 1800});
+    });
+
+    it("orders unique budgets by latest activity, with the running budget first and zero-safe percentages", () => {
+        const stats = summary([itemStats(1, 3600, 10800), itemStats(2, 0, 0), itemStats(3, 0, 1800), itemStats(4, 3600, 0)]);
+        const events = [
+            {uid: "a", budgetItemId: 1, start: "2026-10-05T08:00:00Z", end: "2026-10-05T09:00:00Z", summary: "", notes: ""},
+            {uid: "b", budgetItemId: 1, start: "2026-10-05T09:00:00Z", end: "2026-10-05T10:00:00Z", summary: "", notes: ""},
+            {uid: "c", budgetItemId: 3, start: "2026-10-05T10:00:00Z", end: "2026-10-05T11:00:00Z", summary: "", notes: ""},
+        ];
+        const currentEvent = {startTime: "2026-10-05T12:00:00Z", planItem: {budgetItemId: 2, name: "Current", weeklyDuration: 0}, notes: ""};
+        const rows = getWeeklyCompletion(stats, events, currentEvent, period);
+        expect(rows.map(row => row.id)).toEqual([2, 3, 1]);
+        expect(rows[0]).toMatchObject({percent: null, isCurrent: true});
+        expect(rows[1]).toMatchObject({percent: null, actual: 1800});
+        expect(rows[2]).toMatchObject({percent: 300});
+    });
+
+    it("clips synthesized outside-plan activity to the profile's current week", () => {
+        const monday = getDashboardPeriod(new Date("2026-10-05T01:00:00Z"), "UTC", "monday");
+        const current = {startTime: "2026-10-04T23:00:00Z", planItem: {budgetItemId: 99, name: "Outside", weeklyDuration: 0}, notes: ""};
+        expect(getWeeklyCompletion(summary([]), [], current, monday, new Date("2026-10-05T01:00:00Z"))[0].actual).toBe(3600);
+        const completed = {uid: "crossing", budgetItemId: 99, summary: "Outside", start: "2026-10-04T23:00:00Z", end: "2026-10-05T00:30:00Z", notes: ""};
+        const restarted = {...current, startTime: "2026-10-05T00:30:00Z"};
+        expect(getWeeklyCompletion(summary([]), [completed], restarted, monday, new Date("2026-10-05T01:00:00Z"))[0].actual).toBe(3600);
+    });
+});
+
+describe("today's compact breakdown", () => {
+    it("uses the profile date, sorts by duration and keeps same-name budgets separate", () => {
+        const stats = summary([]);
+        stats.perDay = [{date: "2026-10-09T22:00:00Z", totalTime: 5400, perPlanItem: [itemStats(1, 3600, 1800), itemStats(2, 3600, 3600), itemStats(3, 3600, 0)]}];
+        const today = getTodayBreakdown(stats, period, "Europe/Warsaw", 1);
+        expect(today.total).toBe(5400);
+        expect(today.rows.map(row => row.id)).toEqual([2, 1]);
+        expect(today.rows[0].share).toBeCloseTo(66.6667);
+        expect(today.rows[1]).toMatchObject({actual: 1800, isCurrent: true});
     });
 });
 

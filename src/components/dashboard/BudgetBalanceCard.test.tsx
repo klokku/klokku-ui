@@ -26,7 +26,7 @@ describe("Budget balance panel", () => {
     it("shows an actionable error instead of silently presenting no activity", () => {
         const onRetry = vi.fn();
         render(<MemoryRouter><BudgetBalanceCard balances={[]} period={period} state={{...state, error: new Error("offline"), onRetry}}/></MemoryRouter>);
-        expect(screen.getByRole("alert")).toHaveTextContent("Could not load this panel");
+        expect(screen.getByRole("alert")).toHaveTextContent("Could not load budget balance");
         fireEvent.click(screen.getByRole("button", {name: "Retry"}));
         expect(onRetry).toHaveBeenCalledOnce();
     });

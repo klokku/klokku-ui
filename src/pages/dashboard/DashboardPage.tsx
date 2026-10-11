@@ -1,7 +1,6 @@
 import {CurrentEventCard} from "@/components/dashboard/CurrentEventCard.tsx";
 import {WeeklyBudgetCompletionCard} from "@/components/dashboard/WeeklyBudgetCompletionCard.tsx";
-import {PlannedBudgetsSplitCard} from "@/components/dashboard/PlannedBudgetsSplitCard.tsx";
-import {WeeklyBudgetsSplitCard} from "@/components/dashboard/CurrentBudgetsSplitCard.tsx";
+import {WeeklyAllocationCard} from "@/components/dashboard/WeeklyAllocationCard.tsx";
 import {TimeTodayCard} from "@/components/dashboard/TimeTodayCard.tsx";
 import {useState} from "react";
 import {BudgetPlanWizardDialog} from "@/pages/budgetPlan/wizard/BudgetPlanWizardDialog.tsx";
@@ -20,16 +19,21 @@ export function DashboardPage() {
     const insights = useDashboardInsights();
     const {weeklyPlan, isLoadingPlan: isLoading} = insights;
     const [wizardOpen, setWizardOpen] = useState(false);
+    const trackingCard = <CurrentEventCard key={`tracking:${insights.profileUid}`} weeklyPlan={weeklyPlan} activity={insights.activity}
+        activityState={insights.activityState} planState={insights.planState} recentEvents={insights.recentEvents}
+        recentState={insights.recentState} calendarActions={insights.calendarActions} timezone={insights.timezone}/>;
 
-    if (insights.planError) {
+    if (insights.profileError) {
         return <div role="alert" className="p-4 space-y-3">
             <p>Could not load your dashboard.</p>
             <Button variant="outline" onClick={insights.retryPlan}>Retry</Button>
         </div>;
     }
 
-    if (!weeklyPlan && !isLoading) {
+    if (!weeklyPlan && !isLoading && !insights.planError) {
         return (
+            <div className="flex flex-col gap-4 p-4">
+            {(insights.activity.currentEvent || insights.activityState.isLoading || insights.activityState.error) && trackingCard}
             <Empty className="mb-4 border rounded text-center">
                 <EmptyHeader>
                     <EmptyMedia variant="default" className="text-primary-foreground text-6xl">
@@ -44,6 +48,7 @@ export function DashboardPage() {
                     </EmptyContent>
                 </EmptyHeader>
             </Empty>
+            </div>
         )
     }
 
@@ -59,8 +64,8 @@ export function DashboardPage() {
                 />
             )}
             <div className="grid auto-rows-min gap-4 lg:grid-cols-2">
-                <CurrentEventCard/>
-                <WeeklyBudgetCompletionCard/>
+                {trackingCard}
+                <WeeklyBudgetCompletionCard rows={insights.completion} state={insights.completionState}/>
             </div>
             <div className="grid auto-rows-min gap-4 lg:grid-cols-2">
                 <BudgetBalanceCard key={`balance:${insights.profileUid}:${weeklyPlan?.budgetPlanId}`} balances={insights.balances}
@@ -68,12 +73,11 @@ export function DashboardPage() {
                 <PlanRealismCard key={`realism:${insights.profileUid}:${weeklyPlan?.budgetPlanId}`} rows={insights.realism}
                                  description={insights.historyDescription} state={insights.historyState}/>
             </div>
+            <WeeklyAllocationCard key={`allocation:${insights.profileUid}:${weeklyPlan?.budgetPlanId}`} items={weeklyPlan?.items ?? []}
+                                  stats={insights.weeklyStats} planId={weeklyPlan?.budgetPlanId} period={insights.period} timezone={insights.timezone}
+                                  planState={insights.planState} spentState={insights.currentState}/>
             <div className="grid auto-rows-min gap-4 lg:grid-cols-2">
-                <PlannedBudgetsSplitCard/>
-                <WeeklyBudgetsSplitCard/>
-            </div>
-            <div className="grid auto-rows-min gap-4 lg:grid-cols-2">
-                <TimeTodayCard/>
+                <TimeTodayCard today={insights.today} planId={weeklyPlan?.budgetPlanId} period={insights.period} state={insights.currentState}/>
                 <WeeklyRhythmCard days={insights.rhythm} budgets={insights.balances} state={insights.currentState}/>
             </div>
             <RecentTrendsCard key={`${insights.profileUid}:${weeklyPlan?.budgetPlanId}`} items={weeklyPlan?.items ?? []}

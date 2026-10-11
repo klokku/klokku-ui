@@ -5,7 +5,7 @@ import {WeeklyPlanItem, WeeklyReportEntry} from "@/api/types.ts";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {ChartContainer} from "@/components/ui/chart.tsx";
 import {InsightCard, InsightState} from "@/components/dashboard/InsightCard.tsx";
-import {getRecentTrend} from "@/components/dashboard/dashboardInsights.ts";
+import {getBudgetColor, getRecentTrend} from "@/components/dashboard/dashboardInsights.ts";
 import {DashboardPeriod} from "@/lib/dashboardDates.ts";
 import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
 import {links} from "@/pages/links.ts";
@@ -27,7 +27,7 @@ export function RecentTrendsCard({items, weeks, planId, period, timezone, descri
     const samples = data.filter(point => point.actual !== null);
     const average = samples.length ? samples.reduce((sum, point) => sum + point.actual!, 0) / samples.length : 0;
     const params = new URLSearchParams({mode: "custom", from: period.historyFrom.toISOString(), to: period.historyTo.toISOString()});
-    const color = selectedItem?.color || "var(--chart-1)";
+    const color = getBudgetColor(selectedItem?.budgetItemId ?? 0, selectedItem?.color);
 
     return (
         <InsightCard title="Recent trends" description={<>{description}<br/>Previous 8 completed weeks · Off weeks excluded</>} state={state}

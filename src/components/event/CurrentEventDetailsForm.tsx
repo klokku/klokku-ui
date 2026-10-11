@@ -1,11 +1,9 @@
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
 import {z} from "zod";
 import {CurrentEvent} from "@/api/types.ts";
-import {toServerFormat} from "@/lib/dateUtils.ts";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {TimePicker} from "@/components/datetime/TimePicker.tsx";
-import {ClockIcon} from "lucide-react";
+import {DateTimePicker} from "@/components/datetime/DateTimePicker.tsx";
 import {OptionalNotesField} from "@/components/event/OptionalNotesField.tsx";
 
 const formSchema = z.object({
@@ -16,17 +14,18 @@ const formSchema = z.object({
 interface EventDetailsFormProps {
     formId: string;
     event: CurrentEvent;
-    onSubmit: (event: CurrentEvent) => void;
+    onSubmit: (event: CurrentEvent) => void | Promise<void>;
+    timezone?: string;
 }
 
-export function CurrentEventDetailsForm({formId, event, onSubmit}: EventDetailsFormProps) {
-    const onFormSubmit = (formData: z.infer<typeof formSchema>) => {
+export function CurrentEventDetailsForm({formId, event, onSubmit, timezone}: EventDetailsFormProps) {
+    const onFormSubmit = async (formData: z.infer<typeof formSchema>) => {
         const eventToSave: CurrentEvent = {
-            startTime: toServerFormat(formData.startTime),
+            startTime: formData.startTime.toISOString(),
             planItem: event.planItem,
             notes: formData.notes,
         }
-        onSubmit(eventToSave)
+        await onSubmit(eventToSave)
     }
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -41,21 +40,11 @@ export function CurrentEventDetailsForm({formId, event, onSubmit}: EventDetailsF
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onFormSubmit)} id={formId} className="space-y-4">
                 <FormField control={form.control} name="startTime" render={({field}) => (
-                    <FormItem className="flex items-center">
-                        <FormLabel className="w-44">Start time</FormLabel>
+                    <FormItem>
+                        <FormLabel>Start time</FormLabel>
                         <FormControl>
-                            <div className="flex gap-5 items-center">
-                                <ClockIcon/>
-                                <TimePicker
-                                    hours={new Date(field.value).getHours()}
-                                    minutes={new Date(field.value).getMinutes()}
-                                    onChange={(hours, minutes) => {
-                                        const newDate = new Date(field.value)
-                                        newDate.setHours(hours)
-                                        newDate.setMinutes(minutes)
-                                        form.setValue(field.name, newDate)
-                                    }}
-                                />
+                            <div>
+                                <DateTimePicker value={field.value} onChange={field.onChange} timezone={timezone} label="Start"/>
                             </div>
                         </FormControl>
                         <FormMessage/>

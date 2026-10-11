@@ -1,77 +1,38 @@
-import {act, render, screen} from "@testing-library/react";
+import {act, fireEvent, render, screen, waitFor} from "@testing-library/react";
 import {describe, expect, it, vi} from "vitest";
-import {CurrentEvent} from "@/api/types.ts";
 import {CurrentEventDetailsDialog} from "@/components/event/CurrentEventDetailsDialog.tsx";
 
-const dialogMocks = vi.hoisted(() => ({
-    submit: undefined as ((event: CurrentEvent) => Promise<void>) | undefined,
-}));
-
-vi.mock("@radix-ui/react-dialog", () => ({
-    Dialog: ({open, children}: {open: boolean; children: React.ReactNode}) => open ? <div>{children}</div> : null,
-    DialogDescription: ({children}: {children?: React.ReactNode}) => <div>{children}</div>,
-}));
-
-vi.mock("@/components/ui/dialog.tsx", () => ({
-    DialogContent: ({children}: {children: React.ReactNode}) => <div role="dialog">{children}</div>,
-    DialogFooter: ({children}: {children: React.ReactNode}) => <div>{children}</div>,
-    DialogHeader: ({children}: {children: React.ReactNode}) => <div>{children}</div>,
-    DialogTitle: ({children}: {children: React.ReactNode}) => <h2>{children}</h2>,
-}));
-
-vi.mock("@/components/event/CurrentEventDetailsForm.tsx", () => ({
-    CurrentEventDetailsForm: ({onSubmit}: {onSubmit: (event: CurrentEvent) => Promise<void>}) => {
-        dialogMocks.submit = onSubmit;
-        return <div>Event form</div>;
-    },
-}));
-
-const currentEvent: CurrentEvent = {
-    startTime: "2026-08-09T10:00:00Z",
-    notes: "Current note",
-    planItem: {
-        budgetItemId: 12,
-        name: "Project work",
-        weeklyDuration: 3600,
-    },
-};
-
-describe("CurrentEventDetailsDialog", () => {
-    it("disables Update while saving and closes after success", async () => {
+describe("running activity editor", () => {
+    it("disables updates and form controls while saving, then closes after success", async () => {
         let resolveSave!: () => void;
-        const onSave = vi.fn(() => new Promise<void>((resolve) => {
-            resolveSave = resolve;
-        }));
+        const onSave = vi.fn(() => new Promise<void>(resolve => { resolveSave = resolve; }));
         const onOpenChange = vi.fn();
-        render(<CurrentEventDetailsDialog open event={currentEvent} onSave={onSave} onOpenChange={onOpenChange}/>);
-
-        let submitPromise!: Promise<void>;
-        act(() => {
-            submitPromise = dialogMocks.submit!(currentEvent);
-        });
-        expect(screen.getByRole("button", {name: "Update"})).toBeDisabled();
-
-        await act(async () => {
-            resolveSave();
-            await submitPromise;
-        });
-
-        expect(onOpenChange).toHaveBeenCalledWith(false);
+        render(<CurrentEventDetailsDialog open onOpenChange={onOpenChange} onSave={onSave} timezone="UTC"
+            event={{startTime: "2026-10-19T00:30:00Z", notes: "Original note", planItem: {budgetItemId: 1, name: "Work", weeklyDuration: 3600}}}/>);
+        fireEvent.click(screen.getByRole("button", {name: "Update"}));
+        await waitFor(() => expect(screen.getByRole("button", {name: "Updating..."})).toBeDisabled());
+        expect(screen.getByRole("textbox", {name: "Notes"})).toBeDisabled();
+        expect(onOpenChange).not.toHaveBeenCalled();
+        await act(async () => resolveSave());
+        await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
         expect(screen.getByRole("button", {name: "Update"})).toBeEnabled();
     });
 
-    it("stays open and propagates a save rejection", async () => {
-        const error = new Error("Save failed");
-        const onSave = vi.fn().mockRejectedValue(error);
+    it("preserves notes after a failed save and lets the user retry", async () => {
+        const onSave = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce(undefined);
         const onOpenChange = vi.fn();
-        render(<CurrentEventDetailsDialog open event={currentEvent} onSave={onSave} onOpenChange={onOpenChange}/>);
-
-        await act(async () => {
-            await expect(dialogMocks.submit!(currentEvent)).rejects.toBe(error);
-        });
-
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
-        expect(screen.getByRole("button", {name: "Update"})).toBeEnabled();
+        render(<CurrentEventDetailsDialog open onOpenChange={onOpenChange} onSave={onSave} timezone="America/New_York"
+            event={{startTime: "2026-10-19T00:30:00Z", notes: "Original note", planItem: {budgetItemId: 1, name: "Work", weeklyDuration: 3600}}}/>);
+        expect(screen.getByLabelText("Start time", {selector: "input"})).toHaveValue("20:30");
+        fireEvent.change(screen.getByRole("textbox", {name: "Notes"}), {target: {value: "Keep this edit"}});
+        fireEvent.click(screen.getByRole("button", {name: "Update"}));
+        expect(await screen.findByRole("alert")).toHaveTextContent("Could not update this activity");
         expect(onOpenChange).not.toHaveBeenCalled();
+        expect(screen.getByRole("textbox", {name: "Notes"})).toHaveValue("Keep this edit");
+        fireEvent.click(screen.getByRole("button", {name: "Update"}));
+        await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
+        const saved = onSave.mock.calls[1][0];
+        expect(saved.notes).toBe("Keep this edit");
+        expect(new Date(saved.startTime).toISOString()).toBe("2026-10-19T00:30:00.000Z");
     });
 });

@@ -65,7 +65,7 @@ export function AppSidebar() {
     const { setOpenMobile } = useSidebar();
 
     return (
-        <Sidebar variant="sidebar" className="absolute inset-y-[48px] z-10 h-[calc(100svh-48px)]">
+        <Sidebar variant="sidebar" className="sticky top-0 h-[calc(100svh-48px)] group-data-[collapsible=offcanvas]:w-0 group-data-[collapsible=offcanvas]:overflow-hidden">
             <SidebarContent className="mt-2">
                 <SidebarGroup>
                     <SidebarGroupContent>

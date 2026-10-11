@@ -26,7 +26,8 @@ export function WeeklyRhythmCard({days, budgets, state}: {
                         <CartesianGrid vertical={false}/>
                         <XAxis dataKey="dayIndex" type="number" domain={[-0.5, 6.5]} ticks={[0, 1, 2, 3, 4, 5, 6]}
                                tickFormatter={value => days[Number(value)]?.label ?? ""} tickLine={false} axisLine={false} tickMargin={8}/>
-                        <YAxis width={48} tickFormatter={value => `${Math.round(Number(value) / 3600)}h`} tickLine={false} axisLine={false}/>
+                        <YAxis width={48} domain={[0, 24 * 3600]} ticks={[0, 6 * 3600, 12 * 3600, 18 * 3600, 24 * 3600]} allowDataOverflow
+                               tickFormatter={value => `${Math.round(Number(value) / 3600)}h`} tickLine={false} axisLine={false}/>
                         {future.length > 0 && <ReferenceArea x1={future[0].dayIndex - 0.5} x2={6.5} fill="var(--muted)" fillOpacity={0.6}/>}
                         {today && <ReferenceLine x={today.dayIndex} stroke="var(--foreground)" strokeDasharray="3 3"/>}
                         <Tooltip formatter={(value, name) => [formatSecondsToDuration(Number(value)), config[String(name)]?.label ?? name]}
@@ -43,10 +44,6 @@ export function WeeklyRhythmCard({days, budgets, state}: {
                         <span className="break-words">{item.name}</span>
                     </li>)}
                 </ul>
-                <details className="mt-3 text-xs text-muted-foreground">
-                    <summary className="cursor-pointer">Daily totals</summary>
-                    <ul className="mt-2 space-y-1">{days.map(day => <li key={day.dateKey}>{day.label}{day.today ? " (today)" : ""}: {day.upcoming ? "Upcoming" : day.total === null ? "No data" : formatSecondsToDuration(day.total)}</li>)}</ul>
-                </details>
             </>}
         </InsightCard>
     );

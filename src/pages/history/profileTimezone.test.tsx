@@ -6,6 +6,12 @@ import {afterEach, describe, expect, it, vi} from "vitest";
 import {CurrentProfileProvider, useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 import {TimeTodayCard} from "@/components/dashboard/TimeTodayCard.tsx";
 import {HistoryPage} from "@/pages/history/HistoryPage.tsx";
+import useDashboardInsights from "@/pages/dashboard/useDashboardInsights.ts";
+
+function TodayDashboard() {
+    const insights = useDashboardInsights();
+    return <TimeTodayCard today={insights.today} planId={insights.weeklyPlan?.budgetPlanId} period={insights.period} state={insights.currentState}/>;
+}
 
 function ProfileBootstrap() {
     const {setCurrentProfileUid} = useCurrentProfile();
@@ -34,6 +40,11 @@ function setup() {
                 perDay: [{date: "2026-10-18T00:00:00-04:00", totalTime: 3600, perPlanItem: [itemStats]}],
             });
         }
+        if (url.pathname === "/api/weeklyplan") {
+            return Response.json({budgetPlanId: 1, isOffWeek: false, items: [{budgetItemId: 1, name: "Exercise", weeklyDuration: 3600, color: "#123456", position: 0}]});
+        }
+        if (url.pathname.startsWith("/api/calendar/event")) return Response.json([]);
+        if (url.pathname === "/api/budgetplan/1/report") return Response.json({weeks: [], excludedWeekCount: 0});
         return new Response("", {status: 404});
     }));
     const client = new QueryClient({defaultOptions: {queries: {retry: false, gcTime: 0}}});
@@ -51,9 +62,9 @@ afterEach(() => {
 describe("existing statistics views with a different profile timezone", () => {
     it("shows the profile's Sunday activity in Time today and requests the profile's current week", async () => {
         const {Wrapper, statsDates} = setup();
-        render(<Wrapper><TimeTodayCard/></Wrapper>);
+        render(<Wrapper><TodayDashboard/></Wrapper>);
         expect(await screen.findByText("Exercise")).toBeInTheDocument();
-        expect(screen.getByText("1h 0m")).toBeInTheDocument();
+        expect(screen.getAllByText("1h 0m")).toHaveLength(2);
         expect(statsDates).toEqual(["2026-10-12T00:00:00-04:00"]);
     });
 

@@ -1,22 +1,20 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {CurrentEvent} from "@/api/types.ts";
-import {formatDate} from "date-fns";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 import {invalidateTimeInsights} from "@/api/invalidateTimeInsights.ts";
+import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 
-type HookType = () => {
-    loadingCurrentEvent: boolean,
-    currentEvent?: CurrentEvent | null,
-    startEvent: (budgetItemId: number, itemName: string, weeklyDuration: number) => Promise<void>,
-    updateEventStartTime: (startTime: Date) => Promise<void>,
-    updateEventNotes: (notes: string) => Promise<void>,
+interface CurrentEventOptions {
+    enabled?: boolean;
+    refetchInterval?: number;
 }
 
-const useCurrentEvent: HookType = () => {
+const useCurrentEvent = (options: CurrentEventOptions = {}) => {
     const fetchWithAuth = useFetchWithProfileUid()
+    const {currentProfileUid} = useCurrentProfile();
     const queryClient = useQueryClient();
-    const { isLoading: loadingCurrentEvent, data } = useQuery({
-        queryKey: ["currentEvent"],
+    const { isLoading: loadingCurrentEvent, data, error, refetch } = useQuery({
+        queryKey: ["currentEvent", currentProfileUid],
         queryFn: async () => {
             const response = await fetchWithAuth("/api/event/current")
             if (response.status === 404) {
@@ -29,9 +27,12 @@ const useCurrentEvent: HookType = () => {
         },
         staleTime: 0,
         refetchOnMount: true,
-        refetchOnWindowFocus: "always"
+        refetchOnWindowFocus: "always",
+        enabled: !!currentProfileUid && (options.enabled ?? true),
+        refetchInterval: options.refetchInterval,
     })
     const start = useMutation({
+        mutationKey: ["startEvent", currentProfileUid],
         mutationFn: async (startData: {budgetItemId: number, itemName: string, weeklyDuration: number}) => {
             const response = await fetchWithAuth("/api/event", {
                 method: "POST",
@@ -48,10 +49,10 @@ const useCurrentEvent: HookType = () => {
 
             return response.json();
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["currentEvent"]});
+        onSuccess: async () => {
             queryClient.invalidateQueries({queryKey: ["calendarEvents"]});
             invalidateTimeInsights(queryClient);
+            await queryClient.invalidateQueries({queryKey: ["currentEvent"]});
         },
         onError: (error) => {
             console.log(">>>error", error);
@@ -59,11 +60,12 @@ const useCurrentEvent: HookType = () => {
     });
 
     const updateStartTime = useMutation({
+        mutationKey: ["updateCurrentEventStart", currentProfileUid],
         mutationFn: async (startTime: Date) => {
             const response = await fetchWithAuth("/api/event/current/start", {
                 method: "PATCH",
                 body: JSON.stringify({
-                    startTime: formatDate(startTime, "yyyy-MM-dd'T'HH:mm:ssXXX")
+                    startTime: startTime.toISOString()
                 }),
             });
 
@@ -83,6 +85,7 @@ const useCurrentEvent: HookType = () => {
     })
 
     const updateNotes = useMutation({
+        mutationKey: ["updateCurrentEventNotes", currentProfileUid],
         mutationFn: async (notes: string) => {
             const response = await fetchWithAuth("/api/event/current/notes", {
                 method: "PATCH",
@@ -118,6 +121,11 @@ const useCurrentEvent: HookType = () => {
     return {
         loadingCurrentEvent,
         currentEvent: data,
+        error,
+        refetch,
+        isStartingEvent: start.isPending,
+        startError: start.error,
+        resetStartError: start.reset,
         startEvent,
         updateEventStartTime,
         updateEventNotes,
@@ -125,3 +133,5 @@ const useCurrentEvent: HookType = () => {
 }
 
 export default useCurrentEvent;
+
+export type CurrentActivity = ReturnType<typeof useCurrentEvent>;

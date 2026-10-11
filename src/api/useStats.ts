@@ -9,6 +9,7 @@ interface StatsOptions {
     enabled?: boolean;
     timezone?: string;
     refetchInterval?: number;
+    planId?: number;
 }
 
 const useWeeklyStats = (inWeekDate: Date, options: StatsOptions = {}) => {
@@ -19,7 +20,7 @@ const useWeeklyStats = (inWeekDate: Date, options: StatsOptions = {}) => {
         : toServerFormat(inWeekDate);
     const inWeekDateString = encodeURIComponent(dateString);
     const {isLoading, data, error, refetch} = useQuery({
-        queryKey: ["stats", currentProfileUid, dateString],
+        queryKey: ["stats", currentProfileUid, dateString, options.planId],
         queryFn: async () => {
             const response = await fetchWithAuth(`/api/stats/weekly?date=${inWeekDateString}`)
             if (response.status === 404) {
