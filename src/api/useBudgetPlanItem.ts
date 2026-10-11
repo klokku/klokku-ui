@@ -1,5 +1,5 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {BudgetPlanItem} from "@/api/types.ts";
+import {BudgetPlan, BudgetPlanItem} from "@/api/types.ts";
 import {useFetchWithProfileUid} from "@/api/fetchWithProfileUid.ts";
 import {invalidateTimeInsights} from "@/api/invalidateTimeInsights.ts";
 
@@ -8,6 +8,7 @@ type HookType = () => {
     updateBudgetPlanItem: (planId: number, item: BudgetPlanItem) => Promise<BudgetPlanItem>;
     deleteBudgetPlanItem: (planId: number, itemId: number) => Promise<void>;
     changeBudgetPlanItemPosition: (planId: number, itemId: number, precedingItemId: number) => Promise<void>;
+    isChangingBudgetPlanItemPosition: boolean;
 };
 
 const useBudgetPlanItem: HookType = () => {
@@ -83,6 +84,7 @@ const useBudgetPlanItem: HookType = () => {
     })
 
     const changeItemPosition = useMutation({
+        networkMode: "always",
         mutationFn: async (changePositionData: {planId: number, itemId: number, precedingItemId: number}) => {
             const response = await fetchWithAuth(`/api/budgetplan/${changePositionData.planId}/item/${changePositionData.itemId}/position`, {
                 method: "PUT",
@@ -95,13 +97,41 @@ const useBudgetPlanItem: HookType = () => {
             }
             return;
         },
+        onMutate: async ({planId, itemId, precedingItemId}) => {
+            const queryKey = ["budgetPlanDetails", planId];
+            await queryClient.cancelQueries({queryKey, exact: true});
+            const previousPlan = queryClient.getQueryData<BudgetPlan>(queryKey);
+            const movedItem = previousPlan?.items.find(item => item.id === itemId);
+            if (previousPlan && movedItem && precedingItemId !== itemId) {
+                const items = previousPlan.items.filter(item => item.id !== itemId);
+                const precedingIndex = items.findIndex(item => item.id === precedingItemId);
+                if (precedingItemId === 0 || precedingIndex !== -1) {
+                    items.splice(precedingItemId === 0 ? 0 : precedingIndex + 1, 0, movedItem);
+                    queryClient.setQueryData(queryKey, {...previousPlan, items});
+                }
+            }
+            return {previousItemIds: previousPlan?.items.map(item => item.id)};
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["budgetPlanDetails"]});
             queryClient.invalidateQueries({queryKey: ["weeklyPlan"]});
             invalidateTimeInsights(queryClient);
         },
-        onError: (error) => {
-            console.log(">>>error", error);
+        onError: (_error, {planId}, context) => {
+            if (context?.previousItemIds) {
+                const positions = new Map(context.previousItemIds.map((id, index) => [id, index]));
+                queryClient.setQueryData<BudgetPlan>(["budgetPlanDetails", planId], currentPlan => {
+                    if (!currentPlan) return currentPlan;
+                    // Restore order without overwriting edits, additions, or deletions made during the save.
+                    const items = [...currentPlan.items].sort((a, b) =>
+                        (positions.get(a.id) ?? positions.size) - (positions.get(b.id) ?? positions.size));
+                    return {...currentPlan, items};
+                });
+            }
+        },
+        onSettled: (_data, error, {planId}) => {
+            const refresh = queryClient.invalidateQueries({queryKey: ["budgetPlanDetails", planId], exact: true});
+            // A failed offline save must release the handles even if the refresh is paused.
+            return error ? undefined : refresh;
         },
     })
 
@@ -126,6 +156,7 @@ const useBudgetPlanItem: HookType = () => {
         updateBudgetPlanItem,
         deleteBudgetPlanItem,
         changeBudgetPlanItemPosition,
+        isChangingBudgetPlanItemPosition: changeItemPosition.isPending,
     };
 };
 

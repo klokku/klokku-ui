@@ -1,14 +1,12 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {formatSecondsToDuration} from "@/lib/dateUtils.ts";
-import {CheckCircleIcon, ChevronDownIcon, ChevronUpIcon, MessageCircleWarningIcon, PlusIcon} from "lucide-react";
+import {CheckCircleIcon, MessageCircleWarningIcon, PlusIcon} from "lucide-react";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {AddBudgetPlanItemDialog} from "@/components/budgetPlanItem/AddBudgetPlanItemDialog.tsx";
 import {BudgetPlanItem} from "@/api/types.ts";
-import {createElement, useState} from "react";
-import {Badge} from "@/components/ui/badge.tsx";
-import {Button} from "@/components/ui/button.tsx";
-import * as Icons from "lucide-react";
-import {SquareStack as Square2StackIcon} from "lucide-react";
+import {useState} from "react";
+import {closestCenter, DndContext, DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
+import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from "@dnd-kit/sortable";
 import BudgetPlanWizardDialog from "@/pages/budgetPlan/wizard/BudgetPlanWizardDialog.tsx";
 import {EmptyBudgetPlan} from "@/pages/budgetPlan/EmptyBudgetPlan.tsx";
 import useBudgetPlanItem from "@/api/useBudgetPlanItem.ts";
@@ -17,6 +15,7 @@ import {BudgetPlanChooser} from "@/pages/budgetPlan/BudgetPlanChooser.tsx";
 import {Spinner} from "@/components/ui/spinner.tsx";
 import {NoBudgetPlan} from "@/pages/budgetPlan/NoBudgetPlan.tsx";
 import {BudgetPlanEdit} from "@/components/budgetPlan/BudgetPlanEdit.tsx";
+import {SortableBudgetPlanItemRow} from "@/pages/budgetPlan/SortableBudgetPlanItemRow.tsx";
 
 export function BudgetPlansPage() {
 
@@ -24,12 +23,17 @@ export function BudgetPlansPage() {
     const [selectedPlanId, setSelectedPlanId] = useState<number | undefined>();
 
     const {budgetPlanDetails, isLoadingBudgetPlanDetails} = useBudgetPlan(selectedPlanId)
-    const {addBudgetPlanItem, updateBudgetPlanItem, deleteBudgetPlanItem, changeBudgetPlanItemPosition} = useBudgetPlanItem()
+    const {addBudgetPlanItem, updateBudgetPlanItem, deleteBudgetPlanItem, changeBudgetPlanItemPosition, isChangingBudgetPlanItemPosition} = useBudgetPlanItem()
 
     const [editedItem, setEditedItem] = useState<BudgetPlanItem | null>(null)
     const [itemDialogOpen, setItemDialogOpen] = useState<boolean>(false)
     const [wizardOpen, setWizardOpen] = useState<boolean>(false)
     const [createPlanDialogOpen, setCreatePlanDialogOpen] = useState<boolean>(false)
+    const [reorderError, setReorderError] = useState<{planId: number; message: string} | null>(null)
+    const sensors = useSensors(
+        useSensor(PointerSensor, {activationConstraint: {distance: 8}}),
+        useSensor(KeyboardSensor, {coordinateGetter: sortableKeyboardCoordinates}),
+    )
 
     if (isLoadingPlans || isLoadingBudgetPlanDetails) {
         return (
@@ -74,39 +78,26 @@ export function BudgetPlansPage() {
         setEditedItem(null)
     }
 
-    function isFirstOnTheList(item: BudgetPlanItem): boolean {
-        return budgetPlanDetails?.items.findIndex((b) => b.id === item.id) === 0
-    }
-
-    function isLastOnTheList(item: BudgetPlanItem): boolean {
-        const index = budgetPlanDetails?.items.findIndex((b) => b.id === item.id)
-        if (index === undefined || index === -1) return false;
-        return index === budgetPlanDetails!.items.length - 1;
-    }
-
-    async function moveUp(item: BudgetPlanItem) {
-        const index = budgetPlanDetails?.items.findIndex((b) => b.id === item.id)
-        if (index === undefined || index === -1) return;
-
-        if (index < 2) {
-            await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, 0)
-            return;
+    async function onDragEnd({active, over}: DragEndEvent) {
+        if (!over || active.id === over.id || !selectedPlanId || !budgetPlanDetails || isChangingBudgetPlanItemPosition) return;
+        const items = budgetPlanDetails.items;
+        const from = items.findIndex(item => item.id === active.id);
+        const to = items.findIndex(item => item.id === over.id);
+        if (from === -1 || to === -1) return;
+        const reordered = arrayMove(items, from, to);
+        const precedingId = to === 0 ? 0 : reordered[to - 1].id;
+        if (precedingId === undefined) return;
+        const planId = selectedPlanId;
+        setReorderError(null);
+        try {
+            await changeBudgetPlanItemPosition(planId, items[from].id!, precedingId);
+        } catch {
+            setReorderError({planId, message: "Could not save the item order. Please try dragging the item again."});
         }
-        await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, budgetPlanDetails!.items[index - 2].id!)
     }
 
-    async function moveDown(item: BudgetPlanItem) {
-        const index = budgetPlanDetails?.items.findIndex((b) => b.id === item.id)
-        if (index === undefined || index === -1 || index >= budgetPlanDetails!.items.length - 1) return;
-
-        await changeBudgetPlanItemPosition(selectedPlanId!, item.id!, budgetPlanDetails!.items[index + 1].id!)
-    }
-
-    const getIcon = (iconName: string, className: string) => {
-        const key = iconName as keyof typeof Icons;
-        const iconComponent = Icons[key] as React.ComponentType<React.SVGProps<SVGSVGElement>>;
-        return iconComponent ? createElement(iconComponent, {className}) : null
-    };
+    const itemName = (id: string | number) => budgetPlanDetails?.items.find(item => item.id === id)?.name ?? "Item";
+    const itemPosition = (id: string | number) => (budgetPlanDetails?.items.findIndex(item => item.id === id) ?? -1) + 1;
 
     return (
         <div className="grow flex flex-col gap-2">
@@ -147,88 +138,65 @@ export function BudgetPlansPage() {
 
             {budgetPlanDetails?.items && (
                 <>
-                    <div className="rounded-md border overflow-hidden shadow-xs">
-                        <Table className="w-full border-collapse">
-                            <TableHeader>
-                                <TableRow className="bg-gray-50">
-                                    <TableHead className="w-60"></TableHead>
-                                    <TableHead>Weekly</TableHead>
-                                    <TableHead>Daily</TableHead>
-                                    <TableHead className="hidden md:table-cell">Events per week</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {budgetPlanDetails?.items?.map((item) => (
-                                    <TableRow key={`budget-plan-item-${item.id}`}>
-                                        <TableCell className="cursor-pointer font-medium hover:text-blue-500"
-                                                   onClick={() => {
-                                                       editItem(item)
-                                                   }}>
-                                            <div className="flex gap-2 items-center">
-                                                {item.color && (
-                                                    <div
-                                                        className="w-1 h-5 rounded-full flex-shrink-0"
-                                                        style={{backgroundColor: item.color}}
-                                                    />
-                                                )}
-                                                {item.icon && getIcon(item.icon, "size-5 text-gray-500")}
-                                                {!item.icon && <Square2StackIcon className="size-5 text-gray-500"/>}
-                                                {item.name}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>{formatSecondsToDuration(item.weeklyDuration)}</TableCell>
-                                        <TableCell>{formatSecondsToDuration(item.weeklyDuration / 7)}</TableCell>
-                                        <TableCell className="hidden md:table-cell">{item.weeklyOccurrences !== 0 ? item.weeklyOccurrences : (
-                                            <Badge variant="outline" className="text-gray-500">undefined</Badge>)}</TableCell>
-                                        <TableCell className="flex justify-end items-center">
-                                            <div className="flex gap-1">
-                                                {!isFirstOnTheList(item) &&
-                                                    <Button type="button" variant="outline" size="icon" className="h-[30px]" onClick={() => {
-                                                        moveUp(item)
-                                                    }}>
-                                                        <ChevronUpIcon className="size-4"/>
-                                                    </Button>
-                                                }
-                                                {!isLastOnTheList(item) &&
-                                                    <Button type="button" variant="outline" size="icon" className="h-[30px]" onClick={() => {
-                                                        moveDown(item)
-                                                    }}>
-                                                        <ChevronDownIcon className="size-4"/>
-                                                    </Button>
-                                                }
-                                            </div>
-                                        </TableCell>
+                    {reorderError && reorderError.planId === selectedPlanId && <p role="alert" className="text-sm text-destructive">{reorderError.message}</p>}
+                    <DndContext key={selectedPlanId} sensors={sensors} collisionDetection={closestCenter}
+                                modifiers={[({transform}) => ({...transform, x: 0})]}
+                                onDragEnd={event => { void onDragEnd(event); }}
+                                accessibility={{
+                                    screenReaderInstructions: {draggable: "To reorder a budget item, press Space or Enter to pick it up, use the up and down arrow keys to move, and press Space or Enter to drop. Press Escape to cancel."},
+                                    announcements: {
+                                        onDragStart: ({active}) => `Picked up ${itemName(active.id)}, position ${itemPosition(active.id)} of ${budgetPlanDetails.items.length}.`,
+                                        onDragOver: ({active, over}) => over ? `${itemName(active.id)} moved to position ${itemPosition(over.id)} of ${budgetPlanDetails.items.length}.` : `${itemName(active.id)} is outside the list.`,
+                                        onDragEnd: ({active, over}) => over ? `${itemName(active.id)} dropped at position ${itemPosition(over.id)}.` : `Reordering ${itemName(active.id)} cancelled.`,
+                                        onDragCancel: ({active}) => `Reordering ${itemName(active.id)} cancelled.`,
+                                    },
+                                }}>
+                        <div className="rounded-md border overflow-hidden shadow-xs">
+                            <Table className="w-full border-collapse">
+                                <TableHeader>
+                                    <TableRow className="bg-gray-50">
+                                        <TableHead className="w-60"></TableHead>
+                                        <TableHead>Weekly</TableHead>
+                                        <TableHead>Daily</TableHead>
+                                        <TableHead className="hidden md:table-cell">Events per week</TableHead>
+                                        <TableHead className="w-12"><span className="sr-only">Reorder</span></TableHead>
                                     </TableRow>
-                                ))}
-                                <TableRow key="add-new-budget-row" className="text-muted-foreground">
-                                    <TableCell className="text-center cursor-pointer hover:text-blue-500" onClick={addNewBudget}>
-                                        <div className="flex items-center gap-2">
-                                            <PlusIcon className="size-4"/>
-                                            <span>Add new item</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <span>{formatSecondsToDuration(totalItemsTime)}</span>
-                                            {(totalItemsTime === 7 * 24 * 60 * 60) && (
-                                                <CheckCircleIcon className="size-4 text-green-500"/>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <span>{formatSecondsToDuration((totalItemsTime ?? 1) / 7)}</span>
-                                            {(totalItemsTime === 7 * 24 * 60 * 60) && (
-                                                <CheckCircleIcon className="size-4 text-green-500"/>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="hidden md:table-cell"></TableCell>
-                                    <TableCell></TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
+                                </TableHeader>
+                                <TableBody>
+                                    <SortableContext items={budgetPlanDetails.items.flatMap(item => item.id === undefined ? [] : [item.id])} strategy={verticalListSortingStrategy}>
+                                        {budgetPlanDetails.items.map(item => <SortableBudgetPlanItemRow key={item.id} item={item}
+                                            disabled={isChangingBudgetPlanItemPosition || budgetPlanDetails.items.length < 2} onEdit={editItem}/>)}
+                                    </SortableContext>
+                                    <TableRow key="add-new-budget-row" className="text-muted-foreground">
+                                        <TableCell className="text-center cursor-pointer hover:text-blue-500" onClick={addNewBudget}>
+                                            <div className="flex items-center gap-2">
+                                                <PlusIcon className="size-4"/>
+                                                <span>Add new item</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <span>{formatSecondsToDuration(totalItemsTime)}</span>
+                                                {(totalItemsTime === 7 * 24 * 60 * 60) && (
+                                                    <CheckCircleIcon className="size-4 text-green-500"/>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <span>{formatSecondsToDuration((totalItemsTime ?? 1) / 7)}</span>
+                                                {(totalItemsTime === 7 * 24 * 60 * 60) && (
+                                                    <CheckCircleIcon className="size-4 text-green-500"/>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell"></TableCell>
+                                        <TableCell></TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </DndContext>
                 </>
             )}
 
