@@ -18,3 +18,13 @@ Klokku application consists of two main components:
 - frontend written in React (this repository).
 
 You can find installation instruction in [the backend repository](https://github.com/klokku/klokku) and in the documentation on [the official website](https://klokku.com).
+
+## Dashboard customization
+
+Use **Customize dashboard** to show, hide, and reorder dashboard cards for the current profile.
+Tracking now always remains visible and first.
+Changes sync across devices after **Save**; **Cancel** discards edits, and **Restore defaults** resets visibility and ordering when saved.
+
+This feature requires backend support for `GET`, `PUT`, and `DELETE /api/user/current/dashboard` and the dashboard configuration database migration.
+Deploy the backend before the frontend.
+The frontend retains tracking controls and offers a retry if loading dashboard preferences fails.

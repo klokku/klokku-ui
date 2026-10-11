@@ -5,6 +5,7 @@ import {afterEach, describe, expect, it, vi} from "vitest";
 import {CurrentProfileProvider, useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 import useDashboardInsights from "@/pages/dashboard/useDashboardInsights.ts";
 import {getDashboardPeriod} from "@/lib/dashboardDates.ts";
+import {DashboardConfiguration} from "@/components/dashboard/dashboardConfiguration";
 
 function ProfileControls() {
     const {setCurrentProfileUid} = useCurrentProfile();
@@ -12,7 +13,7 @@ function ProfileControls() {
     return <button onClick={() => setCurrentProfileUid("profile-b")}>Switch profile</button>;
 }
 
-function setupApi(failRecent = false) {
+function setupApi(failRecent = false, configuration: DashboardConfiguration | null = null) {
     const period = getDashboardPeriod(new Date(), "UTC", "monday");
     const fetchMock = vi.fn(async (input: RequestInfo | URL, options?: RequestInit) => {
         const url = new URL(String(input), "http://localhost");
@@ -20,6 +21,9 @@ function setupApi(failRecent = false) {
         const name = profile === "profile-a" ? "Budget A" : "Budget B";
         const actual = profile === "profile-a" ? 3600 : 7200;
         const item = {budgetItemId: 1, name, weeklyDuration: 3600, weeklyOccurrences: 1, icon: "", color: "#123456", position: 0, notes: ""};
+        if (url.pathname === "/api/user/current/dashboard") {
+            return Response.json(options?.method === "PUT" ? JSON.parse(String(options.body)) : configuration);
+        }
         if (url.pathname === "/api/user/current") {
             return Response.json({uid: profile, settings: {timezone: "UTC", weekStartDay: "monday"}});
         }
@@ -59,6 +63,20 @@ function createWrapper() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("dashboard insight queries", () => {
+    it("keeps tracking available without optional requests and fetches shared data when a card is enabled", async () => {
+        const hidden: DashboardConfiguration = {cards: ["weekly-completion", "budget-balance", "plan-realism", "weekly-allocation", "time-today", "weekly-rhythm", "recent-trends"].map(id => ({id, visible: false}))};
+        const fetchMock = setupApi(false, hidden);
+        const {result} = renderHook(() => useDashboardInsights(), {wrapper: createWrapper()});
+        await waitFor(() => expect(result.current.recentEvents).toHaveLength(1));
+        await waitFor(() => expect(result.current.dashboardConfiguration.isReady).toBe(true));
+        expect(fetchMock.mock.calls.some(([input]) => String(input).includes("/report?") || String(input).startsWith("/api/stats/") || String(input).startsWith("/api/calendar/event?"))).toBe(false);
+        await act(async () => {
+            await result.current.dashboardConfiguration.saveConfiguration({cards: hidden.cards.map(card => card.id === "budget-balance" ? {...card, visible: true} : card)});
+        });
+        await waitFor(() => expect(result.current.balances[0]?.name).toBe("Budget A"));
+        expect(fetchMock.mock.calls.filter(([input]) => String(input).startsWith("/api/stats/"))).toHaveLength(1);
+        expect(fetchMock.mock.calls.some(([input]) => String(input).includes("/report?") || String(input).startsWith("/api/calendar/event?"))).toBe(false);
+    });
     it("uses one historical request for trends and realism, without fetching before a profile is available", async () => {
         const fetchMock = setupApi();
         const {result} = renderHook(() => useDashboardInsights(), {wrapper: createWrapper()});

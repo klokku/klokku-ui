@@ -21,8 +21,9 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            '@': '/src'
+            '@': '/src',
+            // react-router-dom re-exports react-router; use one module instance in tests.
+            'react-router-dom': 'react-router'
         }
     }
 });
-
