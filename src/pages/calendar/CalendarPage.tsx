@@ -1,7 +1,7 @@
 import FullCalendar from "@fullcalendar/react";
 import timeGridWeek from "@fullcalendar/timegrid"
 import useCalendar from "@/api/useCalendar.ts";
-import {useRef, useState} from "react";
+import {useState} from "react";
 import {formatEventDuration, getCurrentWeekFirstDay, toServerFormat, weekEndDay} from "@/lib/dateUtils.ts";
 import {CalendarEvent} from "@/api/types.ts";
 import interactionPlugin from '@fullcalendar/interaction';
@@ -19,19 +19,21 @@ import useProfile from "@/api/useProfile.ts";
 import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
 import {Button} from "@/components/ui/button.tsx";
 import {NotebookPenIcon, PlusIcon} from "lucide-react";
+import {newEventDefaults} from "@/pages/calendar/newEventDefaults.ts";
 
 export function CalendarPage() {
 
     const {currentProfile} = useProfile()
     const isMobile = useIsMobile();
-    const currentWeekFirstDay = getCurrentWeekFirstDay(currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay);
+    const weekStartDay = currentProfile?.settings.weekStartDay ?? defaultSettings.weekStartDay;
+    const currentWeekFirstDay = getCurrentWeekFirstDay(weekStartDay);
 
     const lastWeekDay = weekEndDay(currentWeekFirstDay)
     const [calendarStart, setCalendarStart] = useState<Date>(currentWeekFirstDay);
     const [calendarEnd, setCalendarEnd] = useState<Date>(lastWeekDay);
-    const [currentViewDate, setCurrentViewDate] = useState<Date>(isMobile ? new Date() : currentWeekFirstDay);
+    const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date());
 
-    const calendarRef = useRef<FullCalendar>(null);
+    const [calendar, setCalendar] = useState<FullCalendar | null>(null);
 
     const {isLoading, events, modifyEvent, createEvent, deleteEvent} = useCalendar(calendarStart, calendarEnd);
     const {currentEvent} = useCurrentEvent();
@@ -147,20 +149,13 @@ export function CalendarPage() {
     const closeEditor = () => {
         setPopoverOpen(false);
         setEventDetailsInput(null);
-        calendarRef.current?.getApi().unselect();
+        calendar?.getApi().unselect();
     };
 
     const onAddEvent = () => {
-        const now = new Date();
-        // Round to previous 30-minute slot
-        const minutes = Math.floor(now.getMinutes() / 30) * 30;
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), minutes);
-        const start = new Date(end.getTime() - 60 * 60 * 1000); // 1 hour duration
+        if (!calendar) return;
 
-        setEventDetailsInput({
-            startDate: start,
-            endDate: end,
-        });
+        setEventDetailsInput(newEventDefaults(calendar.getApi().view, new Date()));
         setAnchorPos({x: window.innerWidth / 2, y: window.innerHeight / 2});
         setPopoverOpen(true);
     };
@@ -185,7 +180,7 @@ export function CalendarPage() {
             {!isLoading && events && (
                 <FullCalendar
                     height="calc(100vh - 120px)"
-                    ref={calendarRef}
+                    ref={setCalendar}
                     plugins={[timeGridWeek, interactionPlugin]}
                     initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
                     initialDate={currentViewDate}
@@ -207,7 +202,7 @@ export function CalendarPage() {
                     editable={true}
                     eventResizableFromStart={true}
                     slotDuration={'00:15:00'}
-                    firstDay={1}
+                    firstDay={weekStartDay === "sunday" ? 0 : 1}
                     locale={userSettings.locale}
                     scrollTime={`${scrollHour()}:00:00`} // now minus 2 hours
                     slotLabelFormat={
@@ -239,7 +234,7 @@ export function CalendarPage() {
                         function (datesSet) {
                             setCalendarStart(datesSet.start)
                             setCalendarEnd(datesSet.end)
-                            setCurrentViewDate(datesSet.start)
+                            setCurrentViewDate(datesSet.view.calendar.getDate())
                         }
                     }
                     unselectCancel={'.calendar-unselect-cancel'}
@@ -261,6 +256,8 @@ export function CalendarPage() {
             )}
             <Button
                 size="icon-lg"
+                aria-label="Add event"
+                disabled={!calendar}
                 className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg calendar-unselect-cancel"
                 onClick={onAddEvent}
             >
