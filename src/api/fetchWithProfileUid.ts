@@ -1,5 +1,6 @@
 import {useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
 import {paths} from "@/pages/links.ts";
+import {SESSION_EXPIRED_EVENT} from "@/lib/sessionExpired";
 
 export const fetchWithProfileUid = async (
     url: string,
@@ -12,7 +13,11 @@ export const fetchWithProfileUid = async (
     const response = await addHeaders(fetch, url, currentProfileUid, options);
 
     if (response.status === 401) {
-        window.location.href = paths.start.path
+        const shouldRedirect = window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT, {
+            cancelable: true,
+            detail: {profileUid: currentProfileUid},
+        }));
+        if (shouldRedirect) window.location.href = paths.start.path;
         throw new Error('Unauthorized');
     }
 

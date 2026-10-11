@@ -10,6 +10,7 @@ import useWeeklyPlan from "@/api/useWeeklyPlan.ts";
 import {EventDetails} from "@/pages/calendar/eventDetails.ts";
 import {OptionalNotesField} from "@/components/event/OptionalNotesField.tsx";
 import {useState} from "react";
+import {useConnectionBlocked} from "@/components/pwa/connectionContext";
 
 const eventDetailsSchema = z.object({
     startDate: z.date(),
@@ -44,6 +45,7 @@ type Props = {
 }
 
 export function EventDetailsPopover({open, onOpenChange, position, input, onSave, onDelete, returnFocus, timezone}: Props) {
+    const connectionBlocked = useConnectionBlocked();
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string>();
 
@@ -99,7 +101,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
 
         <Popover
             open={open}
-            onOpenChange={onOpenChange}
+            onOpenChange={nextOpen => { if (nextOpen || !connectionBlocked) onOpenChange(nextOpen); }}
             key={input.uid || 'new-event'}
         >
             <PopoverTrigger asChild>
@@ -117,6 +119,7 @@ export function EventDetailsPopover({open, onOpenChange, position, input, onSave
                 />
             </PopoverTrigger>
             <PopoverContent className="w-[360px] max-w-[calc(100vw-2rem)] p-4" align="start" aria-label={isCreateMode() ? "Create calendar event" : `Edit ${input.summary} event`}
+                            onInteractOutside={event => { if (connectionBlocked) event.preventDefault(); }}
                             onCloseAutoFocus={event => { if (returnFocus) { event.preventDefault(); returnFocus(); } }}>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6 calendar-unselect-cancel">
