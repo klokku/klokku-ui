@@ -14,6 +14,7 @@ import {clearProfileUid} from "@/components/auth/ProfileProvider.tsx";
 import {paths} from "@/pages/links.ts";
 import {useNavigate} from "react-router-dom";
 import useProfile from "@/api/useProfile.ts";
+import {InstallMenuItem} from "@/components/pwa/InstallMenuItem";
 
 
 type UserButtonProps = {
@@ -87,6 +88,7 @@ export function UserButton({profile}: UserButtonProps) {
                     <BlocksIcon className="opacity-50" />
                     Integrations
                 </DropdownMenuItem>
+                <InstallMenuItem/>
                 <DropdownMenuItem onClick={() => {navigateToHelp()}}>
                     <HelpCircleIcon className="opacity-50" />
                     Help & Feedback

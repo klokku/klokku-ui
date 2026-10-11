@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="theme-color" content="#00bcd4"/>
+    <title>You're offline | Klokku</title>
+    <script type="module" src="/src/offline.ts"></script>
+</head>
+<body class="grid min-h-svh place-items-center bg-background text-foreground">
+<main class="m-4 max-w-md space-y-4 rounded-lg border bg-card p-8 shadow-sm">
+    <img src="/klokku-icon.svg" alt="Klokku" class="size-12"/>
+    <h1 class="text-2xl font-semibold">You're offline</h1>
+    <p class="leading-relaxed text-muted-foreground">Klokku needs an internet connection to load your data and save changes. Reconnect, then retry to open the app.</p>
+    <button type="button" id="retry" class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-50">Retry connection</button>
+    <p role="status" id="status" class="min-h-6 text-sm text-muted-foreground"></p>
+</main>
+</body>
+</html>

@@ -1,9 +1,10 @@
 import {useEffect} from "react";
-import {cleanup, fireEvent, render, screen, waitFor} from "@testing-library/react";
+import {act, cleanup, fireEvent, render, screen, waitFor} from "@testing-library/react";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {CalendarPage} from "@/pages/calendar/CalendarPage.tsx";
 import {CurrentProfileProvider, useCurrentProfile} from "@/hooks/currentProfileContext.tsx";
+import {OfflineBoundary} from "@/components/pwa/OfflineBoundary";
 
 function ProfileCalendar() {
     const {currentProfileUid, setCurrentProfileUid} = useCurrentProfile();
@@ -17,6 +18,7 @@ function renderCalendar(weekStartDay: "monday" | "sunday" = "monday") {
             return Response.json({settings: {weekStartDay}});
         }
         if (url === "/api/user/current/photo") return new Response();
+        if (url === "/") return new Response();
         if (url === "/api/event/current") return new Response(null, {status: 404});
         if (url.startsWith("/api/weeklyplan?")) return Response.json({items: []});
         if (url.startsWith("/api/calendar/event")) return Response.json([]);
@@ -26,7 +28,7 @@ function renderCalendar(weekStartDay: "monday" | "sunday" = "monday") {
     return render(
         <QueryClientProvider client={client}>
             <CurrentProfileProvider>
-                <ProfileCalendar/>
+                <OfflineBoundary><ProfileCalendar/></OfflineBoundary>
             </CurrentProfileProvider>
         </QueryClientProvider>,
     );
@@ -102,5 +104,20 @@ describe("calendar event creation", () => {
         await waitFor(() => expect(container.querySelector(".fc-col-header-cell")).toHaveAttribute("data-date", "2026-10-11"));
         fireEvent.click(screen.getByRole("button", {name: "Add event"}));
         await expectEditorDates(new Date(2026, 9, 11));
+    });
+
+    it("keeps a calendar popover draft when the reconnect dialog takes focus", async () => {
+        renderCalendar();
+        await waitFor(() => expect(screen.getByRole("button", {name: "Add event"})).toBeEnabled());
+        fireEvent.click(screen.getByRole("button", {name: "Add event"}));
+        fireEvent.click(await screen.findByRole("button", {name: "Add note"}));
+        fireEvent.change(screen.getByRole("textbox", {name: "Notes"}), {target: {value: "Unfinished calendar note"}});
+        act(() => { window.dispatchEvent(new Event("offline")); });
+        const retry = screen.getByRole("button", {name: "Retry connection"});
+        act(() => { retry.focus(); });
+        fireEvent.click(retry);
+        await waitFor(() => expect(screen.queryByRole("dialog", {name: "You're offline"})).not.toBeInTheDocument());
+        expect(screen.getByRole("dialog", {name: "Create calendar event"})).toBeInTheDocument();
+        expect(screen.getByRole("textbox", {name: "Notes"})).toHaveValue("Unfinished calendar note");
     });
 });
